@@ -13,4 +13,4 @@
 
 ## Architecture rules
 
-- Cognitive Globe geometry is derived by a pure visual-layout function from the compact observation and existing Memory positions, so rendering tests cannot alter ORB or Memory semantics.
+- Cognitive Globe geometry derives from the compact observation and measured existing Memory bounds; camera framing follows visible layer bounds, so presentation cannot alter ORB or Memory semantics.

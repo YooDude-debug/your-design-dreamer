@@ -32,7 +32,8 @@ import {
   type CognitiveView,
 } from "./cognitive-layers";
 
-export const LAYER_GAP = 1.35;
+export const MIN_LAYER_GAP = 3.5;
+export const LAYER_GAP_RATIO = 0.35;
 const PRESENT = new Color("#e8ecf2");
 const UNAVAILABLE = new Color("#747d8c");
 const UNKNOWN = new Color("#343b46");
@@ -88,9 +89,21 @@ export type CognitiveVisualLayout = {
   edges: CognitiveVisualEdge[];
 };
 
+/** Tatsächlicher Radius der vorhandenen Memory-Positionen. */
+export function measureMemoryCoreRadius(positions: readonly Vector3[], fallback = 1): number {
+  let radius = 0;
+  for (const position of positions) radius = Math.max(radius, position.length());
+  return radius > 0 ? radius : fallback;
+}
+
+/** Sichtbarer Abstand, proportional zum realen Memory-Core und nie zu knapp. */
+export function cognitiveLayerGap(memoryCoreRadius: number): number {
+  return Math.max(MIN_LAYER_GAP, memoryCoreRadius * LAYER_GAP_RATIO);
+}
+
 /** Radius der Schale i (0 = Memory Core). */
 export function layerRadius(base: number, layerIndex: number): number {
-  return base + layerIndex * LAYER_GAP;
+  return base + layerIndex * cognitiveLayerGap(base);
 }
 
 export function cognitiveLayerRadius(base: number, layer: CognitiveLayerId): number {
@@ -164,6 +177,7 @@ export function buildCognitiveVisualLayout(
       if (!factorPosition) return;
       const tangent = new Vector3(-factorPosition.z, 0, factorPosition.x).normalize();
       factorPosition.addScaledVector(tangent, (factorIndex - 3) * 0.13);
+      factorPosition.normalize().multiplyScalar(factorRadius);
       addNode({
         id: `factor:${candidateIndex}:${key}`,
         layer: "factors",
@@ -343,8 +357,13 @@ export class CognitiveLayerScene {
   private renderedEdges: RenderedEdgeGroup[] = [];
   private retrievalLines: LineSegments | null = null;
   private retrievalEdges: CognitiveVisualEdge[] = [];
+  private occupiedLayers = new Set<CognitiveLayerId>(["memory"]);
 
-  constructor(private base: number) {}
+  private memoryCoreRadius: number;
+
+  constructor(private fallbackBase: number) {
+    this.memoryCoreRadius = fallbackBase;
+  }
 
   /** Neu aufbauen – nur bei neuer Observation oder neuer Memory-Struktur. */
   build(
@@ -353,12 +372,17 @@ export class CognitiveLayerScene {
     index: ReadonlyMap<string, number>,
   ): void {
     this.clear();
-    const layout = buildCognitiveVisualLayout(view, positions, index, this.base);
+    this.memoryCoreRadius = measureMemoryCoreRadius(positions, this.fallbackBase);
+    const layout = buildCognitiveVisualLayout(view, positions, index, this.memoryCoreRadius);
+    this.occupiedLayers = new Set<CognitiveLayerId>([
+      "memory",
+      ...layout.nodes.map((node) => node.layer),
+    ]);
 
     for (const layer of COGNITIVE_LAYERS) {
       if (layer.id === "memory") continue;
       const group = new Group();
-      const radius = cognitiveLayerRadius(this.base, layer.id);
+      const radius = cognitiveLayerRadius(this.memoryCoreRadius, layer.id);
       group.add(this.ring(radius, 0.35, layerHasData(view, layer.id)));
       const nodes = layout.nodes.filter((node) => node.layer === layer.id);
       if (nodes.length) group.add(this.markers(nodes));
@@ -392,6 +416,22 @@ export class CognitiveLayerScene {
         baseOpacity: object.material instanceof LineBasicMaterial ? object.material.opacity : 1,
       });
     }
+  }
+
+  /** Äusserster aktuell sichtbarer Ring; Fokus rahmt Core plus gewählte Ebene. */
+  framingRadius(visible: ReadonlySet<CognitiveLayerId>, focus: CognitiveLayerId | null): number {
+    if (focus)
+      return Math.max(this.memoryCoreRadius, cognitiveLayerRadius(this.memoryCoreRadius, focus));
+    let radius = this.memoryCoreRadius;
+    for (const layer of visible) {
+      if (!this.occupiedLayers.has(layer)) continue;
+      radius = Math.max(radius, cognitiveLayerRadius(this.memoryCoreRadius, layer));
+    }
+    return radius;
+  }
+
+  getMemoryCoreRadius(): number {
+    return this.memoryCoreRadius;
   }
 
   /** Aktivierungspfad Memory → Candidate, nur aus echtem Retrieval-Event. */
@@ -472,7 +512,7 @@ export class CognitiveLayerScene {
     const mesh = new InstancedMesh(new SphereGeometry(1, 12, 12), material, nodes.length);
     const matrix = new Matrix4();
     nodes.forEach((node, index) => {
-      const size = node.layer === "candidates" || node.layer === "strategy" ? 0.21 : 0.18;
+      const size = node.layer === "candidates" || node.layer === "strategy" ? 0.85 : 0.72;
       matrix.compose(node.position, new Quaternion(), new Vector3(size, size, size));
       mesh.setMatrixAt(index, matrix);
       mesh.setColorAt(
@@ -523,6 +563,7 @@ export class CognitiveLayerScene {
     this.renderedEdges = [];
     this.retrievalEdges = [];
     this.retrievalLines = null;
+    this.occupiedLayers = new Set<CognitiveLayerId>(["memory"]);
   }
 
   dispose(): void {

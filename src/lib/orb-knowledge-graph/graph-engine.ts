@@ -72,6 +72,14 @@ export function retrievalPulseIndices(
   return out;
 }
 
+/** Rein visuelles Framing: hält den gegebenen Radius in beiden Achsen im Bild. */
+export function calculateFramingDistance(radius: number, fovDegrees: number, aspect: number): number {
+  const verticalHalfFov = (fovDegrees * Math.PI) / 360;
+  const horizontalHalfFov = Math.atan(Math.tan(verticalHalfFov) * aspect);
+  const limitingHalfFov = Math.min(verticalHalfFov, horizontalHalfFov);
+  return (radius / Math.sin(limitingHalfFov)) * 1.08;
+}
+
 export class KnowledgeGraphEngine {
   private renderer: WebGLRenderer;
   private scene = new Scene();
@@ -97,6 +105,7 @@ export class KnowledgeGraphEngine {
   private downAt = new Vector2();
   private lastInteraction = 0;
   private distance = 30;
+  private framingDistance = 30;
   private pinchStart = 0;
   private pointers = new Map<number, Vector2>();
   private raycaster = new Raycaster();
@@ -219,6 +228,7 @@ export class KnowledgeGraphEngine {
     if (this.mesh) this.mesh.visible = coreOn || focus !== null;
     if (this.lines) this.lines.visible = coreOn;
     this.cognitiveScene.setVisibility(this.layerVisible, focus);
+    this.updateFraming();
   }
   private rebuildCognitive(): void {
     this.cognitiveScene.build(this.cognitiveView, this.positions, this.index);
@@ -261,7 +271,8 @@ export class KnowledgeGraphEngine {
     this.focusNodes = nodeIds ? new Set(nodeIds) : null;
     this.focusEdges = edgeIds ? new Set(edgeIds) : null;
     this.pathQueue = [];
-    this.distance = nodeIds && nodeIds.length ? 22 : 30;
+    this.distance =
+      nodeIds && nodeIds.length ? Math.min(this.framingDistance, 22) : this.framingDistance;
   }
   /** Spielt einen Suchpfad Schritt für Schritt ab (Farbe getrennt vom Live-Puls). */
   playPath(steps: ({ node: string } | { edge: string; to: string })[], stepMs = 450): void {
@@ -428,7 +439,10 @@ export class KnowledgeGraphEngine {
     this.zoomBy(Math.exp(e.deltaY * 0.0012));
   };
   private zoomBy(f: number) {
-    this.distance = Math.min(60, Math.max(12, this.distance * f));
+    this.distance = Math.min(
+      this.framingDistance * 2.5,
+      Math.max(this.framingDistance * 0.55, this.distance * f),
+    );
   }
   private pick(x: number, y: number) {
     if (!this.mesh) return;
@@ -455,7 +469,16 @@ export class KnowledgeGraphEngine {
     this.renderer.setSize(w, h);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
+    this.updateFraming();
   };
+
+  private updateFraming(): void {
+    const radius = this.cognitiveScene.framingRadius(this.layerVisible, this.layerFocus);
+    this.framingDistance = calculateFramingDistance(radius, this.camera.fov, this.camera.aspect);
+    this.camera.far = Math.max(200, this.framingDistance + radius * 2);
+    this.camera.updateProjectionMatrix();
+    this.distance = this.framingDistance;
+  }
 
   dispose(): void {
     cancelAnimationFrame(this.raf);
