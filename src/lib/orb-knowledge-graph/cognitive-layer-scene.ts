@@ -421,10 +421,7 @@ export class CognitiveLayerScene {
   /** Äusserster aktuell sichtbarer Ring; Fokus rahmt Core plus gewählte Ebene. */
   framingRadius(visible: ReadonlySet<CognitiveLayerId>, focus: CognitiveLayerId | null): number {
     if (focus)
-      return Math.max(
-        this.memoryCoreRadius,
-        cognitiveLayerRadius(this.memoryCoreRadius, focus),
-      );
+      return Math.max(this.memoryCoreRadius, cognitiveLayerRadius(this.memoryCoreRadius, focus));
     let radius = this.memoryCoreRadius;
     for (const layer of visible) {
       if (!this.occupiedLayers.has(layer)) continue;
