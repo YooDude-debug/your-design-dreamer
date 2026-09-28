@@ -36,12 +36,13 @@ export type OrbUncertaintyFactors = Record<OrbUncertaintyFactorKey, number | nul
  * Quellenklarheit als Unsicherheitsbeitrag je Herkunftsart. Nur Ordnung
  * (memory < conversation < inference < unknown), keine Wahrheitsaussage.
  */
-export const SOURCE_UNCERTAINTY: Readonly<Record<OrbInformationSource["type"], number>> = Object.freeze({
-  memory: 0.1,
-  conversation: 0.2,
-  inference: 0.6,
-  unknown: 1,
-});
+export const SOURCE_UNCERTAINTY: Readonly<Record<OrbInformationSource["type"], number>> =
+  Object.freeze({
+    memory: 0.1,
+    conversation: 0.2,
+    inference: 0.6,
+    unknown: 1,
+  });
 
 /** Tage, nach denen zeitabhängige Information maximal unsicher gilt. */
 export const TIME_DEPENDENT_HORIZON_DAYS = 30;
@@ -80,7 +81,9 @@ function cloneSource(s: OrbInformationSource): OrbInformationSource {
   return s.type === "inference" ? { type: "inference", sourceIds: [...s.sourceIds] } : { ...s };
 }
 
-export function assessCognitiveUncertainty(input: OrbUncertaintyInput = {}): OrbUncertaintyAssessment {
+export function assessCognitiveUncertainty(
+  input: OrbUncertaintyInput = {},
+): OrbUncertaintyAssessment {
   const source: OrbInformationSource = isInformationSource(input.source)
     ? cloneSource(input.source)
     : { type: "unknown" };
@@ -104,7 +107,9 @@ export function assessCognitiveUncertainty(input: OrbUncertaintyInput = {}): Orb
   const agreeingSources: OrbInformationSource[] = [];
   const text = typeof input.statement === "string" ? input.statement.trim() : "";
   if (input.others !== undefined && text) {
-    const valid = input.others.filter((o) => typeof o?.text === "string" && isInformationSource(o.source));
+    const valid = input.others.filter(
+      (o) => typeof o?.text === "string" && isInformationSource(o.source),
+    );
     const nov = assessCognitiveNovelty({ statement: text, source, known: valid });
     contradictions = nov.contradictions;
     f.contradiction = contradictions.length > 0 ? 1 : 0;
@@ -147,7 +152,8 @@ export function assessCognitiveUncertainty(input: OrbUncertaintyInput = {}): Orb
   const unknownFactors = UNCERTAINTY_FACTOR_KEYS.filter((k) => f[k] === null);
   return {
     factors: f,
-    confidence: (UNCERTAINTY_FACTOR_KEYS.length - unknownFactors.length) / UNCERTAINTY_FACTOR_KEYS.length,
+    confidence:
+      (UNCERTAINTY_FACTOR_KEYS.length - unknownFactors.length) / UNCERTAINTY_FACTOR_KEYS.length,
     provenance: source,
     basedOnInference: source.type === "inference",
     contradictions,
