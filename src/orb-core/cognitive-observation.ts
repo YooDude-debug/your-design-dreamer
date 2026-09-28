@@ -54,7 +54,8 @@ export type OrbCognitiveObservation =
 
 function uniqueIds(ids: readonly unknown[]): string[] {
   const out: string[] = [];
-  for (const id of ids) if (typeof id === "string" && id.length > 0 && !out.includes(id)) out.push(id);
+  for (const id of ids)
+    if (typeof id === "string" && id.length > 0 && !out.includes(id)) out.push(id);
   return out;
 }
 
@@ -68,7 +69,10 @@ export function runCognitiveObservation(input: {
     const ids = all.slice(0, COGNITIVE_OBSERVATION_MAX_CANDIDATES);
     const candidates: OrbCognitiveCandidate[] = ids.map((id) => {
       const source = { type: "memory" as const, memoryId: id };
-      return createCognitiveCandidate({ id, source: isInformationSource(source) ? source : undefined });
+      return createCognitiveCandidate({
+        id,
+        source: isInformationSource(source) ? source : undefined,
+      });
     });
     const competitions = [];
     for (let i = 0; i < candidates.length; i++)

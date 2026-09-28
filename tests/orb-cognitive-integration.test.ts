@@ -50,7 +50,9 @@ describe("Cognitive Architecture – ORB-Core-Integration (observational)", () =
   it("A/B/C – Chatlauf erzeugt Observation aus den abgerufenen Memory-IDs", () => {
     const body = fnBody("processInput");
     expect(body.match(/runCognitiveObservation\(/g)).toHaveLength(1);
-    expect(body).toMatch(/cognitive: runCognitiveObservation\(\{\s+path: "chat",\s+memoryIds: recalled\.map\(\(r\) => r\.node\.id\),/);
+    expect(body).toMatch(
+      /cognitive: runCognitiveObservation\(\{\s+path: "chat",\s+memoryIds: recalled\.map\(\(r\) => r\.node\.id\),/,
+    );
     const r = observed(["m1"]);
     expect(r.kind).toBe("orb.cognitive_observation");
     expect(r.path).toBe("chat");
@@ -69,7 +71,8 @@ describe("Cognitive Architecture – ORB-Core-Integration (observational)", () =
     expect(r.snapshot.candidates.map((c) => c.id)).toEqual(["a", "b", "c"]);
     expect(r.snapshot.competitions).toHaveLength(3);
     expect(r.snapshot.currentFocus).toBeNull();
-    for (const c of r.decision.candidates) for (const k of COVERAGE) expect(c.decisionInputs[k as never]).toBeNull();
+    for (const c of r.decision.candidates)
+      for (const k of COVERAGE) expect(c.decisionInputs[k as never]).toBeNull();
     const swapped = observed(["c", "b", "a"]);
     expect(swapped.strategies).toEqual(r.strategies);
     expect(swapped.decision.candidates.map((c) => c.decisionInputs)).toEqual(
@@ -87,7 +90,9 @@ describe("Cognitive Architecture – ORB-Core-Integration (observational)", () =
     const avail = r.strategies.strategies.filter((s) => s.available).map((s) => s.type);
     expect(avail).toEqual(["ask_clarification", "explore_gap", "defer", "observe"]);
     const none = observed([]);
-    expect(none.strategies.strategies.filter((s) => s.available).map((s) => s.type)).toEqual(["observe"]);
+    expect(none.strategies.strategies.filter((s) => s.available).map((s) => s.type)).toEqual([
+      "observe",
+    ]);
   });
 
   it("G/H/I/Y – Action Plan, Outcome, Adaptation passiv", () => {
@@ -125,7 +130,15 @@ describe("Cognitive Architecture – ORB-Core-Integration (observational)", () =
   it("S/T – fehlende Daten null/unknown, Provenance bleibt Memory-ID", () => {
     const r = observed(["m1"]);
     const c = r.snapshot.candidates[0];
-    for (const k of ["relevance", "novelty", "uncertainty", "goalPressure", "attention", "experience", "contradiction"])
+    for (const k of [
+      "relevance",
+      "novelty",
+      "uncertainty",
+      "goalPressure",
+      "attention",
+      "experience",
+      "contradiction",
+    ])
       expect((c as Record<string, unknown>)[k]).toBeNull();
     expect(c.topic).toBeNull();
     expect(r.snapshot.goals).toEqual([]);
@@ -137,12 +150,22 @@ describe("Cognitive Architecture – ORB-Core-Integration (observational)", () =
   });
 
   it("U – deterministisch", () => {
-    expect(run({ path: "chat", memoryIds: ["a", "b"] })).toEqual(run({ path: "chat", memoryIds: ["a", "b"] }));
+    expect(run({ path: "chat", memoryIds: ["a", "b"] })).toEqual(
+      run({ path: "chat", memoryIds: ["a", "b"] }),
+    );
   });
 
   it("X – Coverage bleibt Coverage (keine Dimensionsnamen in Decision Inputs)", () => {
     const d = observed(["a"]).decision.candidates[0].decisionInputs as Record<string, unknown>;
-    for (const k of ["relevance", "novelty", "uncertainty", "goalPressure", "attention", "experience", "contradiction"])
+    for (const k of [
+      "relevance",
+      "novelty",
+      "uncertainty",
+      "goalPressure",
+      "attention",
+      "experience",
+      "contradiction",
+    ])
       expect(k in d).toBe(false);
   });
 
@@ -153,7 +176,11 @@ describe("Cognitive Architecture – ORB-Core-Integration (observational)", () =
         throw new Error("boom");
       },
     };
-    expect(run(evil)).toEqual({ kind: "orb.cognitive_observation", status: "failed", path: "chat" });
+    expect(run(evil)).toEqual({
+      kind: "orb.cognitive_observation",
+      status: "failed",
+      path: "chat",
+    });
     expect(run(null as never).status).toBe("observed");
     const throwing = [
       {
