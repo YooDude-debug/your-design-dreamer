@@ -199,8 +199,10 @@ describe("Phase 10 – Cognitive Competition", () => {
     const users = files.filter(
       (f) =>
         !f.endsWith("cognitive/competition.ts") &&
+        f !== "src/orb-core/cognitive-observation.ts" &&
         /cognitive\/competition|\.\/competition"/.test(readFileSync(f, "utf8")),
     );
+    // Einzige erlaubte Ausnahme: der Cognitive-Observation-Einstieg.
     expect(users).toEqual([]);
   });
 

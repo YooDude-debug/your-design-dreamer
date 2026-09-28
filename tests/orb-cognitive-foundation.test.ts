@@ -153,7 +153,11 @@ describe("Regression: bestehender ORB bleibt unberührt", () => {
         const p = join(dir, f);
         if (statSync(p).isDirectory()) {
           if (!p.endsWith("cognitive")) walk(p);
-        } else if (/\.tsx?$/.test(f) && readFileSync(p, "utf8").includes("cognitive/foundation"))
+        } else if (
+          /\.tsx?$/.test(f) &&
+          readFileSync(p, "utf8").includes("cognitive/foundation") &&
+          p !== "src/orb-core/cognitive-observation.ts"
+        )
           hits.push(p);
       }
     };

@@ -52,6 +52,10 @@ import {
 } from "@/orb-core/memory";
 import { buildRetrievalEvent, type OrbRetrievalEvent } from "@/orb-core/retrieval-event";
 import {
+  runCognitiveObservation,
+  type OrbCognitiveObservation,
+} from "@/orb-core/cognitive-observation";
+import {
   CONTEXT_WINDOW_MESSAGES,
   contextWindow,
   detectExplicitLearningRequest,
@@ -555,6 +559,8 @@ export type OrbTurn = {
   recalled: { id: string; content: string; weight: number; level: MemoryLevel }[];
   /** Flüchtiges Retrieval-Event (nur bei recalled.length > 0), nie gespeichert. */
   retrievalEvent: OrbRetrievalEvent | null;
+  /** Flüchtige Cognitive Observation (nur Beobachtung, nie gespeichert, ohne Wirkung). */
+  cognitive: OrbCognitiveObservation;
   /** Gesetzt, wenn die Antwort eine eigene Frage des ORB geschlossen hat. */
   answeredQuestion: { question: string; topic: string | null } | null;
   /** Gesetzt, wenn der ORB in dieser Runde selbst eine Frage gestellt hat. */
@@ -1905,6 +1911,10 @@ export async function processInput(
       modelVisibleIds: promptMemoryRefs(conversationPlan).map((r) => r.id),
       excludedFromActivation: activationExcluded,
     }),
+    cognitive: runCognitiveObservation({
+      path: "chat",
+      memoryIds: recalled.map((r) => r.node.id),
+    }),
     answeredQuestion,
     context: {
       messages: recentMessages.length,
@@ -2219,6 +2229,8 @@ export type OrbProactiveResult = {
   perf: OrbPerf | null;
   /** Interner Versuchsnachweis (auch bei Ablehnung) – keine neue Tabelle. */
   attempt: OrbAutonomyAttempt | null;
+  /** Flüchtige Cognitive Observation (nur Beobachtung, nie gespeichert, ohne Wirkung). */
+  cognitive?: OrbCognitiveObservation;
 };
 
 /** Read-only Einblick für den Testbereich – schreibt nichts. */
@@ -2726,6 +2738,10 @@ export async function askProactively(
       snapshot: null,
       perf: null,
       attempt,
+      cognitive: runCognitiveObservation({
+        path: "proactive_question",
+        memoryIds: ctx.gaps.map((g) => g.nodeId),
+      }),
     };
   };
 
@@ -2888,6 +2904,10 @@ export async function askProactively(
     snapshot: await getSnapshot(db, userId, perf),
     perf,
     attempt,
+    cognitive: runCognitiveObservation({
+      path: "proactive_question",
+      memoryIds: ctx.gaps.map((g) => g.nodeId),
+    }),
   };
 }
 

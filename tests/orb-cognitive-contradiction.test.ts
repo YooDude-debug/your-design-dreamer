@@ -130,8 +130,10 @@ describe("Phase 8 – Cognitive Contradiction", () => {
     const users = files.filter(
       (f) =>
         !f.endsWith("cognitive/contradiction.ts") &&
+        f !== "src/orb-core/cognitive-observation.ts" &&
         readFileSync(f, "utf8").includes("cognitive/contradiction"),
     );
+    // Einzige erlaubte Ausnahme: der Cognitive-Observation-Einstieg.
     expect(users).toEqual([]);
   });
 });

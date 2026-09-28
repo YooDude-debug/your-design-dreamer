@@ -172,8 +172,10 @@ describe("Phase 4 – Cognitive Uncertainty", () => {
     const users = files.filter(
       (f) =>
         !f.endsWith("cognitive/uncertainty.ts") &&
+        f !== "src/orb-core/cognitive-observation.ts" &&
         readFileSync(f, "utf8").includes("cognitive/uncertainty"),
     );
+    // Einzige erlaubte Ausnahme: der Cognitive-Observation-Einstieg.
     expect(users).toEqual([]);
   });
 

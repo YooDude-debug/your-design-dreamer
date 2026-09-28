@@ -168,8 +168,10 @@ describe("Phase 15 – Cognitive Outcome & Feedback Foundation", () => {
     const users = files.filter(
       (f) =>
         !f.endsWith("cognitive/outcome.ts") &&
+        f !== "src/orb-core/cognitive-observation.ts" &&
         /cognitive\/outcome|\.\/outcome/.test(readFileSync(f, "utf8")),
     );
+    // Einzige erlaubte Ausnahme: der Cognitive-Observation-Einstieg.
     expect(users).toEqual([]);
   });
 });
