@@ -41,20 +41,31 @@ describe("Phase 10 – Cognitive Competition", () => {
   });
 
   it("D/E/F – Topic overlap", () => {
-    expect(cmp(mk({ id: "a", topic: "ORB Memory" }), mk({ id: "b", topic: " orb memory " })).factors.topicOverlap).toBe(1);
+    expect(
+      cmp(mk({ id: "a", topic: "ORB Memory" }), mk({ id: "b", topic: " orb memory " })).factors
+        .topicOverlap,
+    ).toBe(1);
     const e = cmp(mk({ id: "a", topic: "Auto" }), mk({ id: "b", topic: "Fahrzeug" }));
     expect(e.factors.topicOverlap).toBe(0);
     expect(e.level).toBe("none");
     expect(
-      cmp(mk({ id: "a", topic: "ORB Memory System" }), mk({ id: "b", topic: "ORB Memory Retrieval" }))
-        .factors.topicOverlap,
+      cmp(
+        mk({ id: "a", topic: "ORB Memory System" }),
+        mk({ id: "b", topic: "ORB Memory Retrieval" }),
+      ).factors.topicOverlap,
     ).toBeCloseTo(0.5);
   });
 
   it("G/H – Focus overlap", () => {
-    const r = cmp(mk({ id: "a", attention: att({ focus }) }), mk({ id: "b", attention: att({ focus }) }));
+    const r = cmp(
+      mk({ id: "a", attention: att({ focus }) }),
+      mk({ id: "b", attention: att({ focus }) }),
+    );
     expect(r.factors.focusOverlap).toBe(1);
-    expect(cmp(mk({ id: "a", attention: att({ focus }) }), mk({ id: "b", attention: att({}) })).factors.focusOverlap).toBeNull();
+    expect(
+      cmp(mk({ id: "a", attention: att({ focus }) }), mk({ id: "b", attention: att({}) })).factors
+        .focusOverlap,
+    ).toBeNull();
   });
 
   it("I/J – Attention overlap", () => {
@@ -63,40 +74,73 @@ describe("Phase 10 – Cognitive Competition", () => {
       mk({ id: "b", attention: att({ focus, currentFocus: 0.4 }) }),
     );
     expect(r.factors.attentionOverlap).toBe(0.4);
-    expect(cmp(mk({ id: "a", attention: att({}) }), mk({ id: "b" })).factors.attentionOverlap).toBeNull();
+    expect(
+      cmp(mk({ id: "a", attention: att({}) }), mk({ id: "b" })).factors.attentionOverlap,
+    ).toBeNull();
   });
 
   it("K/L – Goal overlap nur über explizite goalId", () => {
     const g1 = assessCognitiveGoalPressure({ goal: goal("g1") });
     const g2 = assessCognitiveGoalPressure({ goal: goal("g2") });
-    expect(cmp(mk({ id: "a", goalPressure: g1 }), mk({ id: "b", goalPressure: g1 })).factors.goalOverlap).toBe(1);
-    expect(cmp(mk({ id: "a", goalPressure: g1 }), mk({ id: "b", goalPressure: g2 })).factors.goalOverlap).toBe(0);
+    expect(
+      cmp(mk({ id: "a", goalPressure: g1 }), mk({ id: "b", goalPressure: g1 })).factors.goalOverlap,
+    ).toBe(1);
+    expect(
+      cmp(mk({ id: "a", goalPressure: g1 }), mk({ id: "b", goalPressure: g2 })).factors.goalOverlap,
+    ).toBe(0);
     const noGoal = assessCognitiveGoalPressure({ contextAlignment: 0.5 });
-    expect(cmp(mk({ id: "a", goalPressure: noGoal }), mk({ id: "b", goalPressure: noGoal })).factors.goalOverlap).toBeNull();
+    expect(
+      cmp(mk({ id: "a", goalPressure: noGoal }), mk({ id: "b", goalPressure: noGoal })).factors
+        .goalOverlap,
+    ).toBeNull();
   });
 
   it("M/N – Interruption conflict", () => {
     expect(
-      cmp(mk({ id: "a", attention: att({ interruption: 0.9 }) }), mk({ id: "b", attention: att({ interruption: 0.3 }) }))
-        .factors.interruptionConflict,
+      cmp(
+        mk({ id: "a", attention: att({ interruption: 0.9 }) }),
+        mk({ id: "b", attention: att({ interruption: 0.3 }) }),
+      ).factors.interruptionConflict,
     ).toBe(0.3);
-    expect(cmp(mk({ id: "a", attention: att({ interruption: 0.9 }) }), mk({ id: "b" })).factors.interruptionConflict).toBeNull();
+    expect(
+      cmp(mk({ id: "a", attention: att({ interruption: 0.9 }) }), mk({ id: "b" })).factors
+        .interruptionConflict,
+    ).toBeNull();
   });
 
   it("O/P – symmetrisch", () => {
-    const A = mk({ id: "a", topic: "ORB Memory System", attention: att({ focus, currentFocus: 0.7, interruption: 0.2 }) });
-    const B = mk({ id: "b", topic: "ORB Retrieval", attention: att({ focus, currentFocus: 0.3, interruption: 0.6 }) });
+    const A = mk({
+      id: "a",
+      topic: "ORB Memory System",
+      attention: att({ focus, currentFocus: 0.7, interruption: 0.2 }),
+    });
+    const B = mk({
+      id: "b",
+      topic: "ORB Retrieval",
+      attention: att({ focus, currentFocus: 0.3, interruption: 0.6 }),
+    });
     const ab = cmp(A, B);
     const ba = cmp(B, A);
-    expect([ab.level, ab.score, ab.factors, ab.reasons]).toEqual([ba.level, ba.score, ba.factors, ba.reasons]);
+    expect([ab.level, ab.score, ab.factors, ab.reasons]).toEqual([
+      ba.level,
+      ba.score,
+      ba.factors,
+      ba.reasons,
+    ]);
     expect([ab.leftCandidateId, ba.leftCandidateId]).toEqual(["a", "b"]);
   });
 
   it("Q–T – kein Winner/Ranking/Auswahl/Priorisierung", () => {
-    const r = cmp(mk({ id: "a", topic: "x" }), mk({ id: "b", topic: "x" })) as unknown as Record<string, unknown>;
+    const r = cmp(mk({ id: "a", topic: "x" }), mk({ id: "b", topic: "x" })) as unknown as Record<
+      string,
+      unknown
+    >;
     for (const k of ["winner", "loser", "preferred", "selected", "bestCandidate", "priority"])
       expect(r[k]).toBeUndefined();
-    expect(Object.keys(mod).sort()).toEqual(["COMPETITION_FACTOR_KEYS", "compareCognitiveCandidates"]);
+    expect(Object.keys(mod).sort()).toEqual([
+      "COMPETITION_FACTOR_KEYS",
+      "compareCognitiveCandidates",
+    ]);
     expect(CODE).not.toMatch(/winner|loser|preferred|selected|best|rank|sort\(|priorit/i);
   });
 
@@ -120,11 +164,17 @@ describe("Phase 10 – Cognitive Competition", () => {
       { subject: "x", predicate: "ist", value: "a" },
       { subject: "x", predicate: "ist", value: "b" },
     );
-    expect(cmp(mk({ id: "a", contradiction: con }), mk({ id: "b", contradiction: con })).level).toBe("unknown");
+    expect(
+      cmp(mk({ id: "a", contradiction: con }), mk({ id: "b", contradiction: con })).level,
+    ).toBe("unknown");
     const exp = assessCognitiveExperience({ actionId: "a1" });
-    expect(cmp(mk({ id: "a", experience: exp }), mk({ id: "b", experience: exp })).level).toBe("unknown");
+    expect(cmp(mk({ id: "a", experience: exp }), mk({ id: "b", experience: exp })).level).toBe(
+      "unknown",
+    );
     const gp = assessCognitiveGoalPressure({ contextAlignment: 1, taskContribution: 1 });
-    expect(cmp(mk({ id: "a", goalPressure: gp }), mk({ id: "b", goalPressure: gp })).level).toBe("unknown");
+    expect(cmp(mk({ id: "a", goalPressure: gp }), mk({ id: "b", goalPressure: gp })).level).toBe(
+      "unknown",
+    );
     const rel = assessCognitiveRelevance({ factors: { context: 1 } });
     const r = cmp(mk({ id: "a", relevance: rel }), mk({ id: "b", relevance: rel }));
     expect(r.level).toBe("unknown");
@@ -134,7 +184,9 @@ describe("Phase 10 – Cognitive Competition", () => {
   it("AH/AI – Phase 1–9 unverändert, competition.ts nirgends importiert", () => {
     const before = [mk({ id: "a", attention: att({ focus }) }), att({ focus, currentFocus: 1 })];
     cmp(mk({ id: "a", attention: att({ focus }) }), mk({ id: "b", attention: att({ focus }) }));
-    expect([mk({ id: "a", attention: att({ focus }) }), att({ focus, currentFocus: 1 })]).toEqual(before);
+    expect([mk({ id: "a", attention: att({ focus }) }), att({ focus, currentFocus: 1 })]).toEqual(
+      before,
+    );
     const files: string[] = [];
     const walk = (d: string) => {
       for (const f of readdirSync(d)) {
@@ -145,7 +197,9 @@ describe("Phase 10 – Cognitive Competition", () => {
     };
     walk("src");
     const users = files.filter(
-      (f) => !f.endsWith("cognitive/competition.ts") && /cognitive\/competition|\.\/competition"/.test(readFileSync(f, "utf8")),
+      (f) =>
+        !f.endsWith("cognitive/competition.ts") &&
+        /cognitive\/competition|\.\/competition"/.test(readFileSync(f, "utf8")),
     );
     expect(users).toEqual([]);
   });
