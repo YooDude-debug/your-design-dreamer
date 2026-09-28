@@ -132,7 +132,9 @@ describe("Impulse / Experience", () => {
       /export type OrbCognitiveImpulse = \{[^}]*\}/,
     )![0];
     expect(impulseType).not.toMatch(/score/);
-    expect(impulseType).toMatch(/id: string;[\s\S]*type: OrbCognitiveImpulseType;[\s\S]*reason: string;/);
+    expect(impulseType).toMatch(
+      /id: string;[\s\S]*type: OrbCognitiveImpulseType;[\s\S]*reason: string;/,
+    );
   });
   it("Experience success/usefulness in 0..1", () => {
     const e = { actionId: "a", success: 0.5, usefulness: 1, createdAt: "t" };

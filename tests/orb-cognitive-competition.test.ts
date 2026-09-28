@@ -205,19 +205,43 @@ describe("Phase 10 – Cognitive Competition", () => {
   });
 
   it("Korrektur – maximumOverlap statt score, nur Overlap, keine Auswahl", () => {
-    const src = readFileSync("src/orb-core/cognitive/competition.ts", "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    const src = readFileSync("src/orb-core/cognitive/competition.ts", "utf8").replace(
+      /\/\*[\s\S]*?\*\//g,
+      "",
+    );
     expect(src).not.toMatch(/score/);
     expect(src).not.toMatch(/winner|loser|selected|rank|sort\(|priorit/i);
     const focus = { kind: "task" as const, id: "t" };
-    const A = mk({ id: "a", topic: "ORB Memory", attention: att({ focus, currentFocus: 0.7, interruption: 0.2 }) });
-    const B = mk({ id: "b", topic: "ORB Retrieval", attention: att({ focus, currentFocus: 0.3, interruption: 0.6 }) });
+    const A = mk({
+      id: "a",
+      topic: "ORB Memory",
+      attention: att({ focus, currentFocus: 0.7, interruption: 0.2 }),
+    });
+    const B = mk({
+      id: "b",
+      topic: "ORB Retrieval",
+      attention: att({ focus, currentFocus: 0.3, interruption: 0.6 }),
+    });
     const ab = cmp(A, B) as unknown as Record<string, unknown>;
     const ba = cmp(B, A) as unknown as Record<string, unknown>;
     expect("score" in ab).toBe(false);
-    expect(Object.keys(ab).sort()).toEqual(["factors", "leftCandidateId", "level", "maximumOverlap", "reasons", "rightCandidateId"]);
-    const f = Object.values(ab.factors as Record<string, number | null>).filter((v): v is number => v !== null);
+    expect(Object.keys(ab).sort()).toEqual([
+      "factors",
+      "leftCandidateId",
+      "level",
+      "maximumOverlap",
+      "reasons",
+      "rightCandidateId",
+    ]);
+    const f = Object.values(ab.factors as Record<string, number | null>).filter(
+      (v): v is number => v !== null,
+    );
     expect(f).toContain(ab.maximumOverlap);
     for (const v of f) expect(v).toBeLessThanOrEqual(ab.maximumOverlap as number);
-    expect([ab.maximumOverlap, ab.level, ab.factors]).toEqual([ba.maximumOverlap, ba.level, ba.factors]);
+    expect([ab.maximumOverlap, ab.level, ab.factors]).toEqual([
+      ba.maximumOverlap,
+      ba.level,
+      ba.factors,
+    ]);
   });
 });

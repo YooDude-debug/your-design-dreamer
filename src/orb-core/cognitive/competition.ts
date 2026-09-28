@@ -152,8 +152,20 @@ export function compareCognitiveCandidates(
 
   const present = COMPETITION_FACTOR_KEYS.filter((k) => factors[k] !== null);
   if (present.length === 0) {
-    return { ...base, factors, level: "unknown", maximumOverlap: null, reasons: ["insufficient_data"] };
+    return {
+      ...base,
+      factors,
+      level: "unknown",
+      maximumOverlap: null,
+      reasons: ["insufficient_data"],
+    };
   }
   const maximumOverlap = Math.max(...present.map((k) => factors[k] as number));
-  return { ...base, factors, level: levelFor(maximumOverlap), maximumOverlap, reasons: [...present] };
+  return {
+    ...base,
+    factors,
+    level: levelFor(maximumOverlap),
+    maximumOverlap,
+    reasons: [...present],
+  };
 }

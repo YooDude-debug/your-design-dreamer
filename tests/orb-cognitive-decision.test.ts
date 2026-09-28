@@ -257,7 +257,9 @@ describe("Phase 13 – Cognitive Decision Foundation", () => {
     expect(d.uncertaintyCoverage).toBe(c.uncertainty!.confidence);
     expect(d.goalPressureCoverage).toBe(c.goalPressure!.confidence);
     expect(d.experienceCoverage).toBe(c.experience!.completeness);
-    expect(CODE).not.toMatch(/\b(relevance|novelty|uncertainty|goalPressure|attention|experience|contradiction):/);
+    expect(CODE).not.toMatch(
+      /\b(relevance|novelty|uncertainty|goalPressure|attention|experience|contradiction):/,
+    );
     const typeBlock = CODE.match(/export type OrbDecisionInputs = \{[^}]*\}/)![0];
     for (const dim of DIMS) expect(typeBlock).not.toMatch(new RegExp(`\\b${dim}:`));
   });
@@ -272,7 +274,9 @@ describe("Phase 13 – Cognitive Decision Foundation", () => {
     const r1 = run(s1);
     const r2 = run(s2);
     for (const c of r1.candidates) for (const k of COVERAGE) expect(c.decisionInputs[k]).toBeNull();
-    expect(r1.candidates.map((c) => c.decisionInputs)).toEqual(r2.candidates.map((c) => c.decisionInputs));
+    expect(r1.candidates.map((c) => c.decisionInputs)).toEqual(
+      r2.candidates.map((c) => c.decisionInputs),
+    );
     expect(r1.candidates.map((c) => c.available)).toEqual(r2.candidates.map((c) => c.available));
     expect(s1).toEqual(bs);
     expect(a).toEqual(ba);
