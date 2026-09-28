@@ -168,8 +168,10 @@ describe("Phase 12 – Cognitive Strategy", () => {
     const users = files.filter(
       (f) =>
         !f.endsWith("cognitive/strategy.ts") &&
+        f !== "src/orb-core/cognitive-observation.ts" &&
         /cognitive\/strategy|\.\/strategy/.test(readFileSync(f, "utf8")),
     );
+    // Einzige erlaubte Ausnahme: der Cognitive-Observation-Einstieg.
     expect(users).toEqual([]);
   });
 });

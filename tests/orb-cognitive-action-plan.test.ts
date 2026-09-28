@@ -195,8 +195,10 @@ describe("Phase 14 – Cognitive Action Planning Foundation", () => {
     const users = files.filter(
       (f) =>
         !f.endsWith("cognitive/action-plan.ts") &&
+        f !== "src/orb-core/cognitive-observation.ts" &&
         /cognitive\/action-plan|\.\/action-plan/.test(readFileSync(f, "utf8")),
     );
+    // Einzige erlaubte Ausnahme: der Cognitive-Observation-Einstieg.
     expect(users).toEqual([]);
     expect([...CODE.matchAll(/from "([^"]+)"/g)].map((m) => m[1])).toEqual(["./snapshot.ts"]);
   });

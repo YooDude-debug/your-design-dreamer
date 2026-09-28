@@ -136,8 +136,10 @@ describe("Phase 9 – Cognitive Candidate", () => {
     const users = files.filter(
       (f) =>
         !f.endsWith("cognitive/candidate.ts") &&
+        f !== "src/orb-core/cognitive-observation.ts" &&
         readFileSync(f, "utf8").includes("cognitive/candidate"),
     );
+    // Einzige erlaubte Ausnahme: der Cognitive-Observation-Einstieg.
     expect(users).toEqual([]);
   });
 });

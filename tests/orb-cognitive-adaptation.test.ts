@@ -180,8 +180,10 @@ describe("Phase 16 – Cognitive Learning / Adaptation Foundation", () => {
     const users = files.filter(
       (f) =>
         !f.endsWith("cognitive/adaptation.ts") &&
+        f !== "src/orb-core/cognitive-observation.ts" &&
         /cognitive\/adaptation|\.\/adaptation/.test(readFileSync(f, "utf8")),
     );
+    // Einzige erlaubte Ausnahme: der Cognitive-Observation-Einstieg.
     expect(users).toEqual([]);
   });
 });

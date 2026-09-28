@@ -138,8 +138,10 @@ describe("Phase 6 – Cognitive Attention", () => {
     const users = files.filter(
       (f) =>
         !f.endsWith("cognitive/attention.ts") &&
+        f !== "src/orb-core/cognitive-observation.ts" &&
         readFileSync(f, "utf8").includes("cognitive/attention"),
     );
+    // Einzige erlaubte Ausnahme: der Cognitive-Observation-Einstieg.
     expect(users).toEqual([]);
   });
 });

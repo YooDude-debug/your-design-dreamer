@@ -238,8 +238,10 @@ describe("Phase 13 – Cognitive Decision Foundation", () => {
     const users = files.filter(
       (f) =>
         !f.endsWith("cognitive/decision.ts") &&
+        f !== "src/orb-core/cognitive-observation.ts" &&
         /cognitive\/decision|\.\/decision/.test(readFileSync(f, "utf8")),
     );
+    // Einzige erlaubte Ausnahme: der Cognitive-Observation-Einstieg.
     expect(users).toEqual([]);
     const imports = [...CODE.matchAll(/from "([^"]+)"/g)].map((m) => m[1]).sort();
     expect(imports).toEqual(["./candidate.ts", "./snapshot.ts"]);

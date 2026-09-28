@@ -164,8 +164,10 @@ describe("Phase 7 – Cognitive Experience", () => {
     const users = files.filter(
       (f) =>
         !f.endsWith("cognitive/experience.ts") &&
+        f !== "src/orb-core/cognitive-observation.ts" &&
         readFileSync(f, "utf8").includes("cognitive/experience"),
     );
+    // Einzige erlaubte Ausnahme: der Cognitive-Observation-Einstieg.
     expect(users).toEqual([]);
   });
 

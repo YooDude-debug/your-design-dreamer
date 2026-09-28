@@ -146,8 +146,10 @@ describe("Phase 5 – Cognitive Goal Pressure", () => {
     const users = files.filter(
       (f) =>
         !f.endsWith("cognitive/goal-pressure.ts") &&
+        f !== "src/orb-core/cognitive-observation.ts" &&
         readFileSync(f, "utf8").includes("cognitive/goal-pressure"),
     );
+    // Einzige erlaubte Ausnahme: der Cognitive-Observation-Einstieg.
     expect(users).toEqual([]);
   });
 

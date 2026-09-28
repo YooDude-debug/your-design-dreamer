@@ -200,8 +200,10 @@ describe("Phase 3 – Cognitive Novelty", () => {
     const users = files.filter(
       (f) =>
         !f.endsWith("cognitive/novelty.ts") &&
+        f !== "src/orb-core/cognitive-observation.ts" &&
         readFileSync(f, "utf8").includes("cognitive/novelty"),
     );
+    // Einzige erlaubte Ausnahme: der Cognitive-Observation-Einstieg.
     expect(users).toEqual([]);
   });
 });

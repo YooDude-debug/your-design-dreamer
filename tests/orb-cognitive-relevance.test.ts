@@ -129,8 +129,10 @@ describe("Phase 2 – Cognitive Relevance", () => {
     const users = files.filter(
       (f) =>
         !f.endsWith("cognitive/relevance.ts") &&
+        f !== "src/orb-core/cognitive-observation.ts" &&
         readFileSync(f, "utf8").includes("cognitive/relevance"),
     );
+    // Einzige erlaubte Ausnahme: der Cognitive-Observation-Einstieg.
     expect(users).toEqual([]);
   });
 });
