@@ -60,3 +60,6 @@ export {
   createRetrievalPulseGate,
   type OrbRetrievalEvent,
 } from "@/orb-core/retrieval-event";
+
+// Flüchtige Cognitive Observation (nur Typ, nur Darstellung im Knowledge Globe).
+export type { OrbCognitiveObservation } from "@/orb-core/cognitive-observation";
