@@ -12,7 +12,11 @@
  * ≠ Autonomy ≠ Priority ≠ Energy. Kein Gesamtscore, keine Schwelle,
  * kein "höchster Wert gewinnt". Nicht bestimmbar = null.
  */
-import { isInformationSource, unitOrNull, type OrbInformationSource } from "@/orb-core/cognitive/foundation";
+import {
+  isInformationSource,
+  unitOrNull,
+  type OrbInformationSource,
+} from "@/orb-core/cognitive/foundation";
 
 export const ATTENTION_FACTOR_KEYS = [
   "currentFocus",
@@ -79,7 +83,10 @@ function cloneSource(s: OrbInformationSource): OrbInformationSource {
   return s.type === "inference" ? { type: "inference", sourceIds: [...s.sourceIds] } : { ...s };
 }
 
-function minutesBetween(from: string | null | undefined, to: string | null | undefined): number | null {
+function minutesBetween(
+  from: string | null | undefined,
+  to: string | null | undefined,
+): number | null {
   const a = typeof from === "string" ? Date.parse(from) : NaN;
   const b = typeof to === "string" ? Date.parse(to) : NaN;
   if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
@@ -107,7 +114,8 @@ export function assessCognitiveAttention(input: OrbAttentionInput = {}): OrbAtte
   };
 
   const sinceAttended = minutesBetween(input.lastAttendedAt, input.now);
-  if (sinceAttended !== null) f.recentAttention = Math.max(0, 1 - sinceAttended / RECENT_ATTENTION_HORIZON_MIN);
+  if (sinceAttended !== null)
+    f.recentAttention = Math.max(0, 1 - sinceAttended / RECENT_ATTENTION_HORIZON_MIN);
   const sincePrev = minutesBetween(input.previousFocusLastActiveAt, input.now);
   if (sincePrev !== null) f.attentionDecay = Math.min(1, sincePrev / ATTENTION_DECAY_HORIZON_MIN);
 
@@ -118,7 +126,8 @@ export function assessCognitiveAttention(input: OrbAttentionInput = {}): OrbAtte
   return {
     focus,
     factors: f,
-    confidence: (ATTENTION_FACTOR_KEYS.length - unknownFactors.length) / ATTENTION_FACTOR_KEYS.length,
+    confidence:
+      (ATTENTION_FACTOR_KEYS.length - unknownFactors.length) / ATTENTION_FACTOR_KEYS.length,
     provenance,
     unknownFactors,
     invalidFactors,

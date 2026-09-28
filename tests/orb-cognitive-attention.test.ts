@@ -18,7 +18,9 @@ describe("Phase 6 – Cognitive Attention", () => {
     expect(run({ focus, currentFocus: 0.8 }).factors.currentFocus).toBe(0.8);
     expect(run({ focus, currentFocus: 0.8 }).focus).toEqual(focus);
     expect(run({ currentFocus: 0.8 }).factors.currentFocus).toBeNull();
-    expect(run({ focus: { kind: "made_up", id: "x" }, currentFocus: 0.8 }).factors.currentFocus).toBeNull();
+    expect(
+      run({ focus: { kind: "made_up", id: "x" }, currentFocus: 0.8 }).factors.currentFocus,
+    ).toBeNull();
     expect(run({ focus }).factors.currentFocus).toBeNull();
   });
 
@@ -44,20 +46,37 @@ describe("Phase 6 – Cognitive Attention", () => {
   });
 
   it("K/L – recent attention", () => {
-    expect(run({ lastAttendedAt: "2026-09-28T09:30:00Z", now: NOW }).factors.recentAttention).toBeCloseTo(0.5);
+    expect(
+      run({ lastAttendedAt: "2026-09-28T09:30:00Z", now: NOW }).factors.recentAttention,
+    ).toBeCloseTo(0.5);
     expect(run({ lastAttendedAt: NOW, now: NOW }).factors.recentAttention).toBe(1);
     expect(run({ now: NOW }).factors.recentAttention).toBeNull();
   });
 
   it("M/N – attention decay nur mit Zeitinput", () => {
-    expect(run({ previousFocusLastActiveAt: "2026-09-28T09:45:00Z", now: NOW }).factors.attentionDecay).toBeCloseTo(0.5);
-    expect(run({ previousFocusLastActiveAt: "2026-09-28T08:00:00Z", now: NOW }).factors.attentionDecay).toBe(1);
-    expect(run({ previousFocusLastActiveAt: "2026-09-28T09:45:00Z" }).factors.attentionDecay).toBeNull();
-    expect(run({ previousFocusLastActiveAt: "kaputt", now: NOW }).factors.attentionDecay).toBeNull();
+    expect(
+      run({ previousFocusLastActiveAt: "2026-09-28T09:45:00Z", now: NOW }).factors.attentionDecay,
+    ).toBeCloseTo(0.5);
+    expect(
+      run({ previousFocusLastActiveAt: "2026-09-28T08:00:00Z", now: NOW }).factors.attentionDecay,
+    ).toBe(1);
+    expect(
+      run({ previousFocusLastActiveAt: "2026-09-28T09:45:00Z" }).factors.attentionDecay,
+    ).toBeNull();
+    expect(
+      run({ previousFocusLastActiveAt: "kaputt", now: NOW }).factors.attentionDecay,
+    ).toBeNull();
   });
 
   it("O/P/Q – NaN, Infinity, non-number, clamp", () => {
-    const a = run({ focus, currentFocus: NaN, focusContinuity: Infinity, interruption: "0.5", focusSwitchCost: 3, attentionAvailability: -1 });
+    const a = run({
+      focus,
+      currentFocus: NaN,
+      focusContinuity: Infinity,
+      interruption: "0.5",
+      focusSwitchCost: 3,
+      attentionAvailability: -1,
+    });
     expect(a.factors.currentFocus).toBeNull();
     expect(a.factors.focusContinuity).toBeNull();
     expect(a.factors.interruption).toBeNull();
@@ -92,15 +111,21 @@ describe("Phase 6 – Cognitive Attention", () => {
   });
 
   it("X/AC – kein Gesamtscore, keine Aktion", () => {
-    const a = run({ focus, currentFocus: 1, attentionAvailability: 1 }) as unknown as Record<string, unknown>;
-    for (const k of ["attention", "score", "winner", "act", "impulse"]) expect(a[k]).toBeUndefined();
+    const a = run({ focus, currentFocus: 1, attentionAvailability: 1 }) as unknown as Record<
+      string,
+      unknown
+    >;
+    for (const k of ["attention", "score", "winner", "act", "impulse"])
+      expect(a[k]).toBeUndefined();
   });
 
   it("Y/Z/AA/AB/AD – deterministisch, isoliert", () => {
     const i = { focus, currentFocus: 0.3, lastAttendedAt: "2026-09-28T09:00:00Z", now: NOW };
     expect(run(i)).toEqual(run(i));
     const src = readFileSync("src/orb-core/cognitive/attention.ts", "utf8");
-    expect(src).not.toMatch(/Date\.now|Math\.random|supabase|fetch\(|createServerFn|\.server"|insert\(|speak\(|process\.env/);
+    expect(src).not.toMatch(
+      /Date\.now|Math\.random|supabase|fetch\(|createServerFn|\.server"|insert\(|speak\(|process\.env/,
+    );
     const files: string[] = [];
     const walk = (d: string) => {
       for (const f of readdirSync(d)) {
@@ -111,7 +136,9 @@ describe("Phase 6 – Cognitive Attention", () => {
     };
     walk("src");
     const users = files.filter(
-      (f) => !f.endsWith("cognitive/attention.ts") && readFileSync(f, "utf8").includes("cognitive/attention"),
+      (f) =>
+        !f.endsWith("cognitive/attention.ts") &&
+        readFileSync(f, "utf8").includes("cognitive/attention"),
     );
     expect(users).toEqual([]);
   });
