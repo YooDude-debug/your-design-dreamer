@@ -85,11 +85,19 @@ describe("Phase 11 – Cognitive Snapshot", () => {
 
   it("O/P/Q/R – kein Score, keine Strategie, keine Aktion", () => {
     const s = snap(build()) as unknown as Record<string, unknown>;
-    expect(Object.keys(s).sort()).toEqual(
-      ["attentionAvailability", "candidates", "competitions", "conflicts", "currentFocus", "experiences", "goals"],
-    );
+    expect(Object.keys(s).sort()).toEqual([
+      "attentionAvailability",
+      "candidates",
+      "competitions",
+      "conflicts",
+      "currentFocus",
+      "experiences",
+      "goals",
+    ]);
     expect(Object.keys(mod)).toEqual(["createCognitiveSnapshot"]);
-    expect(CODE).not.toMatch(/score|strategy|action|decision|sort\(|rank|select|best|priorit|Math\./i);
+    expect(CODE).not.toMatch(
+      /score|strategy|action|decision|sort\(|rank|select|best|priorit|Math\./i,
+    );
   });
 
   it("S/T – Provenance erhalten, Inference bleibt Inference", () => {
@@ -144,7 +152,9 @@ describe("Phase 11 – Cognitive Snapshot", () => {
         f.includes("orb-core/cognitive"),
     );
     const users2 = files.filter(
-      (f) => !f.endsWith("cognitive/snapshot.ts") && readFileSync(f, "utf8").includes("cognitive/snapshot"),
+      (f) =>
+        !f.endsWith("cognitive/snapshot.ts") &&
+        readFileSync(f, "utf8").includes("cognitive/snapshot"),
     );
     expect([...users, ...users2]).toEqual([]);
   });
