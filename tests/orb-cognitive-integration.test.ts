@@ -124,7 +124,16 @@ describe("Cognitive Architecture – ORB-Core-Integration (observational)", () =
     const importers = srcFiles("src").filter(
       (f) => f !== ENTRY && readFileSync(f, "utf8").includes("cognitive-observation"),
     );
-    expect(importers).toEqual([join("src", "orb-core", "engine.server.ts")]);
+    expect(importers).toEqual([
+      join("src", "orb-core", "engine.server.ts"),
+      join("src", "orb-sdk", "index.ts"),
+    ]);
+    // Das SDK reicht nur den Typ weiter (Darstellung im Knowledge Globe).
+    const sdk = readFileSync(join("src", "orb-sdk", "index.ts"), "utf8");
+    expect(sdk).toContain(
+      'export type { OrbCognitiveObservation } from "@/orb-core/cognitive-observation";',
+    );
+    expect(sdk).not.toMatch(/export \{[^}]*\} from "@\/orb-core\/cognitive-observation"/);
   });
 
   it("P/Q/R – keine Nachricht, kein Impuls, kein LLM, keine DB, kein Netzwerk", () => {
