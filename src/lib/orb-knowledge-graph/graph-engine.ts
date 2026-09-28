@@ -263,7 +263,8 @@ export class KnowledgeGraphEngine {
     this.focusNodes = nodeIds ? new Set(nodeIds) : null;
     this.focusEdges = edgeIds ? new Set(edgeIds) : null;
     this.pathQueue = [];
-    this.distance = nodeIds && nodeIds.length ? Math.min(this.framingDistance, 22) : this.framingDistance;
+    this.distance =
+      nodeIds && nodeIds.length ? Math.min(this.framingDistance, 22) : this.framingDistance;
   }
   /** Spielt einen Suchpfad Schritt für Schritt ab (Farbe getrennt vom Live-Puls). */
   playPath(steps: ({ node: string } | { edge: string; to: string })[], stepMs = 450): void {

@@ -357,6 +357,7 @@ export class CognitiveLayerScene {
   private renderedEdges: RenderedEdgeGroup[] = [];
   private retrievalLines: LineSegments | null = null;
   private retrievalEdges: CognitiveVisualEdge[] = [];
+  private occupiedLayers = new Set<CognitiveLayerId>(["memory"]);
 
   private memoryCoreRadius: number;
 
@@ -373,6 +374,10 @@ export class CognitiveLayerScene {
     this.clear();
     this.memoryCoreRadius = measureMemoryCoreRadius(positions, this.fallbackBase);
     const layout = buildCognitiveVisualLayout(view, positions, index, this.memoryCoreRadius);
+    this.occupiedLayers = new Set<CognitiveLayerId>([
+      "memory",
+      ...layout.nodes.map((node) => node.layer),
+    ]);
 
     for (const layer of COGNITIVE_LAYERS) {
       if (layer.id === "memory") continue;
@@ -415,10 +420,16 @@ export class CognitiveLayerScene {
 
   /** Äusserster aktuell sichtbarer Ring; Fokus rahmt Core plus gewählte Ebene. */
   framingRadius(visible: ReadonlySet<CognitiveLayerId>, focus: CognitiveLayerId | null): number {
-    if (focus) return Math.max(this.memoryCoreRadius, cognitiveLayerRadius(this.memoryCoreRadius, focus));
+    if (focus)
+      return Math.max(
+        this.memoryCoreRadius,
+        cognitiveLayerRadius(this.memoryCoreRadius, focus),
+      );
     let radius = this.memoryCoreRadius;
-    for (const layer of visible)
+    for (const layer of visible) {
+      if (!this.occupiedLayers.has(layer)) continue;
       radius = Math.max(radius, cognitiveLayerRadius(this.memoryCoreRadius, layer));
+    }
     return radius;
   }
 
@@ -504,7 +515,7 @@ export class CognitiveLayerScene {
     const mesh = new InstancedMesh(new SphereGeometry(1, 12, 12), material, nodes.length);
     const matrix = new Matrix4();
     nodes.forEach((node, index) => {
-      const size = node.layer === "candidates" || node.layer === "strategy" ? 0.56 : 0.48;
+      const size = node.layer === "candidates" || node.layer === "strategy" ? 0.85 : 0.72;
       matrix.compose(node.position, new Quaternion(), new Vector3(size, size, size));
       mesh.setMatrixAt(index, matrix);
       mesh.setColorAt(
@@ -555,6 +566,7 @@ export class CognitiveLayerScene {
     this.renderedEdges = [];
     this.retrievalEdges = [];
     this.retrievalLines = null;
+    this.occupiedLayers = new Set<CognitiveLayerId>(["memory"]);
   }
 
   dispose(): void {
