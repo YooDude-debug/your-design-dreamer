@@ -8,7 +8,10 @@ import { createActionPlan } from "@/orb-core/cognitive/action-plan";
 import { createCognitiveSnapshot as snap } from "@/orb-core/cognitive/snapshot";
 import { isDirectMemory } from "@/orb-core/cognitive/foundation";
 
-const CODE = readFileSync("src/orb-core/cognitive/outcome.ts", "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+const CODE = readFileSync("src/orb-core/cognitive/outcome.ts", "utf8").replace(
+  /\/\*[\s\S]*?\*\//g,
+  "",
+);
 const FULL = {
   actionId: "act-1",
   expectedOutcome: "Nutzer antwortet",
@@ -56,7 +59,9 @@ describe("Phase 15 – Cognitive Outcome & Feedback Foundation", () => {
   it("F/G/H – outcomeStatus nur übernommen", () => {
     expect(out({ outcomeStatus: "observed" }).outcomeStatus).toBe("observed");
     expect(out({ outcomeStatus: "partially_observed" }).outcomeStatus).toBe("partially_observed");
-    expect(out({ outcomeStatus: "unknown", actualOutcome: "alles klar" }).outcomeStatus).toBe("unknown");
+    expect(out({ outcomeStatus: "unknown", actualOutcome: "alles klar" }).outcomeStatus).toBe(
+      "unknown",
+    );
   });
 
   it("I/J/K/L – outcomeMatch nur übernommen", () => {
@@ -83,7 +88,11 @@ describe("Phase 15 – Cognitive Outcome & Feedback Foundation", () => {
       outcomeMatch: "match" as never,
       userFeedback: "good" as never,
     });
-    expect([o.outcomeStatus, o.outcomeMatch, o.userFeedback]).toEqual(["unknown", "unknown", "unknown"]);
+    expect([o.outcomeStatus, o.outcomeMatch, o.userFeedback]).toEqual([
+      "unknown",
+      "unknown",
+      "unknown",
+    ]);
     expect(out({ userFeedback: "__proto__" as never }).userFeedback).toBe("unknown");
   });
 
@@ -92,7 +101,10 @@ describe("Phase 15 – Cognitive Outcome & Feedback Foundation", () => {
     expect(o.provenance).toEqual(FULL.provenance);
     expect(o.provenance).not.toBe(FULL.provenance);
     expect(isDirectMemory(o.provenance as never)).toBe(false);
-    expect(out({ provenance: { type: "memory", memoryId: "m" } }).provenance).toEqual({ type: "memory", memoryId: "m" });
+    expect(out({ provenance: { type: "memory", memoryId: "m" } }).provenance).toEqual({
+      type: "memory",
+      memoryId: "m",
+    });
     expect(out({ provenance: "frei" }).provenance).toBe("frei");
   });
 
@@ -110,7 +122,9 @@ describe("Phase 15 – Cognitive Outcome & Feedback Foundation", () => {
       "unknown",
       null,
     ]);
-    expect(CODE).not.toMatch(/===\s*i\.expected|expectedOutcome\s*===|localeCompare|toLowerCase|\.length|sentiment|emoji/i);
+    expect(CODE).not.toMatch(
+      /===\s*i\.expected|expectedOutcome\s*===|localeCompare|toLowerCase|\.length|sentiment|emoji/i,
+    );
   });
 
   it("AI – Input und Action Plan unverändert", () => {
@@ -128,7 +142,9 @@ describe("Phase 15 – Cognitive Outcome & Feedback Foundation", () => {
   it("AJ–AM – kein Score, Ranking, Priorität, nextAction", () => {
     expect(Object.keys(mod)).toEqual(["createOutcome"]);
     expect(Object.keys(out(FULL)).sort()).toEqual(Object.keys(EMPTY).sort());
-    expect(CODE).not.toMatch(/score|rank|winner|loser|priorit|weight|best|selected|recommend|nextAction|sort\(|Math\.|\.reduce\(/i);
+    expect(CODE).not.toMatch(
+      /score|rank|winner|loser|priorit|weight|best|selected|recommend|nextAction|sort\(|Math\.|\.reduce\(/i,
+    );
   });
 
   it("Y/Z/AQ/AD–AH – keine Uhr, Zufall, Learning, Strategie, Memory, DB/API/LLM, Aktion", () => {
@@ -150,7 +166,9 @@ describe("Phase 15 – Cognitive Outcome & Feedback Foundation", () => {
     };
     walk("src");
     const users = files.filter(
-      (f) => !f.endsWith("cognitive/outcome.ts") && /cognitive\/outcome|\.\/outcome/.test(readFileSync(f, "utf8")),
+      (f) =>
+        !f.endsWith("cognitive/outcome.ts") &&
+        /cognitive\/outcome|\.\/outcome/.test(readFileSync(f, "utf8")),
     );
     expect(users).toEqual([]);
   });
