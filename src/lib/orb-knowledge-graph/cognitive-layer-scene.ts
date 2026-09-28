@@ -279,9 +279,9 @@ export function buildCognitiveVisualLayout(
   }
 
   const strategyRadius = cognitiveLayerRadius(base, "strategy");
-  const strategies = STRATEGY_KEYS.map((key) => view.strategies.find((item) => item.type === key)).filter(
-    (item): item is CognitiveView["strategies"][number] => item !== undefined,
-  );
+  const strategies = STRATEGY_KEYS.map((key) =>
+    view.strategies.find((item) => item.type === key),
+  ).filter((item): item is CognitiveView["strategies"][number] => item !== undefined);
   strategies.forEach((strategy) => {
     const slot = STRATEGY_KEYS.indexOf(strategy.type as (typeof STRATEGY_KEYS)[number]);
     addNode({
@@ -444,11 +444,20 @@ export class CognitiveLayerScene {
 
   private setGroupOpacity(group: Group, multiplier: number): void {
     group.traverse((object) => {
-      if (!(object instanceof InstancedMesh || object instanceof LineLoop || object instanceof LineSegments))
+      if (
+        !(
+          object instanceof InstancedMesh ||
+          object instanceof LineLoop ||
+          object instanceof LineSegments
+        )
+      )
         return;
       const material = object.material;
       if (!(material instanceof MeshBasicMaterial || material instanceof LineBasicMaterial)) return;
-      const baseOpacity = typeof material.userData.baseOpacity === "number" ? material.userData.baseOpacity : material.opacity;
+      const baseOpacity =
+        typeof material.userData.baseOpacity === "number"
+          ? material.userData.baseOpacity
+          : material.opacity;
       material.userData.baseOpacity = baseOpacity;
       material.opacity = baseOpacity * multiplier;
     });

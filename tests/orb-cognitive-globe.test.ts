@@ -125,7 +125,12 @@ describe("Cognitive Globe – Darstellungsgrenzen", () => {
 
   it("leitet Candidate-Positionen radial vom eindeutig zugeordneten Memory ab", () => {
     const view = toCognitiveView(runCognitiveObservation({ path: "chat", memoryIds: ["a"] }), at);
-    const layout = buildCognitiveVisualLayout(view, [new Vector3(6, 8, 0)], new Map([["a", 0]]), 10);
+    const layout = buildCognitiveVisualLayout(
+      view,
+      [new Vector3(6, 8, 0)],
+      new Map([["a", 0]]),
+      10,
+    );
     const candidate = layout.nodes.find((node) => node.layer === "candidates");
     expect(candidate?.position.length()).toBeCloseTo(cognitiveLayerRadius(10, "candidates"));
     expect(candidate?.position.x).toBeCloseTo(cognitiveLayerRadius(10, "candidates") * 0.6);
@@ -137,8 +142,16 @@ describe("Cognitive Globe – Darstellungsgrenzen", () => {
   });
 
   it("erfindet für unbekannte Memory-IDs weder Candidate noch Verbindung", () => {
-    const view = toCognitiveView(runCognitiveObservation({ path: "chat", memoryIds: ["unknown"] }), at);
-    const layout = buildCognitiveVisualLayout(view, [new Vector3(10, 0, 0)], new Map([["a", 0]]), 10);
+    const view = toCognitiveView(
+      runCognitiveObservation({ path: "chat", memoryIds: ["unknown"] }),
+      at,
+    );
+    const layout = buildCognitiveVisualLayout(
+      view,
+      [new Vector3(10, 0, 0)],
+      new Map([["a", 0]]),
+      10,
+    );
     expect(layout.nodes.filter((node) => node.layer === "candidates")).toEqual([]);
     expect(layout.edges.filter((edge) => edge.kind === "memory-candidate")).toEqual([]);
     expect(layout.edges.filter((edge) => edge.kind === "competition-pair")).toEqual([]);
