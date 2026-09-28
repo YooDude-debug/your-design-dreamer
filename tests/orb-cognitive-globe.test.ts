@@ -11,7 +11,9 @@ import {
 } from "@/lib/orb-knowledge-graph/cognitive-layers";
 import {
   buildCognitiveVisualLayout,
+  cognitiveLayerGap,
   cognitiveLayerRadius,
+  measureMemoryCoreRadius,
 } from "@/lib/orb-knowledge-graph/cognitive-layer-scene";
 
 const at = "2026-09-28T00:00:00.000Z";
@@ -143,6 +145,35 @@ describe("Cognitive Globe – Darstellungsgrenzen", () => {
     expect(link?.from.toArray()).toEqual([6, 8, 0]);
   });
 
+  it("misst den tatsächlichen Memory-Core und trennt alle Schalen deutlich", () => {
+    const positions = [new Vector3(3, 4, 0), new Vector3(0, 0, 12)];
+    const core = measureMemoryCoreRadius(positions, 10);
+    expect(core).toBe(12);
+    expect(cognitiveLayerGap(core)).toBe(4.2);
+    expect(cognitiveLayerRadius(core, "candidates")).toBeCloseTo(16.2);
+    expect(cognitiveLayerRadius(core, "competition")).toBeCloseTo(20.4);
+    expect(cognitiveLayerRadius(core, "adaptation")).toBeCloseTo(49.8);
+  });
+
+  it("setzt sämtliche erzeugten Cognitive-Nodes exakt auf ihren Layer-Radius", () => {
+    const view = toCognitiveView(
+      runCognitiveObservation({ path: "chat", memoryIds: ["a", "b"] }),
+      at,
+    );
+    const positions = [new Vector3(10, 0, 0), new Vector3(0, 10, 0)];
+    const layout = buildCognitiveVisualLayout(
+      view,
+      positions,
+      new Map([
+        ["a", 0],
+        ["b", 1],
+      ]),
+      measureMemoryCoreRadius(positions),
+    );
+    for (const node of layout.nodes)
+      expect(node.position.length()).toBeCloseTo(cognitiveLayerRadius(10, node.layer), 5);
+  });
+
   it("erfindet für unbekannte Memory-IDs weder Candidate noch Verbindung", () => {
     const view = toCognitiveView(
       runCognitiveObservation({ path: "chat", memoryIds: ["unknown"] }),
@@ -207,6 +238,8 @@ describe("Cognitive Globe – Darstellungsgrenzen", () => {
   it("aktualisiert Instanzdaten sichtbar und fügt keine Datenquelle hinzu", () => {
     expect(scene).toContain("mesh.instanceMatrix.needsUpdate = true");
     expect(scene).toContain("mesh.instanceColor.needsUpdate = true");
+    expect(scene).toContain("measureMemoryCoreRadius(positions");
+    expect(scene).toContain("framingRadius(");
     expect(scene).toContain('const RETRIEVAL = new Color("#ff2a2a")');
     expect(scene).toContain("this.retrievalEdges.forEach");
     expect(scene).not.toMatch(/supabase|fetch\(|createServerFn|refetchInterval|setInterval/);
