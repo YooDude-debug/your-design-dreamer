@@ -5,7 +5,7 @@
  * keine Server-/LLM-Aufrufe, kein speak, keine Memory-Writes, kein Retrieval,
  * kein Autonomy Gate. Deterministisch; Eingaben werden nie mutiert.
  *
- * Abgrenzung: Die bestehende `novelty` der Knowledge-Gaps (engine.server.ts,
+ * Abgrenzung: Die bestehende `novelty` der Knowledge-Gaps (Engine-Server,
  * initiative.ts, continuity.ts) bleibt unverändert und unbenannt. Sie bewertet
  * Frage-Lücken, nicht Informationen.
  * Cognitive Novelty ≠ Memory Importance ≠ Cognitive Relevance ≠ Recency
