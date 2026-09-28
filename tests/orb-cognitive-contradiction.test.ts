@@ -5,7 +5,12 @@ import { join } from "node:path";
 import { detectContradiction, type OrbStatement } from "@/orb-core/cognitive/contradiction";
 import { isDirectMemory } from "@/orb-core/cognitive/foundation";
 
-const s = (subject: string, predicate: string, value: string, extra: Partial<OrbStatement> = {}): OrbStatement => ({
+const s = (
+  subject: string,
+  predicate: string,
+  value: string,
+  extra: Partial<OrbStatement> = {},
+): OrbStatement => ({
   subject,
   predicate,
   value,
@@ -21,7 +26,11 @@ describe("Phase 8 – Cognitive Contradiction", () => {
   });
 
   it("B/P – anderer Value → direct, confidence 1", () => {
-    expect(detectContradiction(blau, rot)).toMatchObject({ detected: true, type: "direct", confidence: 1 });
+    expect(detectContradiction(blau, rot)).toMatchObject({
+      detected: true,
+      type: "direct",
+      confidence: 1,
+    });
   });
 
   it("C/D – anderes Subject / Predicate → none", () => {
@@ -31,10 +40,16 @@ describe("Phase 8 – Cognitive Contradiction", () => {
 
   it("E/F/G/Q – fehlende Teile → unknown, confidence null", () => {
     for (const bad of [s("", "farbe", "rot"), s("Auto", "  ", "rot"), s("Auto", "farbe", "")]) {
-      expect(detectContradiction(blau, bad)).toMatchObject({ detected: false, type: "unknown", confidence: null });
+      expect(detectContradiction(blau, bad)).toMatchObject({
+        detected: false,
+        type: "unknown",
+        confidence: null,
+      });
       expect(detectContradiction(bad, blau).type).toBe("unknown");
     }
-    expect(detectContradiction(blau, { subject: "Auto", predicate: "farbe" } as OrbStatement).type).toBe("unknown");
+    expect(
+      detectContradiction(blau, { subject: "Auto", predicate: "farbe" } as OrbStatement).type,
+    ).toBe("unknown");
   });
 
   it("H/I – Whitespace und Groß-/Kleinschreibung normalisiert", () => {
@@ -46,15 +61,27 @@ describe("Phase 8 – Cognitive Contradiction", () => {
     const mem = { type: "memory", memoryId: "m1" } as const;
     const conv = { type: "conversation", messageId: "c1" } as const;
     const inf = { type: "inference", sourceIds: ["m1"] } as const;
-    const a = detectContradiction(s("Auto", "farbe", "blau", { source: mem }), s("Auto", "farbe", "rot", { source: conv }));
-    const b = detectContradiction(s("Auto", "farbe", "blau", { source: conv }), s("Auto", "farbe", "rot", { source: mem }));
+    const a = detectContradiction(
+      s("Auto", "farbe", "blau", { source: mem }),
+      s("Auto", "farbe", "rot", { source: conv }),
+    );
+    const b = detectContradiction(
+      s("Auto", "farbe", "blau", { source: conv }),
+      s("Auto", "farbe", "rot", { source: mem }),
+    );
     expect(a.left.source).toEqual(mem);
     expect(a.right.source).toEqual(conv);
     expect([a.type, a.confidence]).toEqual([b.type, b.confidence]);
-    const c = detectContradiction(s("Auto", "farbe", "blau", { source: conv }), s("Auto", "farbe", "rot", { source: inf }));
+    const c = detectContradiction(
+      s("Auto", "farbe", "blau", { source: conv }),
+      s("Auto", "farbe", "rot", { source: inf }),
+    );
     expect(c.right.source).toEqual(inf);
     expect(isDirectMemory(c.right.source!)).toBe(false);
-    const d = detectContradiction(s("Auto", "farbe", "blau", { source: mem }), s("Auto", "farbe", "rot", { source: mem }));
+    const d = detectContradiction(
+      s("Auto", "farbe", "blau", { source: mem }),
+      s("Auto", "farbe", "rot", { source: mem }),
+    );
     expect([d.type, d.confidence]).toEqual(["direct", 1]);
   });
 
@@ -66,7 +93,8 @@ describe("Phase 8 – Cognitive Contradiction", () => {
     expect([a.type, a.confidence]).toEqual([b.type, b.confidence]);
     expect(a.left.observedAt).toBe(old.observedAt);
     const rec = a as unknown as Record<string, unknown>;
-    for (const k of ["winner", "truth", "preferred", "resolved", "keep", "discard"]) expect(rec[k]).toBeUndefined();
+    for (const k of ["winner", "truth", "preferred", "resolved", "keep", "discard"])
+      expect(rec[k]).toBeUndefined();
   });
 
   it("R/V – deterministisch, Eingaben unverändert", () => {
@@ -100,7 +128,9 @@ describe("Phase 8 – Cognitive Contradiction", () => {
     };
     walk("src");
     const users = files.filter(
-      (f) => !f.endsWith("cognitive/contradiction.ts") && readFileSync(f, "utf8").includes("cognitive/contradiction"),
+      (f) =>
+        !f.endsWith("cognitive/contradiction.ts") &&
+        readFileSync(f, "utf8").includes("cognitive/contradiction"),
     );
     expect(users).toEqual([]);
   });

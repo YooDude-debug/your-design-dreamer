@@ -43,15 +43,28 @@ function norm(v: unknown): string | null {
 function copy(s: OrbStatement): OrbStatement {
   const out: OrbStatement = { ...s };
   if (s.source) {
-    out.source = s.source.type === "inference" ? { type: "inference", sourceIds: [...s.source.sourceIds] } : { ...s.source };
+    out.source =
+      s.source.type === "inference"
+        ? { type: "inference", sourceIds: [...s.source.sourceIds] }
+        : { ...s.source };
   }
   return out;
 }
 
-export function detectContradiction(left: OrbStatement, right: OrbStatement): OrbContradictionResult {
+export function detectContradiction(
+  left: OrbStatement,
+  right: OrbStatement,
+): OrbContradictionResult {
   const l = copy(left);
   const r = copy(right);
-  const parts = [norm(left?.subject), norm(left?.predicate), norm(left?.value), norm(right?.subject), norm(right?.predicate), norm(right?.value)];
+  const parts = [
+    norm(left?.subject),
+    norm(left?.predicate),
+    norm(left?.value),
+    norm(right?.subject),
+    norm(right?.predicate),
+    norm(right?.value),
+  ];
   if (parts.some((p) => p === null)) {
     return { detected: false, type: "unknown", left: l, right: r, confidence: null };
   }
