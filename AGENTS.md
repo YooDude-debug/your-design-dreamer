@@ -10,3 +10,7 @@
 > the editor, so keep the branch in a working state.
 
 <!-- LOVABLE:END -->
+
+## Architecture rules
+
+- Cognitive Globe geometry is derived by a pure visual-layout function from the compact observation and existing Memory positions, so rendering tests cannot alter ORB or Memory semantics.
