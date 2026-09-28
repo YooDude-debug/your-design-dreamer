@@ -1,12 +1,9 @@
 /**
  * Cognitive Globe – konzentrische Ebenen (three.js, nur Darstellung).
  *
- * Jede Cognitive-Ebene liegt auf einer eigenen Schale um den Memory Core.
- * Farben ausschliesslich neutral (weiss/grau): keine Ebene verwendet Rot,
- * Grün oder Gelb – diese bleiben Retrieval, Speicher-Diffs und Suche
- * vorbehalten. Markierungen entstehen nur aus vorhandenen Daten; es gibt
- * keine Gewinner-, Ranking- oder Auswahl-Darstellung (alle verfügbaren
- * Strategien sehen gleich aus).
+ * Das reine Layout wird ausschließlich aus CognitiveView und den bestehenden
+ * Memory-Positionen abgeleitet. Memory-Nodes und Memory-Kanten werden weder
+ * erzeugt noch verändert. Unbekannte Zuordnungen bleiben unsichtbar.
  */
 import {
   AdditiveBlending,
@@ -37,16 +34,70 @@ import {
 
 export const LAYER_GAP = 1.35;
 const PRESENT = new Color("#e8ecf2");
-const ABSENT = new Color("#4a5260");
+const UNAVAILABLE = new Color("#747d8c");
+const UNKNOWN = new Color("#343b46");
 const RING_EMPTY = new Color("#3a404a");
 const RING_DATA = new Color("#9aa4b4");
+
+/** Visuelle Reihenfolge: Candidate ist die erste Schale über dem Memory Core. */
+const RADIAL_ORDER: CognitiveLayerId[] = [
+  "memory",
+  "candidates",
+  "competition",
+  "snapshot",
+  "factors",
+  "strategy",
+  "decision",
+  "action",
+  "outcome",
+  "adaptation",
+];
+
+export type CognitiveNodeState = "present" | "unavailable" | "unknown";
+
+export type CognitiveVisualNode = {
+  id: string;
+  layer: CognitiveLayerId;
+  position: Vector3;
+  state: CognitiveNodeState;
+  /** Unveränderter Datenwert; nur Competition/Coverage tragen Werte. */
+  value: number | null;
+};
+
+export type CognitiveVisualEdge = {
+  id: string;
+  fromLayer: CognitiveLayerId;
+  toLayer: CognitiveLayerId;
+  from: Vector3;
+  to: Vector3;
+  /** Nur Competition führt maximumOverlap; null bleibt unknown. */
+  intensity: number | null;
+  kind:
+    | "memory-candidate"
+    | "candidate-competition"
+    | "competition-pair"
+    | "competition-snapshot"
+    | "candidate-snapshot"
+    | "snapshot-strategy"
+    | "strategy-action";
+  memoryIndex?: number;
+};
+
+export type CognitiveVisualLayout = {
+  nodes: CognitiveVisualNode[];
+  edges: CognitiveVisualEdge[];
+};
 
 /** Radius der Schale i (0 = Memory Core). */
 export function layerRadius(base: number, layerIndex: number): number {
   return base + layerIndex * LAYER_GAP;
 }
 
-/** Gleichmässig verteilte Äquator-Positionen (feste Reihenfolge, keine Wertung). */
+export function cognitiveLayerRadius(base: number, layer: CognitiveLayerId): number {
+  return layerRadius(base, Math.max(0, RADIAL_ORDER.indexOf(layer)));
+}
+
+/** Gleichmäßig verteilte Schalenpositionen (feste Reihenfolge, keine Wertung). */
 function ringPoint(r: number, i: number, n: number, tilt: number): Vector3 {
   const a = (i / Math.max(1, n)) * Math.PI * 2;
   return new Vector3(
@@ -56,14 +107,258 @@ function ringPoint(r: number, i: number, n: number, tilt: number): Vector3 {
   );
 }
 
-type Marker = { pos: Vector3; present: boolean; size: number };
-type Connector = { nodeIndex: number; from: Vector3; to: Vector3 };
+function radialPoint(source: Vector3, radius: number): Vector3 | null {
+  if (source.lengthSq() === 0) return null;
+  return source.clone().normalize().multiplyScalar(radius);
+}
+
+/**
+ * Reines, testbares Darstellungsmodell. Es enthält nur Beziehungen, die aus
+ * der kompakten Observation oder einer exakten Memory-ID-Zuordnung hervorgehen.
+ */
+export function buildCognitiveVisualLayout(
+  view: CognitiveView | null,
+  positions: readonly Vector3[],
+  memoryIndex: ReadonlyMap<string, number>,
+  base: number,
+): CognitiveVisualLayout {
+  const nodes: CognitiveVisualNode[] = [];
+  const edges: CognitiveVisualEdge[] = [];
+  if (!view) return { nodes, edges };
+
+  const nodeById = new Map<string, CognitiveVisualNode>();
+  const addNode = (node: CognitiveVisualNode) => {
+    nodes.push(node);
+    nodeById.set(node.id, node);
+  };
+  const memoryDirection = (memoryId: string | null) => {
+    const index = memoryId ? memoryIndex.get(memoryId) : undefined;
+    if (index === undefined) return null;
+    const position = positions[index];
+    if (!position) return null;
+    return { index, position };
+  };
+
+  const candidateRadius = cognitiveLayerRadius(base, "candidates");
+  view.candidates.forEach((candidate, candidateIndex) => {
+    const memory = memoryDirection(candidate.memoryId);
+    const position = memory ? radialPoint(memory.position, candidateRadius) : null;
+    if (!memory || !position) return;
+    const candidateId = `candidate:${candidate.id ?? candidateIndex}`;
+    addNode({ id: candidateId, layer: "candidates", position, state: "present", value: null });
+    edges.push({
+      id: `memory-candidate:${candidateIndex}`,
+      fromLayer: "memory",
+      toLayer: "candidates",
+      from: memory.position.clone(),
+      to: position.clone(),
+      intensity: null,
+      kind: "memory-candidate",
+      memoryIndex: memory.index,
+    });
+
+    const factorRadius = cognitiveLayerRadius(base, "factors");
+    COGNITIVE_FACTOR_KEYS.forEach((key, factorIndex) => {
+      if (!candidate.factors[key]) return;
+      const factorPosition = radialPoint(memory.position, factorRadius);
+      if (!factorPosition) return;
+      const tangent = new Vector3(-factorPosition.z, 0, factorPosition.x).normalize();
+      factorPosition.addScaledVector(tangent, (factorIndex - 3) * 0.13);
+      addNode({
+        id: `factor:${candidateIndex}:${key}`,
+        layer: "factors",
+        position: factorPosition,
+        state: "present",
+        value: null,
+      });
+    });
+  });
+
+  const competitionRadius = cognitiveLayerRadius(base, "competition");
+  view.competitions.forEach((competition, competitionIndex) => {
+    const leftCandidate = nodeById.get(`candidate:${competition.leftCandidateId}`);
+    const rightCandidate = nodeById.get(`candidate:${competition.rightCandidateId}`);
+    if (!leftCandidate || !rightCandidate) return;
+    const leftPosition = radialPoint(leftCandidate.position, competitionRadius);
+    const rightPosition = radialPoint(rightCandidate.position, competitionRadius);
+    if (!leftPosition || !rightPosition) return;
+    const leftId = `competition:${competitionIndex}:left`;
+    const rightId = `competition:${competitionIndex}:right`;
+    addNode({
+      id: leftId,
+      layer: "competition",
+      position: leftPosition,
+      state: competition.maximumOverlap === null ? "unknown" : "present",
+      value: competition.maximumOverlap,
+    });
+    addNode({
+      id: rightId,
+      layer: "competition",
+      position: rightPosition,
+      state: competition.maximumOverlap === null ? "unknown" : "present",
+      value: competition.maximumOverlap,
+    });
+    edges.push(
+      {
+        id: `candidate-competition:${competitionIndex}:left`,
+        fromLayer: "candidates",
+        toLayer: "competition",
+        from: leftCandidate.position.clone(),
+        to: leftPosition.clone(),
+        intensity: null,
+        kind: "candidate-competition",
+      },
+      {
+        id: `candidate-competition:${competitionIndex}:right`,
+        fromLayer: "candidates",
+        toLayer: "competition",
+        from: rightCandidate.position.clone(),
+        to: rightPosition.clone(),
+        intensity: null,
+        kind: "candidate-competition",
+      },
+      {
+        id: `competition-pair:${competitionIndex}`,
+        fromLayer: "competition",
+        toLayer: "competition",
+        from: leftPosition.clone(),
+        to: rightPosition.clone(),
+        intensity: competition.maximumOverlap,
+        kind: "competition-pair",
+      },
+    );
+  });
+
+  const snapshotRadius = cognitiveLayerRadius(base, "snapshot");
+  const snapshotEntries = [
+    ["currentFocus", view.snapshot.currentFocus !== null],
+    ["attentionAvailability", view.snapshot.attentionAvailability !== null],
+    ["candidates", view.candidates.length > 0],
+    ["competitions", view.competitions.length > 0],
+    ["goals", view.snapshot.goals > 0],
+    ["experiences", view.snapshot.experiences > 0],
+    ["conflicts", view.snapshot.conflicts > 0],
+  ] as const;
+  snapshotEntries.forEach(([key, present], index) =>
+    addNode({
+      id: `snapshot:${key}`,
+      layer: "snapshot",
+      position: ringPoint(snapshotRadius, index, snapshotEntries.length, 0.35),
+      state: present ? "present" : "unknown",
+      value: null,
+    }),
+  );
+
+  const snapshotCandidates = nodeById.get("snapshot:candidates");
+  if (snapshotCandidates?.state === "present") {
+    for (const candidate of nodes.filter((node) => node.layer === "candidates")) {
+      edges.push({
+        id: `${candidate.id}-snapshot:candidates`,
+        fromLayer: "candidates",
+        toLayer: "snapshot",
+        from: candidate.position.clone(),
+        to: snapshotCandidates.position.clone(),
+        intensity: null,
+        kind: "candidate-snapshot",
+      });
+    }
+  }
+  const snapshotCompetitions = nodeById.get("snapshot:competitions");
+  if (snapshotCompetitions?.state === "present") {
+    for (const competition of nodes.filter((node) => node.layer === "competition")) {
+      edges.push({
+        id: `${competition.id}-snapshot:competitions`,
+        fromLayer: "competition",
+        toLayer: "snapshot",
+        from: competition.position.clone(),
+        to: snapshotCompetitions.position.clone(),
+        intensity: null,
+        kind: "competition-snapshot",
+      });
+    }
+  }
+
+  const strategyRadius = cognitiveLayerRadius(base, "strategy");
+  const strategies = STRATEGY_KEYS.map((key) => view.strategies.find((item) => item.type === key)).filter(
+    (item): item is CognitiveView["strategies"][number] => item !== undefined,
+  );
+  strategies.forEach((strategy) => {
+    const slot = STRATEGY_KEYS.indexOf(strategy.type as (typeof STRATEGY_KEYS)[number]);
+    addNode({
+      id: `strategy:${strategy.type}`,
+      layer: "strategy",
+      position: ringPoint(strategyRadius, slot, STRATEGY_KEYS.length, 0.35),
+      state: strategy.available ? "present" : "unavailable",
+      value: null,
+    });
+  });
+  const snapshotNodes = nodes.filter((node) => node.layer === "snapshot");
+  const strategyNodes = nodes.filter((node) => node.layer === "strategy");
+  for (const strategy of strategyNodes) {
+    for (const snapshot of snapshotNodes) {
+      edges.push({
+        id: `${snapshot.id}-${strategy.id}`,
+        fromLayer: "snapshot",
+        toLayer: "strategy",
+        from: snapshot.position.clone(),
+        to: strategy.position.clone(),
+        intensity: null,
+        kind: "snapshot-strategy",
+      });
+    }
+  }
+
+  const decisionRadius = cognitiveLayerRadius(base, "decision");
+  COVERAGE_KEYS.forEach((key, index) => {
+    const coverage = view.coverage[key];
+    addNode({
+      id: `coverage:${key}`,
+      layer: "decision",
+      position: ringPoint(decisionRadius, index, COVERAGE_KEYS.length, 0.35),
+      state: coverage === null ? "unknown" : "present",
+      value: coverage,
+    });
+  });
+
+  const actionRadius = cognitiveLayerRadius(base, "action");
+  view.actionPlans.forEach((action, index) => {
+    const actionNode: CognitiveVisualNode = {
+      id: `action:${index}:${action.action}`,
+      layer: "action",
+      position: ringPoint(actionRadius, index, view.actionPlans.length, 0.35),
+      state: action.executable ? "present" : "unavailable",
+      value: null,
+    };
+    addNode(actionNode);
+    const strategy = nodeById.get(`strategy:${action.strategy}`);
+    if (!strategy) return;
+    edges.push({
+      id: `${strategy.id}-${actionNode.id}`,
+      fromLayer: "strategy",
+      toLayer: "action",
+      from: strategy.position.clone(),
+      to: actionNode.position.clone(),
+      intensity: null,
+      kind: "strategy-action",
+    });
+  });
+
+  return { nodes, edges };
+}
+
+type RenderedEdgeGroup = {
+  object: LineSegments;
+  fromLayer: CognitiveLayerId;
+  toLayer: CognitiveLayerId;
+  baseOpacity: number;
+};
 
 export class CognitiveLayerScene {
   readonly root = new Group();
   private layers = new Map<CognitiveLayerId, Group>();
-  private connectorLines: LineSegments | null = null;
-  private connectors: Connector[] = [];
+  private renderedEdges: RenderedEdgeGroup[] = [];
+  private retrievalLines: LineSegments | null = null;
+  private retrievalEdges: CognitiveVisualEdge[] = [];
 
   constructor(private base: number) {}
 
@@ -74,206 +369,164 @@ export class CognitiveLayerScene {
     index: ReadonlyMap<string, number>,
   ): void {
     this.clear();
-    const dirOf = (memoryId: string | null) => {
-      const i = memoryId ? index.get(memoryId) : undefined;
-      return i === undefined ? null : { i, dir: positions[i]!.clone().normalize() };
-    };
-    COGNITIVE_LAYERS.forEach((layer, li) => {
-      if (layer.id === "memory") return;
-      const g = new Group();
-      const r = layerRadius(this.base, li);
-      const tilt = 0.35;
-      const has = layerHasData(view, layer.id);
-      g.add(this.ring(r, tilt, has));
-      const markers: Marker[] = [];
-      const lines: [Vector3, Vector3, number][] = [];
+    const layout = buildCognitiveVisualLayout(view, positions, index, this.base);
 
-      if (view && layer.id === "factors") {
-        for (const c of view.candidates) {
-          const d = dirOf(c.memoryId);
-          if (!d) continue;
-          COGNITIVE_FACTOR_KEYS.forEach((k, fi) => {
-            if (!c.factors[k]) return; // nie erfinden
-            const off = new Vector3(0, (fi - 3) * 0.08, 0);
-            markers.push({
-              pos: d.dir.clone().multiplyScalar(r).add(off),
-              present: true,
-              size: 0.1,
-            });
-          });
-        }
-      }
-      if (view && layer.id === "candidates") {
-        for (const c of view.candidates) {
-          const d = dirOf(c.memoryId);
-          if (!d) continue; // unbekannte Memory-ID: nicht platzieren
-          const p = d.dir.clone().multiplyScalar(r);
-          markers.push({ pos: p, present: true, size: 0.16 });
-          this.connectors.push({ nodeIndex: d.i, from: positions[d.i]!.clone(), to: p });
-        }
-      }
-      if (view && layer.id === "competition") {
-        const candPos = new Map<string, Vector3>();
-        for (const c of view.candidates) {
-          const d = c.id ? dirOf(c.memoryId) : null;
-          if (d && c.id) candPos.set(c.id, d.dir.clone().multiplyScalar(r));
-        }
-        for (const cp of view.competitions) {
-          const a = cp.leftCandidateId ? candPos.get(cp.leftCandidateId) : undefined;
-          const b = cp.rightCandidateId ? candPos.get(cp.rightCandidateId) : undefined;
-          if (!a || !b) continue;
-          // maximumOverlap nur als Linienhelligkeit; null → grau/unknown.
-          lines.push([a, b, cp.maximumOverlap === null ? -1 : cp.maximumOverlap]);
-        }
-      }
-      if (view && layer.id === "snapshot") {
-        const s = view.snapshot;
-        const items = [
-          s.currentFocus !== null,
-          s.attentionAvailability !== null,
-          view.candidates.length > 0,
-          view.competitions.length > 0,
-          s.goals > 0,
-          s.experiences > 0,
-          s.conflicts > 0,
-        ];
-        items.forEach((present, i) =>
-          markers.push({ pos: ringPoint(r, i, items.length, tilt), present, size: 0.14 }),
-        );
-      }
-      if (view && layer.id === "strategy") {
-        STRATEGY_KEYS.forEach((k, i) => {
-          const s = view.strategies.find((x) => x.type === k);
-          markers.push({
-            pos: ringPoint(r, i, STRATEGY_KEYS.length, tilt),
-            present: s?.available === true, // verfügbar ≠ ausgewählt: gleiche Darstellung für alle
-            size: 0.16,
-          });
-        });
-      }
-      if (view && layer.id === "decision") {
-        COVERAGE_KEYS.forEach((k, i) =>
-          markers.push({
-            pos: ringPoint(r, i, COVERAGE_KEYS.length, tilt),
-            present: view.coverage[k] !== null,
-            size: 0.14,
-          }),
-        );
-      }
-      if (view && layer.id === "action") {
-        view.actionPlans.forEach((a, i) =>
-          markers.push({
-            pos: ringPoint(r, i, view.actionPlans.length, tilt),
-            present: a.executable,
-            size: 0.14,
-          }),
-        );
-      }
-      // outcome / adaptation: nur Schale, keine Simulation.
+    for (const layer of COGNITIVE_LAYERS) {
+      if (layer.id === "memory") continue;
+      const group = new Group();
+      const radius = cognitiveLayerRadius(this.base, layer.id);
+      group.add(this.ring(radius, 0.35, layerHasData(view, layer.id)));
+      const nodes = layout.nodes.filter((node) => node.layer === layer.id);
+      if (nodes.length) group.add(this.markers(nodes));
+      this.layers.set(layer.id, group);
+      this.root.add(group);
+    }
 
-      if (markers.length) g.add(this.markers(markers));
-      if (lines.length) g.add(this.lines(lines));
-      this.layers.set(layer.id, g);
-      this.root.add(g);
-    });
+    this.retrievalEdges = layout.edges.filter((edge) => edge.kind === "memory-candidate");
+    if (this.retrievalEdges.length) {
+      this.retrievalLines = this.edgeLines(this.retrievalEdges, 0.32);
+      this.layers.get("candidates")?.add(this.retrievalLines);
+    }
 
-    if (this.connectors.length) {
-      const pos = new Float32Array(this.connectors.length * 6);
-      this.connectors.forEach((c, i) =>
-        pos.set([c.from.x, c.from.y, c.from.z, c.to.x, c.to.y, c.to.z], i * 6),
-      );
-      const geo = new BufferGeometry();
-      geo.setAttribute("position", new BufferAttribute(pos, 3));
-      geo.setAttribute("color", new BufferAttribute(new Float32Array(pos.length), 3));
-      this.connectorLines = new LineSegments(
-        geo,
-        new LineBasicMaterial({
-          vertexColors: true,
-          transparent: true,
-          blending: AdditiveBlending,
-        }),
-      );
-      this.layers.get("candidates")?.add(this.connectorLines);
+    const relationEdges = layout.edges.filter((edge) => edge.kind !== "memory-candidate");
+    const groups = new Map<string, CognitiveVisualEdge[]>();
+    for (const edge of relationEdges) {
+      const key = `${edge.fromLayer}:${edge.toLayer}`;
+      const list = groups.get(key) ?? [];
+      list.push(edge);
+      groups.set(key, list);
+    }
+    for (const edges of groups.values()) {
+      const first = edges[0];
+      if (!first) continue;
+      const object = this.edgeLines(edges, first.kind === "competition-pair" ? 0.8 : 0.3);
+      this.root.add(object);
+      this.renderedEdges.push({
+        object,
+        fromLayer: first.fromLayer,
+        toLayer: first.toLayer,
+        baseOpacity: object.material instanceof LineBasicMaterial ? object.material.opacity : 1,
+      });
     }
   }
 
-  /**
-   * Aktivierungspfad Memory → Candidate: hellt nur auf, wenn der Memory-Knoten
-   * gerade durch ein echtes Retrieval-Event pulsiert (neutral weiss, nie rot).
-   */
+  /** Aktivierungspfad Memory → Candidate, nur aus echtem Retrieval-Event. */
   update(retrievalPulse: Float32Array): void {
-    if (!this.connectorLines) return;
-    const col = this.connectorLines.geometry.getAttribute("color") as BufferAttribute;
-    const arr = col.array as Float32Array;
-    this.connectors.forEach((c, i) => {
-      const v = 0.12 + 0.85 * (retrievalPulse[c.nodeIndex] ?? 0);
-      arr.fill(v, i * 6, i * 6 + 6);
+    if (!this.retrievalLines) return;
+    const color = this.retrievalLines.geometry.getAttribute("color");
+    if (!(color instanceof BufferAttribute)) return;
+    const values = color.array as Float32Array;
+    this.retrievalEdges.forEach((edge, edgeIndex) => {
+      const pulse = edge.memoryIndex === undefined ? 0 : (retrievalPulse[edge.memoryIndex] ?? 0);
+      const level = 0.12 + 0.85 * pulse;
+      values.fill(level, edgeIndex * 6, edgeIndex * 6 + 6);
     });
-    col.needsUpdate = true;
+    color.needsUpdate = true;
   }
 
   setVisibility(visible: ReadonlySet<CognitiveLayerId>, focus: CognitiveLayerId | null): void {
-    for (const [id, g] of this.layers) g.visible = focus ? focus === id : visible.has(id);
+    for (const [id, group] of this.layers) {
+      group.visible = visible.has(id) || focus === id;
+      this.setGroupOpacity(group, focus === null || focus === id ? 1 : 0.16);
+    }
+    for (const edge of this.renderedEdges) {
+      const endpointsVisible =
+        (visible.has(edge.fromLayer) || focus === edge.fromLayer) &&
+        (visible.has(edge.toLayer) || focus === edge.toLayer);
+      edge.object.visible = endpointsVisible;
+      const material = edge.object.material;
+      if (material instanceof LineBasicMaterial) {
+        const relevant = focus === null || focus === edge.fromLayer || focus === edge.toLayer;
+        material.opacity = edge.baseOpacity * (relevant ? 1 : 0.1);
+      }
+    }
   }
 
-  private ring(r: number, tilt: number, has: boolean): LineLoop {
-    const n = 128;
-    const pts = new Float32Array(n * 3);
-    for (let i = 0; i < n; i++) pts.set(ringPoint(r, i, n, tilt).toArray(), i * 3);
-    const geo = new BufferGeometry();
-    geo.setAttribute("position", new BufferAttribute(pts, 3));
-    return new LineLoop(
-      geo,
-      new LineBasicMaterial({
-        color: has ? RING_DATA : RING_EMPTY,
-        transparent: true,
-        opacity: has ? 0.55 : 0.25,
-      }),
-    );
-  }
-
-  private markers(list: Marker[]): InstancedMesh {
-    const m = new InstancedMesh(
-      new SphereGeometry(1, 10, 10),
-      new MeshBasicMaterial({ transparent: true, opacity: 0.9 }),
-      list.length,
-    );
-    const mat = new Matrix4();
-    list.forEach((k, i) => {
-      mat.compose(k.pos, new Quaternion(), new Vector3(k.size, k.size, k.size));
-      m.setMatrixAt(i, mat);
-      m.setColorAt(i, k.present ? PRESENT : ABSENT);
+  private setGroupOpacity(group: Group, multiplier: number): void {
+    group.traverse((object) => {
+      if (!(object instanceof InstancedMesh || object instanceof LineLoop || object instanceof LineSegments))
+        return;
+      const material = object.material;
+      if (!(material instanceof MeshBasicMaterial || material instanceof LineBasicMaterial)) return;
+      const baseOpacity = typeof material.userData.baseOpacity === "number" ? material.userData.baseOpacity : material.opacity;
+      material.userData.baseOpacity = baseOpacity;
+      material.opacity = baseOpacity * multiplier;
     });
-    return m;
   }
 
-  private lines(list: [Vector3, Vector3, number][]): LineSegments {
-    const pos = new Float32Array(list.length * 6);
-    const col = new Float32Array(list.length * 6);
-    list.forEach(([a, b, mo], i) => {
-      pos.set([a.x, a.y, a.z, b.x, b.y, b.z], i * 6);
-      const c = mo < 0 ? ABSENT : PRESENT.clone().multiplyScalar(0.15 + 0.6 * mo);
-      col.set([c.r, c.g, c.b, c.r, c.g, c.b], i * 6);
+  private ring(radius: number, tilt: number, hasData: boolean): LineLoop {
+    const count = 128;
+    const points = new Float32Array(count * 3);
+    for (let index = 0; index < count; index++)
+      points.set(ringPoint(radius, index, count, tilt).toArray(), index * 3);
+    const geometry = new BufferGeometry();
+    geometry.setAttribute("position", new BufferAttribute(points, 3));
+    const material = new LineBasicMaterial({
+      color: hasData ? RING_DATA : RING_EMPTY,
+      transparent: true,
+      opacity: hasData ? 0.55 : 0.25,
     });
-    const geo = new BufferGeometry();
-    geo.setAttribute("position", new BufferAttribute(pos, 3));
-    geo.setAttribute("color", new BufferAttribute(col, 3));
-    return new LineSegments(
-      geo,
-      new LineBasicMaterial({ vertexColors: true, transparent: true, blending: AdditiveBlending }),
-    );
+    material.userData.baseOpacity = material.opacity;
+    return new LineLoop(geometry, material);
+  }
+
+  private markers(nodes: CognitiveVisualNode[]): InstancedMesh {
+    const material = new MeshBasicMaterial({ transparent: true, opacity: 0.95 });
+    material.userData.baseOpacity = material.opacity;
+    const mesh = new InstancedMesh(new SphereGeometry(1, 12, 12), material, nodes.length);
+    const matrix = new Matrix4();
+    nodes.forEach((node, index) => {
+      const size = node.layer === "candidates" || node.layer === "strategy" ? 0.21 : 0.18;
+      matrix.compose(node.position, new Quaternion(), new Vector3(size, size, size));
+      mesh.setMatrixAt(index, matrix);
+      mesh.setColorAt(
+        index,
+        node.state === "present" ? PRESENT : node.state === "unavailable" ? UNAVAILABLE : UNKNOWN,
+      );
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    return mesh;
+  }
+
+  private edgeLines(edges: CognitiveVisualEdge[], opacity: number): LineSegments {
+    const positions = new Float32Array(edges.length * 6);
+    const colors = new Float32Array(edges.length * 6);
+    edges.forEach((edge, index) => {
+      positions.set(
+        [edge.from.x, edge.from.y, edge.from.z, edge.to.x, edge.to.y, edge.to.z],
+        index * 6,
+      );
+      const color =
+        edge.intensity === null
+          ? UNAVAILABLE
+          : PRESENT.clone().multiplyScalar(0.2 + 0.8 * edge.intensity);
+      colors.set([color.r, color.g, color.b, color.r, color.g, color.b], index * 6);
+    });
+    const geometry = new BufferGeometry();
+    geometry.setAttribute("position", new BufferAttribute(positions, 3));
+    geometry.setAttribute("color", new BufferAttribute(colors, 3));
+    const material = new LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity,
+      blending: AdditiveBlending,
+    });
+    material.userData.baseOpacity = opacity;
+    return new LineSegments(geometry, material);
   }
 
   private clear(): void {
-    this.root.traverse((o) => {
-      const x = o as { geometry?: BufferGeometry; material?: { dispose(): void } };
-      x.geometry?.dispose();
-      x.material?.dispose();
+    this.root.traverse((object) => {
+      const disposable = object as { geometry?: BufferGeometry; material?: { dispose(): void } };
+      disposable.geometry?.dispose();
+      disposable.material?.dispose();
     });
     this.root.clear();
     this.layers.clear();
-    this.connectors = [];
-    this.connectorLines = null;
+    this.renderedEdges = [];
+    this.retrievalEdges = [];
+    this.retrievalLines = null;
   }
 
   dispose(): void {
