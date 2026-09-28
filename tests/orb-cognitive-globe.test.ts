@@ -196,7 +196,7 @@ describe("Cognitive Globe – Darstellungsgrenzen", () => {
     expect(layout.edges.some((edge) => edge.kind === "memory-candidate")).toBe(true);
     expect(layout.edges.some((edge) => edge.kind === "candidate-competition")).toBe(true);
     expect(layout.edges.some((edge) => edge.kind === "competition-snapshot")).toBe(true);
-    expect(layout.edges.some((edge) => edge.kind === "snapshot-strategy")).toBe(true);
+    expect(layout.edges.some((edge) => edge.kind === "snapshot-strategy")).toBe(false);
     expect(layout.edges.some((edge) => edge.toLayer === "decision")).toBe(false);
     expect(layout.edges.some((edge) => edge.toLayer === "outcome")).toBe(false);
     expect(layout.edges.some((edge) => edge.toLayer === "adaptation")).toBe(false);
@@ -205,6 +205,8 @@ describe("Cognitive Globe – Darstellungsgrenzen", () => {
   it("aktualisiert Instanzdaten sichtbar und fügt keine Datenquelle hinzu", () => {
     expect(scene).toContain("mesh.instanceMatrix.needsUpdate = true");
     expect(scene).toContain("mesh.instanceColor.needsUpdate = true");
+    expect(scene).toContain('const RETRIEVAL = new Color("#ff2a2a")');
+    expect(scene).toContain("this.retrievalEdges.forEach");
     expect(scene).not.toMatch(/supabase|fetch\(|createServerFn|refetchInterval|setInterval/);
     expect(stage.match(/refetchInterval:/g)).toHaveLength(1);
   });

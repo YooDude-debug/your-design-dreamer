@@ -38,6 +38,7 @@ const UNAVAILABLE = new Color("#747d8c");
 const UNKNOWN = new Color("#343b46");
 const RING_EMPTY = new Color("#3a404a");
 const RING_DATA = new Color("#9aa4b4");
+const RETRIEVAL = new Color("#ff2a2a");
 
 /** Visuelle Reihenfolge: Candidate ist die erste Schale über dem Memory Core. */
 const RADIAL_ORDER: CognitiveLayerId[] = [
@@ -292,22 +293,6 @@ export function buildCognitiveVisualLayout(
       value: null,
     });
   });
-  const snapshotNodes = nodes.filter((node) => node.layer === "snapshot");
-  const strategyNodes = nodes.filter((node) => node.layer === "strategy");
-  for (const strategy of strategyNodes) {
-    for (const snapshot of snapshotNodes) {
-      edges.push({
-        id: `${snapshot.id}-${strategy.id}`,
-        fromLayer: "snapshot",
-        toLayer: "strategy",
-        from: snapshot.position.clone(),
-        to: strategy.position.clone(),
-        intensity: null,
-        kind: "snapshot-strategy",
-      });
-    }
-  }
-
   const decisionRadius = cognitiveLayerRadius(base, "decision");
   COVERAGE_KEYS.forEach((key, index) => {
     const coverage = view.coverage[key];
@@ -418,8 +403,11 @@ export class CognitiveLayerScene {
     const values = color.array as Float32Array;
     this.retrievalEdges.forEach((edge, edgeIndex) => {
       const pulse = edge.memoryIndex === undefined ? 0 : (retrievalPulse[edge.memoryIndex] ?? 0);
-      const level = 0.12 + 0.85 * pulse;
-      values.fill(level, edgeIndex * 6, edgeIndex * 6 + 6);
+      const displayed = UNAVAILABLE.clone().lerp(RETRIEVAL, pulse);
+      values.set(
+        [displayed.r, displayed.g, displayed.b, displayed.r, displayed.g, displayed.b],
+        edgeIndex * 6,
+      );
     });
     color.needsUpdate = true;
   }
