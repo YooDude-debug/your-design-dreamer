@@ -789,9 +789,16 @@ function LayersPanel({
       </ul>
       {view && (
         <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 border-t border-border/60 pt-2">
-          <Row k="Candidates" v={`${view.candidates.length}${view.truncated ? " (gekürzt)" : ""}`} src="cognitive" />
+          <Row
+            k="Candidates"
+            v={`${view.candidates.length}${view.truncated ? " (gekürzt)" : ""}`}
+            src="cognitive"
+          />
           <Row k="Competitions" v={String(view.competitions.length)} src="maximumOverlap" />
-          <Row k="Focus" v={view.snapshot.currentFocus ? view.snapshot.currentFocus.kind : "unknown"} />
+          <Row
+            k="Focus"
+            v={view.snapshot.currentFocus ? view.snapshot.currentFocus.kind : "unknown"}
+          />
           <Row k="Attention Availability" v={val(view.snapshot.attentionAvailability)} />
           <Row
             k="Strategien verfügbar"

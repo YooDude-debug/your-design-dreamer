@@ -49,7 +49,11 @@ export function layerRadius(base: number, layerIndex: number): number {
 /** Gleichmässig verteilte Äquator-Positionen (feste Reihenfolge, keine Wertung). */
 function ringPoint(r: number, i: number, n: number, tilt: number): Vector3 {
   const a = (i / Math.max(1, n)) * Math.PI * 2;
-  return new Vector3(Math.cos(a) * r, Math.sin(a) * r * Math.sin(tilt), Math.sin(a) * r * Math.cos(tilt));
+  return new Vector3(
+    Math.cos(a) * r,
+    Math.sin(a) * r * Math.sin(tilt),
+    Math.sin(a) * r * Math.cos(tilt),
+  );
 }
 
 type Marker = { pos: Vector3; present: boolean; size: number };
@@ -91,7 +95,11 @@ export class CognitiveLayerScene {
           COGNITIVE_FACTOR_KEYS.forEach((k, fi) => {
             if (!c.factors[k]) return; // nie erfinden
             const off = new Vector3(0, (fi - 3) * 0.08, 0);
-            markers.push({ pos: d.dir.clone().multiplyScalar(r).add(off), present: true, size: 0.1 });
+            markers.push({
+              pos: d.dir.clone().multiplyScalar(r).add(off),
+              present: true,
+              size: 0.1,
+            });
           });
         }
       }
@@ -179,7 +187,11 @@ export class CognitiveLayerScene {
       geo.setAttribute("color", new BufferAttribute(new Float32Array(pos.length), 3));
       this.connectorLines = new LineSegments(
         geo,
-        new LineBasicMaterial({ vertexColors: true, transparent: true, blending: AdditiveBlending }),
+        new LineBasicMaterial({
+          vertexColors: true,
+          transparent: true,
+          blending: AdditiveBlending,
+        }),
       );
       this.layers.get("candidates")?.add(this.connectorLines);
     }

@@ -26,12 +26,17 @@ describe("Cognitive Globe – Mapping", () => {
   });
 
   it("null bleibt null; Outcome/Adaptation leer; keine Faktoren erfunden", () => {
-    const v = toCognitiveView(runCognitiveObservation({ path: "chat", memoryIds: ["a", "b"] }), at)!;
+    const v = toCognitiveView(
+      runCognitiveObservation({ path: "chat", memoryIds: ["a", "b"] }),
+      at,
+    )!;
     expect(isCognitiveView(v)).toBe(true);
     expect(v.outcome).toBeNull();
     expect(v.adaptation).toBeNull();
     expect(v.snapshot.attentionAvailability).toBeNull();
-    expect(v.candidates.every((c) => Object.values(c.factors).every((f) => f === false))).toBe(true);
+    expect(v.candidates.every((c) => Object.values(c.factors).every((f) => f === false))).toBe(
+      true,
+    );
     expect(layerHasData(v, "factors")).toBe(false);
     expect(layerHasData(v, "action")).toBe(false);
     expect(layerHasData(v, "outcome")).toBe(false);
@@ -54,7 +59,10 @@ describe("Cognitive Globe – Mapping", () => {
   });
 
   it("Coverage bleibt Coverage und ist bei mehreren Candidates null", () => {
-    const v = toCognitiveView(runCognitiveObservation({ path: "chat", memoryIds: ["a", "b"] }), at)!;
+    const v = toCognitiveView(
+      runCognitiveObservation({ path: "chat", memoryIds: ["a", "b"] }),
+      at,
+    )!;
     for (const k of COVERAGE_KEYS) expect(v.coverage[k]).toBeNull();
     expect(Object.keys(v.coverage)).toEqual([...COVERAGE_KEYS]);
   });
