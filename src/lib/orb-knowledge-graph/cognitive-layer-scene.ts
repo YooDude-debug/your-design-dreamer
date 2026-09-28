@@ -79,7 +79,6 @@ export type CognitiveVisualEdge = {
     | "competition-pair"
     | "competition-snapshot"
     | "candidate-snapshot"
-    | "snapshot-strategy"
     | "strategy-action";
   memoryIndex?: number;
 };
