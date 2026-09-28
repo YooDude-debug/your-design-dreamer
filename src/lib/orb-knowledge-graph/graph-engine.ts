@@ -32,7 +32,7 @@ import {
 } from "three";
 
 import { CognitiveLayerScene } from "./cognitive-layer-scene";
-import type { CognitiveLayerId, CognitiveView } from "./cognitive-layers";
+import { COGNITIVE_LAYERS, type CognitiveLayerId, type CognitiveView } from "./cognitive-layers";
 
 export type EngineNode = { id: string; type: string; importance: number };
 export type EngineEdge = { id: string; source: string; target: string; weight: number };
@@ -115,7 +115,7 @@ export class KnowledgeGraphEngine {
   /** Cognitive-Ebenen (nur Darstellung, neutrale Farben). */
   private cognitive = new CognitiveLayerScene(RADIUS);
   private cognitiveView: CognitiveView | null = null;
-  private layerVisible = new Set<CognitiveLayerId>();
+  private layerVisible = new Set<CognitiveLayerId>(COGNITIVE_LAYERS.map((l) => l.id));
   private layerFocus: CognitiveLayerId | null = null;
 
   constructor(
