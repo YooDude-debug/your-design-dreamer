@@ -52,7 +52,16 @@ describe("Cognitive State", () => {
     }
     expect(state.uncertainty).toBe(1);
     expect(state.goalPressure).toBe(0);
-    expect(invalid).toEqual(expect.arrayContaining(["relevance", "novelty", "uncertainty", "goalPressure", "attention", "energy"]));
+    expect(invalid).toEqual(
+      expect.arrayContaining([
+        "relevance",
+        "novelty",
+        "uncertainty",
+        "goalPressure",
+        "attention",
+        "energy",
+      ]),
+    );
     expect(isCognitiveState({ ...state, novelty: Number.NaN })).toBe(false);
   });
 
@@ -73,7 +82,8 @@ describe("Goals", () => {
   it("priority validierbar", () => {
     expect(isValidGoalPriority(0)).toBe(true);
     expect(isValidGoalPriority(1)).toBe(true);
-    for (const p of [-0.1, 1.1, Number.NaN, Infinity, "0.5"]) expect(isValidGoalPriority(p)).toBe(false);
+    for (const p of [-0.1, 1.1, Number.NaN, Infinity, "0.5"])
+      expect(isValidGoalPriority(p)).toBe(false);
     expect(isOrbGoal({ ...goal, priority: 2 })).toBe(false);
   });
 });
@@ -106,7 +116,14 @@ describe("Provenance", () => {
 
 describe("Impulse / Experience", () => {
   it("Impulse nur mit definierten Typen", () => {
-    for (const t of ["knowledge_gap", "goal_relevance", "novelty", "contradiction", "experience", "follow_up"])
+    for (const t of [
+      "knowledge_gap",
+      "goal_relevance",
+      "novelty",
+      "contradiction",
+      "experience",
+      "follow_up",
+    ])
       expect(isCognitiveImpulse({ id: "i", type: t, score: 0.5, reason: "r" })).toBe(true);
     expect(isCognitiveImpulse({ id: "i", type: "boredom", score: 0.5, reason: "r" })).toBe(false);
     expect(isCognitiveImpulse({ id: "i", type: "novelty", score: 3, reason: "r" })).toBe(false);
@@ -128,14 +145,22 @@ describe("Regression: bestehender ORB bleibt unberührt", () => {
         const p = join(dir, f);
         if (statSync(p).isDirectory()) {
           if (!p.endsWith("cognitive")) walk(p);
-        } else if (/\.tsx?$/.test(f) && readFileSync(p, "utf8").includes("cognitive/foundation")) hits.push(p);
+        } else if (/\.tsx?$/.test(f) && readFileSync(p, "utf8").includes("cognitive/foundation"))
+          hits.push(p);
       }
     };
     walk("src");
     expect(hits).toEqual([]);
   });
   it("nextState/Energy-Berechnung unverändert", () => {
-    const s: OrbState = { curiosity: 0.6, joy: 0.5, fear: 0.08, trust: 0.4, uncertainty: 0.3, energy: 0.8 };
+    const s: OrbState = {
+      curiosity: 0.6,
+      joy: 0.5,
+      fear: 0.08,
+      trust: 0.4,
+      uncertainty: 0.3,
+      energy: 0.8,
+    };
     const n = nextState(s, { importance: 0.5, isQuestion: false, isLearning: false, recalled: 0 });
     expect(n.energy).toBeCloseTo(0.8 - 0.03 - 0.02, 10);
   });
