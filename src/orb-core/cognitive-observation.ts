@@ -27,8 +27,6 @@ import { createCognitiveSnapshot, type OrbCognitiveSnapshot } from "./cognitive/
 import { assessStrategies, type OrbStrategyAssessment } from "./cognitive/strategy";
 import { assessDecisionFoundation, type OrbDecisionFoundation } from "./cognitive/decision";
 import type { OrbActionPlan } from "./cognitive/action-plan";
-import type { OrbOutcome } from "./cognitive/outcome";
-import type { OrbAdaptationObservation } from "./cognitive/adaptation";
 
 /** Obergrenze für Candidates je Vorgang (Paarvergleiche bleiben klein). */
 export const COGNITIVE_OBSERVATION_MAX_CANDIDATES = 12;
@@ -47,8 +45,10 @@ export type OrbCognitiveObservation =
       strategies: OrbStrategyAssessment;
       decision: OrbDecisionFoundation;
       actionPlans: OrbActionPlan[];
-      outcome: OrbOutcome | null;
-      adaptation: OrbAdaptationObservation | null;
+      /** Kein explizites Outcome im ORB-Lauf → immer null. */
+      outcome: null;
+      /** Ohne Outcome keine Adaptation Observation → immer null. */
+      adaptation: null;
     }
   | { kind: "orb.cognitive_observation"; status: "failed"; path: OrbCognitivePath };
 
