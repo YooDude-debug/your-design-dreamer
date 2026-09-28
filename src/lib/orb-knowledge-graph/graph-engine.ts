@@ -113,7 +113,7 @@ export class KnowledgeGraphEngine {
   lastModelVisibleIds: string[] = [];
   private pathQueue: { at: number; node?: string; edge?: string }[] = [];
   /** Cognitive-Ebenen (nur Darstellung, neutrale Farben). */
-  private cognitive = new CognitiveLayerScene(RADIUS);
+  private cognitiveScene = new CognitiveLayerScene(RADIUS);
   private cognitiveView: CognitiveView | null = null;
   private layerVisible = new Set<CognitiveLayerId>(COGNITIVE_LAYERS.map((l) => l.id));
   private layerFocus: CognitiveLayerId | null = null;
@@ -128,7 +128,7 @@ export class KnowledgeGraphEngine {
     this.camera = new PerspectiveCamera(50, 1, 0.1, 200);
     this.camera.position.set(0, 0, this.distance);
     this.scene.add(this.group);
-    this.group.add(this.cognitive.root);
+    this.group.add(this.cognitiveScene.root);
     host.appendChild(this.renderer.domElement);
     this.renderer.domElement.style.touchAction = "none";
     this.resize();
@@ -218,10 +218,10 @@ export class KnowledgeGraphEngine {
     const coreOn = focus ? focus === "memory" : this.layerVisible.has("memory");
     if (this.mesh) this.mesh.visible = coreOn || focus !== null;
     if (this.lines) this.lines.visible = coreOn;
-    this.cognitive.setVisibility(this.layerVisible, focus);
+    this.cognitiveScene.setVisibility(this.layerVisible, focus);
   }
   private rebuildCognitive(): void {
-    this.cognitive.build(this.cognitiveView, this.positions, this.index);
+    this.cognitiveScene.build(this.cognitiveView, this.positions, this.index);
     this.setLayers(this.layerVisible, this.layerFocus);
   }
 
@@ -362,7 +362,7 @@ export class KnowledgeGraphEngine {
       }
       col.needsUpdate = true;
     }
-    this.cognitive.update(this.retrievalPulse);
+    this.cognitiveScene.update(this.retrievalPulse);
     this.renderer.render(this.scene, this.camera);
   };
 
@@ -471,7 +471,7 @@ export class KnowledgeGraphEngine {
     (this.mesh?.material as MeshBasicMaterial | undefined)?.dispose();
     this.lines?.geometry.dispose();
     (this.lines?.material as LineBasicMaterial | undefined)?.dispose();
-    this.cognitive.dispose();
+    this.cognitiveScene.dispose();
     this.renderer.dispose();
     el.remove();
   }
