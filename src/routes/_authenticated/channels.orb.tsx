@@ -62,6 +62,17 @@ import { orbChatRequestDiagnostic, type ChatBridgeView } from "@/lib/orb-chat-br
 import { detectDeveloperDiagnosticIntent } from "@/orb-dev/chat-bridge";
 import { adminCheckAccess } from "@/lib/admin.functions";
 import { RETRIEVAL_CHANNEL } from "@/orb-sdk";
+import { COGNITIVE_CHANNEL, toCognitiveView } from "@/lib/orb-knowledge-graph/cognitive-layers";
+
+/** Nur Darstellung: kompakte Cognitive-Ansicht an den Knowledge Globe (flüchtig). */
+function broadcastCognitive(obs: unknown) {
+  if (typeof BroadcastChannel === "undefined") return;
+  const view = toCognitiveView(obs, new Date().toISOString());
+  if (!view) return;
+  const ch = new BroadcastChannel(COGNITIVE_CHANNEL);
+  ch.postMessage(view);
+  ch.close();
+}
 
 export const Route = createFileRoute("/_authenticated/channels/orb")({
   head: () => ({
@@ -187,6 +198,7 @@ function OrbCorePage() {
         ch.postMessage(turn.retrievalEvent);
         ch.close();
       }
+      if (isAdmin) broadcastCognitive(turn.cognitive);
       if (turn.aiStatus === "quota") toast.error("Die Sprachschicht ist derzeit nicht verfügbar.");
 
       // Stille Hintergrundauswertung des Gesprächs: keine sichtbare Reaktion,
@@ -325,6 +337,7 @@ function OrbCorePage() {
       // NUR Dry-Run (Experiment): stille Versuche in Folge zählen – reine
       // Beobachtung, beeinflusst keinen Takt und keine Entscheidung.
       silentStreakRef.current = result.asked ? 0 : silentStreakRef.current + 1;
+      if (isAdmin && result.asked) broadcastCognitive(result.cognitive);
       if (!result.asked || !result.question) return;
       if (result.snapshot) queryClient.setQueryData(["orb", "snapshot"], result.snapshot);
       setLastReply(result.question);

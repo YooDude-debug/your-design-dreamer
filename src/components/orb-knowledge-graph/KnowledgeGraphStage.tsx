@@ -16,6 +16,15 @@ import { KnowledgeGraphEngine } from "@/lib/orb-knowledge-graph/graph-engine";
 import { searchGraph, MAX_PATH_NODES, type KgSearchResult } from "@/lib/orb-knowledge-graph/search";
 import { countLabel } from "@/lib/orb-knowledge-graph/counts";
 import {
+  COGNITIVE_CHANNEL,
+  COGNITIVE_LAYERS,
+  COVERAGE_KEYS,
+  isCognitiveView,
+  layerHasData,
+  type CognitiveLayerId,
+  type CognitiveView,
+} from "@/lib/orb-knowledge-graph/cognitive-layers";
+import {
   RETRIEVAL_CHANNEL,
   createRetrievalPulseGate,
   isRetrievalEvent,
@@ -60,6 +69,25 @@ export default function KnowledgeGraphStage() {
   useEffect(() => {
     if (selected) setOpen("memory");
   }, [selected]);
+
+  const [cognitive, setCognitive] = useState<CognitiveView | null>(null);
+  const [layerOn, setLayerOn] = useState<Set<CognitiveLayerId>>(
+    () => new Set(COGNITIVE_LAYERS.map((l) => l.id)),
+  );
+  const [layerFocus, setLayerFocus] = useState<CognitiveLayerId | null>(null);
+
+  // Vorhandene Cognitive Observation aus dem Rundenergebnis (ORB-Kanal-Seite,
+  // BroadcastChannel). Kein Polling, keine DB, kein Modellaufruf.
+  useEffect(() => {
+    if (typeof BroadcastChannel === "undefined") return;
+    const ch = new BroadcastChannel(COGNITIVE_CHANNEL);
+    ch.onmessage = (msg: MessageEvent) => {
+      if (isCognitiveView(msg.data)) setCognitive(msg.data);
+    };
+    return () => ch.close();
+  }, []);
+  useEffect(() => engineRef.current?.setCognitive(cognitive), [cognitive]);
+  useEffect(() => engineRef.current?.setLayers(layerOn, layerFocus), [layerOn, layerFocus]);
 
   const [lastRetrieval, setLastRetrieval] = useState<OrbRetrievalEvent | null>(null);
 
@@ -332,6 +360,29 @@ export default function KnowledgeGraphStage() {
         </Panel>
       )}
 
+      {open === "layers" && (
+        <Panel onClose={() => setOpen(null)}>
+          <LayersPanel
+            view={cognitive}
+            on={layerOn}
+            focus={layerFocus}
+            onToggle={(id) =>
+              setLayerOn((cur) => {
+                const next = new Set(cur);
+                if (next.has(id)) next.delete(id);
+                else next.add(id);
+                return next;
+              })
+            }
+            onAll={() => {
+              setLayerFocus(null);
+              setLayerOn(new Set(COGNITIVE_LAYERS.map((l) => l.id)));
+            }}
+            onFocus={(id) => setLayerFocus((cur) => (cur === id ? null : id))}
+          />
+        </Panel>
+      )}
+
       {open === "state" && (
         <Panel onClose={() => setOpen(null)}>
           <PanelTitle>Zustand</PanelTitle>
@@ -582,8 +633,9 @@ export default function KnowledgeGraphStage() {
   );
 }
 
-type PanelId = "state" | "memory" | "threads" | "telemetry" | "debug" | "search";
+type PanelId = "layers" | "state" | "memory" | "threads" | "telemetry" | "debug" | "search";
 const TABS: { id: PanelId; label: string }[] = [
+  { id: "layers", label: "Ebenen" },
   { id: "state", label: "Zustand" },
   { id: "memory", label: "Memory" },
   { id: "threads", label: "Threads" },
@@ -671,5 +723,99 @@ function Legend() {
       </li>
       <li>Zeitauflösung: Lesetakt 4 s – kein Echtzeit-Stream.</li>
     </ul>
+  );
+}
+
+const val = (v: number | null) => (v === null ? "unknown" : `${Math.round(v * 100)} %`);
+
+/** Ebenen-Steuerung; zeigt nur vorhandene Daten, null bleibt unknown. */
+function LayersPanel({
+  view,
+  on,
+  focus,
+  onToggle,
+  onAll,
+  onFocus,
+}: {
+  view: CognitiveView | null;
+  on: Set<CognitiveLayerId>;
+  focus: CognitiveLayerId | null;
+  onToggle: (id: CognitiveLayerId) => void;
+  onAll: () => void;
+  onFocus: (id: CognitiveLayerId) => void;
+}) {
+  return (
+    <div data-testid="cognitive-layers-panel">
+      <div className="mb-2 flex items-center justify-between">
+        <PanelTitle>Ebenen</PanelTitle>
+        <button
+          type="button"
+          onClick={onAll}
+          className="rounded-md border border-border px-2 py-0.5 hover:border-brand"
+        >
+          Alle
+        </button>
+      </div>
+      <p className="mb-2 text-muted-foreground">
+        {view
+          ? `Letzte Beobachtung: ${view.path === "chat" ? "Chat-Antwort" : "eigene Frage (Knowledge Gap)"} · ${new Date(view.receivedAt).toLocaleTimeString()}`
+          : "Noch keine Beobachtung. Schreibe ORB im ORB-Kanal (gleicher Browser)."}
+      </p>
+      <ul className="space-y-1">
+        {COGNITIVE_LAYERS.map((l, i) => {
+          const has = layerHasData(view, l.id);
+          return (
+            <li key={l.id} className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={on.has(l.id)}
+                disabled={focus !== null}
+                onChange={() => onToggle(l.id)}
+                aria-label={`${l.label} anzeigen`}
+              />
+              <button
+                type="button"
+                onClick={() => onFocus(l.id)}
+                className={`flex-1 text-left hover:text-brand ${focus === l.id ? "font-bold text-foreground" : ""}`}
+              >
+                {i} · {l.label}
+              </button>
+              <span className={has ? "text-foreground" : "text-muted-foreground/70"}>
+                {has ? "Daten" : "leer"}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      {view && (
+        <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 border-t border-border/60 pt-2">
+          <Row
+            k="Candidates"
+            v={`${view.candidates.length}${view.truncated ? " (gekürzt)" : ""}`}
+            src="cognitive"
+          />
+          <Row k="Competitions" v={String(view.competitions.length)} src="maximumOverlap" />
+          <Row
+            k="Focus"
+            v={view.snapshot.currentFocus ? view.snapshot.currentFocus.kind : "unknown"}
+          />
+          <Row k="Attention Availability" v={val(view.snapshot.attentionAvailability)} />
+          <Row
+            k="Strategien verfügbar"
+            v={`${view.strategies.filter((s) => s.available).length} / ${view.strategies.length} (keine Auswahl)`}
+          />
+          {COVERAGE_KEYS.map((k) => (
+            <Row key={k} k={k} v={val(view.coverage[k])} src="Datenabdeckung" />
+          ))}
+          <Row k="Action Plans" v={String(view.actionPlans.length)} />
+          <Row k="Outcome" v="null" />
+          <Row k="Adaptation" v="null" />
+        </dl>
+      )}
+      <p className="mt-2 italic text-muted-foreground/80">
+        Weiss = vorhanden, grau = nicht vorhanden/unknown. Zeigt beobachtbare Architekturdaten –
+        keine Gedanken, keine Bewertung.
+      </p>
+    </div>
   );
 }

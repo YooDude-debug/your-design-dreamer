@@ -31,6 +31,9 @@ import {
   WebGLRenderer,
 } from "three";
 
+import { CognitiveLayerScene } from "./cognitive-layer-scene";
+import { COGNITIVE_LAYERS, type CognitiveLayerId, type CognitiveView } from "./cognitive-layers";
+
 export type EngineNode = { id: string; type: string; importance: number };
 export type EngineEdge = { id: string; source: string; target: string; weight: number };
 
@@ -109,6 +112,11 @@ export class KnowledgeGraphEngine {
   /** model_visible_ids des letzten Events – nur vorgehalten, keine eigene Codierung. */
   lastModelVisibleIds: string[] = [];
   private pathQueue: { at: number; node?: string; edge?: string }[] = [];
+  /** Cognitive-Ebenen (nur Darstellung, neutrale Farben). */
+  private cognitiveScene = new CognitiveLayerScene(RADIUS);
+  private cognitiveView: CognitiveView | null = null;
+  private layerVisible = new Set<CognitiveLayerId>(COGNITIVE_LAYERS.map((l) => l.id));
+  private layerFocus: CognitiveLayerId | null = null;
 
   constructor(
     private host: HTMLElement,
@@ -120,6 +128,7 @@ export class KnowledgeGraphEngine {
     this.camera = new PerspectiveCamera(50, 1, 0.1, 200);
     this.camera.position.set(0, 0, this.distance);
     this.scene.add(this.group);
+    this.group.add(this.cognitiveScene.root);
     host.appendChild(this.renderer.domElement);
     this.renderer.domElement.style.touchAction = "none";
     this.resize();
@@ -194,6 +203,26 @@ export class KnowledgeGraphEngine {
       new LineBasicMaterial({ vertexColors: true, transparent: true, blending: AdditiveBlending }),
     );
     this.group.add(this.lines);
+    this.rebuildCognitive();
+  }
+
+  /** Vorhandene Cognitive-Ansicht darstellen (null = keine Daten). */
+  setCognitive(view: CognitiveView | null): void {
+    this.cognitiveView = view;
+    this.rebuildCognitive();
+  }
+  /** Ebenen ein-/ausblenden bzw. auf eine Ebene fokussieren. */
+  setLayers(visible: Iterable<CognitiveLayerId>, focus: CognitiveLayerId | null): void {
+    this.layerVisible = new Set(visible);
+    this.layerFocus = focus;
+    const coreOn = focus ? focus === "memory" : this.layerVisible.has("memory");
+    if (this.mesh) this.mesh.visible = coreOn || focus !== null;
+    if (this.lines) this.lines.visible = coreOn;
+    this.cognitiveScene.setVisibility(this.layerVisible, focus);
+  }
+  private rebuildCognitive(): void {
+    this.cognitiveScene.build(this.cognitiveView, this.positions, this.index);
+    this.setLayers(this.layerVisible, this.layerFocus);
   }
 
   /** Von aussen: nur mit echten, gespeicherten Aktivierungen aufrufen. */
@@ -333,6 +362,7 @@ export class KnowledgeGraphEngine {
       }
       col.needsUpdate = true;
     }
+    this.cognitiveScene.update(this.retrievalPulse);
     this.renderer.render(this.scene, this.camera);
   };
 
@@ -398,7 +428,7 @@ export class KnowledgeGraphEngine {
     this.zoomBy(Math.exp(e.deltaY * 0.0012));
   };
   private zoomBy(f: number) {
-    this.distance = Math.min(45, Math.max(12, this.distance * f));
+    this.distance = Math.min(60, Math.max(12, this.distance * f));
   }
   private pick(x: number, y: number) {
     if (!this.mesh) return;
@@ -441,6 +471,7 @@ export class KnowledgeGraphEngine {
     (this.mesh?.material as MeshBasicMaterial | undefined)?.dispose();
     this.lines?.geometry.dispose();
     (this.lines?.material as LineBasicMaterial | undefined)?.dispose();
+    this.cognitiveScene.dispose();
     this.renderer.dispose();
     el.remove();
   }
