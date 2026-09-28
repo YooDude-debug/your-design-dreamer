@@ -18,7 +18,6 @@ import {
   unitOrNull,
   type OrbInformationSource,
 } from "@/orb-core/cognitive/foundation";
-import { assessCognitiveNovelty, type OrbContradiction } from "@/orb-core/cognitive/novelty";
 
 export const UNCERTAINTY_FACTOR_KEYS = [
   "sourceCertainty",
@@ -71,11 +70,49 @@ export type OrbUncertaintyAssessment = {
   confidence: number;
   provenance: OrbInformationSource;
   basedOnInference: boolean;
-  contradictions: OrbContradiction[];
+  contradictions: OrbUncertaintyContradiction[];
   agreeingSources: OrbInformationSource[];
   unknownFactors: OrbUncertaintyFactorKey[];
   invalidFactors: OrbUncertaintyFactorKey[];
 };
+
+/** Beide Seiten eines Widerspruchs bleiben erhalten; keine Wahrheitsentscheidung. */
+export type OrbUncertaintyContradiction = {
+  incoming: OrbInformationSource;
+  existing: OrbInformationSource;
+  existingText: string;
+};
+
+// Lokale Kopie der Phase-3-Idee ("X ist A" vs "X ist B"); Phase 3 bleibt
+// unverändert und wird bewusst nicht importiert (Isolation der Schichten).
+const STOP = new Set(
+  "der die das ein eine einen und oder ich du er sie es wir ihr mit für von zu im in am an auf ist sind war hat habe weiterhin noch auch the a an and or i you is are was of to in on for with still".split(
+    " ",
+  ),
+);
+const COPULA = /\s(?:ist|sind|war|is|are|was)\s/i;
+function tokens(text: string): Set<string> {
+  const out = new Set<string>();
+  for (const t of text.toLowerCase().split(/[^\p{L}\p{N}-]+/u))
+    if (t.length > 1 && !STOP.has(t)) out.add(t);
+  return out;
+}
+function jaccard(a: Set<string>, b: Set<string>): number {
+  if (a.size === 0 && b.size === 0) return 0;
+  let inter = 0;
+  for (const t of a) if (b.has(t)) inter++;
+  return inter / (a.size + b.size - inter);
+}
+function contradicts(a: string, b: string): boolean {
+  const pa = a.split(COPULA);
+  const pb = b.split(COPULA);
+  if (pa.length !== 2 || pb.length !== 2) return false;
+  const sa = tokens(pa[0]);
+  if (sa.size === 0 || jaccard(sa, tokens(pb[0])) < 1) return false;
+  const qa = tokens(pa[1]);
+  const qb = tokens(pb[1]);
+  return qa.size > 0 && qb.size > 0 && jaccard(qa, qb) === 0;
+}
 
 function cloneSource(s: OrbInformationSource): OrbInformationSource {
   return s.type === "inference" ? { type: "inference", sourceIds: [...s.sourceIds] } : { ...s };
@@ -103,25 +140,27 @@ export function assessCognitiveUncertainty(
     f.inferenceDependency = 1 - Math.pow(0.5, depth);
   }
 
-  let contradictions: OrbContradiction[] = [];
+  const contradictions: OrbUncertaintyContradiction[] = [];
   const agreeingSources: OrbInformationSource[] = [];
   const text = typeof input.statement === "string" ? input.statement.trim() : "";
   if (input.others !== undefined && text) {
     const valid = input.others.filter(
       (o) => typeof o?.text === "string" && isInformationSource(o.source),
     );
-    const nov = assessCognitiveNovelty({ statement: text, source, known: valid });
-    contradictions = nov.contradictions;
-    f.contradiction = contradictions.length > 0 ? 1 : 0;
-    let agree = 0;
+    const tok = tokens(text);
     for (const o of valid) {
-      const r = assessCognitiveNovelty({ statement: text, known: [o] });
-      if (r.contradictions.length > 0) continue;
-      if ((r.factors.repetition ?? 0) >= AGREEMENT_MIN_REPETITION) {
-        agree++;
+      if (contradicts(text, o.text)) {
+        contradictions.push({
+          incoming: cloneSource(source),
+          existing: cloneSource(o.source),
+          existingText: o.text,
+        });
+      } else if (jaccard(tok, tokens(o.text)) >= AGREEMENT_MIN_REPETITION) {
         agreeingSources.push(cloneSource(o.source));
       }
     }
+    f.contradiction = contradictions.length > 0 ? 1 : 0;
+    const agree = agreeingSources.length;
     const disagree = contradictions.length;
     if (agree + disagree > 0) f.sourceAgreement = disagree / (agree + disagree);
   }
