@@ -80,8 +80,9 @@ export const REACTIVATION_HORIZON_DAYS = 180;
 export const RELATED_OVERLAP = 0.2;
 
 const STOP = new Set(
-  "der die das ein eine einen und oder ich du er sie es wir ihr mit für von zu im in am an auf ist sind war hat habe weiterhin noch auch the a an and or i you is are was of to in on for with still"
-    .split(" "),
+  "der die das ein eine einen und oder ich du er sie es wir ihr mit für von zu im in am an auf ist sind war hat habe weiterhin noch auch the a an and or i you is are was of to in on for with still".split(
+    " ",
+  ),
 );
 const COPULA = /\s(?:ist|sind|war|is|are|was)\s/i;
 
@@ -124,8 +125,14 @@ function cloneSource(s: OrbInformationSource): OrbInformationSource {
   return s.type === "inference" ? { type: "inference", sourceIds: [...s.sourceIds] } : { ...s };
 }
 
-function derive(input: OrbNoveltyInput): { factors: OrbNoveltyFactors; contradictions: OrbContradiction[]; incoming: OrbInformationSource } {
-  const incoming = isInformationSource(input.source) ? cloneSource(input.source) : { type: "unknown" as const };
+function derive(input: OrbNoveltyInput): {
+  factors: OrbNoveltyFactors;
+  contradictions: OrbContradiction[];
+  incoming: OrbInformationSource;
+} {
+  const incoming = isInformationSource(input.source)
+    ? cloneSource(input.source)
+    : { type: "unknown" as const };
   const f: OrbNoveltyFactors = {
     memoryNovelty: null,
     contextNovelty: null,
@@ -153,7 +160,11 @@ function derive(input: OrbNoveltyInput): { factors: OrbNoveltyFactors; contradic
       rep = Math.max(rep, jaccard(tok, kt));
       if (overlap(tok, kt) >= RELATED_OVERLAP) related.push(k);
       if (isContradiction(text, k.text) && isInformationSource(k.source)) {
-        contradictions.push({ incoming: cloneSource(incoming), existing: cloneSource(k.source), existingText: k.text });
+        contradictions.push({
+          incoming: cloneSource(incoming),
+          existing: cloneSource(k.source),
+          existingText: k.text,
+        });
       }
     }
     f.repetition = rep;

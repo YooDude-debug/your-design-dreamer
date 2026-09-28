@@ -15,7 +15,13 @@ const NOW = "2026-09-28T00:00:00Z";
 
 describe("Phase 3 – Cognitive Novelty", () => {
   it("A – neue Information zu unbekanntem Thema", () => {
-    const a = assessCognitiveNovelty({ statement: "Ich spiele Schach im Verein", source: conv, known: [ydude], context: [], now: NOW });
+    const a = assessCognitiveNovelty({
+      statement: "Ich spiele Schach im Verein",
+      source: conv,
+      known: [ydude],
+      context: [],
+      now: NOW,
+    });
     expect(a.factors.memoryNovelty).toBe(1);
     expect(a.factors.repetition).toBe(0);
     expect(a.factors.detailNovelty).toBeNull();
@@ -35,7 +41,12 @@ describe("Phase 3 – Cognitive Novelty", () => {
   });
 
   it("C – exakte Wiederholung", () => {
-    const a = assessCognitiveNovelty({ statement: "Ich arbeite weiterhin an Y-Dude", source: conv, known: [{ ...ydude, text: "Ich arbeite an Y-Dude" }], now: NOW });
+    const a = assessCognitiveNovelty({
+      statement: "Ich arbeite weiterhin an Y-Dude",
+      source: conv,
+      known: [{ ...ydude, text: "Ich arbeite an Y-Dude" }],
+      now: NOW,
+    });
     expect(a.factors.repetition).toBe(1);
     expect(a.factors.memoryNovelty).toBe(0);
     expect(a.factors.detailNovelty).toBe(0);
@@ -53,11 +64,24 @@ describe("Phase 3 – Cognitive Novelty", () => {
   });
 
   it("E/F/R – Widerspruch, beide Quellen erhalten, keine Wahrheitsentscheidung", () => {
-    const old: OrbKnownStatement = { text: "Das Lieblingsspiel ist Elden Ring", source: { type: "memory", memoryId: "m9" } };
-    const a = assessCognitiveNovelty({ statement: "Das Lieblingsspiel ist Tetris", source: conv, known: [old] });
+    const old: OrbKnownStatement = {
+      text: "Das Lieblingsspiel ist Elden Ring",
+      source: { type: "memory", memoryId: "m9" },
+    };
+    const a = assessCognitiveNovelty({
+      statement: "Das Lieblingsspiel ist Tetris",
+      source: conv,
+      known: [old],
+    });
     expect(a.factors.contradiction).toBe(1);
-    expect(a.contradictions).toEqual([{ incoming: conv, existing: old.source, existingText: old.text }]);
-    expect(Object.keys(a.contradictions[0]).sort()).toEqual(["existing", "existingText", "incoming"]);
+    expect(a.contradictions).toEqual([
+      { incoming: conv, existing: old.source, existingText: old.text },
+    ]);
+    expect(Object.keys(a.contradictions[0]).sort()).toEqual([
+      "existing",
+      "existingText",
+      "incoming",
+    ]);
     const r = a as Record<string, unknown>;
     expect(r.winner).toBeUndefined();
     expect(r.truth).toBeUndefined();
@@ -73,7 +97,13 @@ describe("Phase 3 – Cognitive Novelty", () => {
 
   it("H/I/J – NaN, Infinity → null; außerhalb 0..1 → clamp", () => {
     const a = assessCognitiveNovelty({
-      factors: { memoryNovelty: NaN, contextNovelty: Infinity, detailNovelty: -Infinity, reactivation: 4, repetition: -1 },
+      factors: {
+        memoryNovelty: NaN,
+        contextNovelty: Infinity,
+        detailNovelty: -Infinity,
+        reactivation: 4,
+        repetition: -1,
+      },
     });
     expect(a.factors.memoryNovelty).toBeNull();
     expect(a.factors.contextNovelty).toBeNull();
@@ -87,17 +117,30 @@ describe("Phase 3 – Cognitive Novelty", () => {
     const inf: OrbInformationSource = { type: "inference", sourceIds: ["m1"] };
     const known = [ydude];
     const snap = JSON.stringify({ inf, known });
-    const a = assessCognitiveNovelty({ statement: "Y-Dude nutzt CRDT", source: inf, known, now: NOW });
+    const a = assessCognitiveNovelty({
+      statement: "Y-Dude nutzt CRDT",
+      source: inf,
+      known,
+      now: NOW,
+    });
     expect(a.provenance).toEqual(inf);
     expect(a.provenance).not.toBe(inf);
     expect(a.basedOnInference).toBe(true);
     expect(isDirectMemory(a.provenance)).toBe(false);
     expect(JSON.stringify({ inf, known })).toBe(snap);
-    expect(assessCognitiveNovelty({ statement: "x", source: { type: "bogus" } }).provenance).toEqual({ type: "unknown" });
+    expect(
+      assessCognitiveNovelty({ statement: "x", source: { type: "bogus" } }).provenance,
+    ).toEqual({ type: "unknown" });
   });
 
   it("M – Recency und Novelty getrennt: aktuell erwähnt, aber nicht neu", () => {
-    const a = assessCognitiveNovelty({ statement: "Der Benutzer arbeitet an Y-Dude", source: conv, known: [ydude], context: ["Der Benutzer arbeitet an Y-Dude"], now: NOW });
+    const a = assessCognitiveNovelty({
+      statement: "Der Benutzer arbeitet an Y-Dude",
+      source: conv,
+      known: [ydude],
+      context: ["Der Benutzer arbeitet an Y-Dude"],
+      now: NOW,
+    });
     expect(a.factors.reactivation!).toBeLessThan(0.01);
     expect(a.factors.contextNovelty).toBe(0);
     expect(a.factors.memoryNovelty).toBe(0);
@@ -106,25 +149,45 @@ describe("Phase 3 – Cognitive Novelty", () => {
 
   it("N/O – Importance bestimmt Novelty nicht", () => {
     const important = { ...ydude, importance: 0.95 } as OrbKnownStatement & { importance: number };
-    const hi = assessCognitiveNovelty({ statement: "Der Benutzer arbeitet an Y-Dude", source: conv, known: [important] });
+    const hi = assessCognitiveNovelty({
+      statement: "Der Benutzer arbeitet an Y-Dude",
+      source: conv,
+      known: [important],
+    });
     expect(hi.factors.memoryNovelty).toBe(0);
-    const lo = assessCognitiveNovelty({ statement: "Ich lerne Griechisch", source: conv, known: [{ ...ydude, importance: 0.05 } as OrbKnownStatement] });
+    const lo = assessCognitiveNovelty({
+      statement: "Ich lerne Griechisch",
+      source: conv,
+      known: [{ ...ydude, importance: 0.05 } as OrbKnownStatement],
+    });
     expect(lo.factors.memoryNovelty).toBe(1);
     expect(important.importance).toBe(0.95);
   });
 
   it("Q – Repetition ist nicht Novelty; kein Gesamtscore", () => {
-    const a = assessCognitiveNovelty({ statement: "Ich arbeite an Y-Dude", source: conv, known: [{ ...ydude, text: "Ich arbeite an Y-Dude" }] }) as unknown as Record<string, unknown>;
+    const a = assessCognitiveNovelty({
+      statement: "Ich arbeite an Y-Dude",
+      source: conv,
+      known: [{ ...ydude, text: "Ich arbeite an Y-Dude" }],
+    }) as unknown as Record<string, unknown>;
     expect(a.novelty).toBeUndefined();
     expect(a.score).toBeUndefined();
     expect(a.interesting).toBeUndefined();
   });
 
   it("deterministisch, isoliert, ohne Seiteneffekte", () => {
-    const i = { statement: "Das Spiel ist Tetris", source: conv, known: [ydude], context: ["hi"], now: NOW };
+    const i = {
+      statement: "Das Spiel ist Tetris",
+      source: conv,
+      known: [ydude],
+      context: ["hi"],
+      now: NOW,
+    };
     expect(assessCognitiveNovelty(i)).toEqual(assessCognitiveNovelty(i));
     const src = readFileSync("src/orb-core/cognitive/novelty.ts", "utf8");
-    expect(src).not.toMatch(/supabase|fetch\(|createServerFn|\.server|insert\(|speak\(|process\.env|Date\.now|Math\.random/);
+    expect(src).not.toMatch(
+      /supabase|fetch\(|createServerFn|\.server|insert\(|speak\(|process\.env|Date\.now|Math\.random/,
+    );
     const files: string[] = [];
     const walk = (d: string) => {
       for (const f of readdirSync(d)) {
@@ -134,7 +197,11 @@ describe("Phase 3 – Cognitive Novelty", () => {
       }
     };
     walk("src");
-    const users = files.filter((f) => !f.endsWith("cognitive/novelty.ts") && readFileSync(f, "utf8").includes("cognitive/novelty"));
+    const users = files.filter(
+      (f) =>
+        !f.endsWith("cognitive/novelty.ts") &&
+        readFileSync(f, "utf8").includes("cognitive/novelty"),
+    );
     expect(users).toEqual([]);
   });
 });
