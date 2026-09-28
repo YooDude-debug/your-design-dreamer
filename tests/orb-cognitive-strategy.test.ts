@@ -68,7 +68,11 @@ describe("Phase 12 – Cognitive Strategy", () => {
   it("C/D – continue_focus nur mit explizitem Fokus", () => {
     expect(av(snap({ candidates: [partial()] })).continue_focus).toBe(false);
     const r = assessStrategies(snap({ currentFocus: focus })).strategies[0];
-    expect(r).toEqual({ type: "continue_focus", available: true, reasons: ["explicit_current_focus"] });
+    expect(r).toEqual({
+      type: "continue_focus",
+      available: true,
+      reasons: ["explicit_current_focus"],
+    });
   });
 
   it("E/F – defer", () => {
@@ -94,14 +98,18 @@ describe("Phase 12 – Cognitive Strategy", () => {
     const a = partial();
     const b = complete();
     const comp = [compareCognitiveCandidates(a, b)];
-    expect(av(snap({ currentFocus: focus, candidates: [a, b], competitions: comp })).switch_focus).toBe(true);
+    expect(
+      av(snap({ currentFocus: focus, candidates: [a, b], competitions: comp })).switch_focus,
+    ).toBe(true);
     expect(av(snap({ currentFocus: focus, candidates: [a, b] })).switch_focus).toBe(false);
     expect(av(snap({ candidates: [a, b], competitions: comp })).switch_focus).toBe(false);
     expect(av(snap({ currentFocus: focus, competitions: comp })).switch_focus).toBe(false);
   });
 
   it("Q/R – follow_up nur mit Experience", () => {
-    expect(av(snap({ experiences: [assessCognitiveExperience({ actionId: "a" })] })).follow_up).toBe(true);
+    expect(
+      av(snap({ experiences: [assessCognitiveExperience({ actionId: "a" })] })).follow_up,
+    ).toBe(true);
     expect(av(snap()).follow_up).toBe(false);
   });
 
@@ -116,7 +124,7 @@ describe("Phase 12 – Cognitive Strategy", () => {
   it("T–W – kein Winner, Ranking, Score, Priority", () => {
     const r = assessStrategies(full()) as unknown as Record<string, unknown>;
     expect(Object.keys(r)).toEqual(["strategies"]);
-    for (const s of (r.strategies as object[]))
+    for (const s of r.strategies as object[])
       expect(Object.keys(s).sort()).toEqual(["available", "reasons", "type"]);
     expect(Object.keys(mod).sort()).toEqual(["STRATEGY_TYPES", "assessStrategies"]);
     expect(CODE).not.toMatch(

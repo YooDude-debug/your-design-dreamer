@@ -66,9 +66,7 @@ export function assessStrategies(snapshot: OrbCognitiveSnapshot): OrbStrategyAss
   const hasFocus = !!snapshot?.currentFocus;
   const hasCandidate = candidates.length > 0;
   const incomplete = candidates.some(
-    (c) =>
-      !!c &&
-      DIMENSIONS.some((d) => (c as Record<string, unknown>)[d] === null || !(d in c)),
+    (c) => !!c && DIMENSIONS.some((d) => (c as Record<string, unknown>)[d] === null || !(d in c)),
   );
 
   return {
