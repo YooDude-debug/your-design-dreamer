@@ -77,10 +77,14 @@ function cloneSource(s: OrbInformationSource): OrbInformationSource {
 }
 
 function isExplicitSignal(v: unknown): v is OrbExplicitGoalSignal {
-  return !!v && typeof v === "object" && (v as { kind?: unknown }).kind === "explicit_user_statement";
+  return (
+    !!v && typeof v === "object" && (v as { kind?: unknown }).kind === "explicit_user_statement"
+  );
 }
 
-export function assessCognitiveGoalPressure(input: OrbGoalPressureInput = {}): OrbGoalPressureAssessment {
+export function assessCognitiveGoalPressure(
+  input: OrbGoalPressureInput = {},
+): OrbGoalPressureAssessment {
   const invalidFactors: OrbGoalPressureFactorKey[] = [];
   const unit = (key: OrbGoalPressureFactorKey, v: unknown): number | null => {
     if (v === undefined || v === null) return null;
@@ -89,7 +93,8 @@ export function assessCognitiveGoalPressure(input: OrbGoalPressureInput = {}): O
     return n;
   };
 
-  const g = input.goal && typeof input.goal === "object" ? (input.goal as Record<string, unknown>) : null;
+  const g =
+    input.goal && typeof input.goal === "object" ? (input.goal as Record<string, unknown>) : null;
   const goalId = g && typeof g.id === "string" && g.id ? g.id : null;
 
   const f: OrbGoalPressureFactors = {
@@ -98,7 +103,9 @@ export function assessCognitiveGoalPressure(input: OrbGoalPressureInput = {}): O
     taskContribution: unit("taskContribution", input.taskContribution),
     goalRecency: null,
     goalStatus: g && isGoalStatus(g.status) ? GOAL_STATUS_PRESSURE[g.status] : null,
-    userSignal: isExplicitSignal(input.userSignal) ? unit("userSignal", input.userSignal.strength) : null,
+    userSignal: isExplicitSignal(input.userSignal)
+      ? unit("userSignal", input.userSignal.strength)
+      : null,
   };
 
   const nowMs = input.now ? Date.parse(input.now) : NaN;
@@ -119,7 +126,8 @@ export function assessCognitiveGoalPressure(input: OrbGoalPressureInput = {}): O
   return {
     goalId,
     factors: f,
-    confidence: (GOAL_PRESSURE_FACTOR_KEYS.length - unknownFactors.length) / GOAL_PRESSURE_FACTOR_KEYS.length,
+    confidence:
+      (GOAL_PRESSURE_FACTOR_KEYS.length - unknownFactors.length) / GOAL_PRESSURE_FACTOR_KEYS.length,
     provenance,
     basedOnInference: provenance.type === "inference",
     unknownFactors,
