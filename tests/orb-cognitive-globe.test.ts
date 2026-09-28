@@ -82,8 +82,10 @@ describe("Cognitive Globe – Mapping", () => {
 });
 
 describe("Cognitive Globe – Darstellungsgrenzen", () => {
-  it("Cognitive-Ebenen nutzen kein Rot/Grün/Gelb", () => {
-    expect(scene).not.toMatch(/#ff2a2a|#b6ff3b|#ffd54a|RETRIEVAL_COLOR|PULSE_COLOR|PATH_COLOR/);
+  it("Cognitive-Nodes nutzen kein Rot/Grün/Gelb; Rot bleibt Retrieval vorbehalten", () => {
+    expect(scene).not.toMatch(/#b6ff3b|#ffd54a|PULSE_COLOR|PATH_COLOR/);
+    expect(scene.match(/#ff2a2a/g)).toHaveLength(1);
+    expect(scene).toContain('const RETRIEVAL = new Color("#ff2a2a")');
   });
   it("kein Score, kein LLM, keine DB, kein Polling in der Darstellungsschicht", () => {
     for (const src of [scene, mapper]) {
