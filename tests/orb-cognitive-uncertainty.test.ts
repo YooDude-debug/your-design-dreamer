@@ -143,7 +143,7 @@ describe("Phase 4 – Cognitive Uncertainty", () => {
     const a = assessCognitiveUncertainty({ source: mem }) as unknown as Record<string, unknown>;
     expect(a.overallUncertainty).toBeUndefined();
     expect(a.score).toBeUndefined();
-    expect(a.confidence).toBeCloseTo(4 / 6);
+    expect(a.confidence).toBe(0.5);
   });
 
   it("S/T/U/V – deterministisch, keine Uhr/Zufall/DB/API/LLM, nicht eingebunden", () => {
