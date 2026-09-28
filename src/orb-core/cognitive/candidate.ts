@@ -67,9 +67,7 @@ export function createCognitiveCandidate(
     id: textOrNull(input.id),
     topic: textOrNull(input.topic),
     description: textOrNull(input.description),
-    source: isInformationSource(input.source)
-      ? structuredClone(input.source)
-      : { type: "unknown" },
+    source: isInformationSource(input.source) ? structuredClone(input.source) : { type: "unknown" },
     relevance: dim(input.relevance),
     novelty: dim(input.novelty),
     uncertainty: dim(input.uncertainty),

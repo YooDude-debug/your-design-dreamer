@@ -87,7 +87,14 @@ describe("Phase 9 – Cognitive Candidate", () => {
 
   it("Q–V – kein Score, keine Verrechnung, kein Ranking/Auswahl", () => {
     const c = createCognitiveCandidate(full()) as unknown as Record<string, unknown>;
-    for (const k of ["score", "cognitiveScore", "overallScore", "priorityScore", "attentionScore", "priority"])
+    for (const k of [
+      "score",
+      "cognitiveScore",
+      "overallScore",
+      "priorityScore",
+      "attentionScore",
+      "priority",
+    ])
       expect(c[k]).toBeUndefined();
     expect(Object.keys(candidateModule).sort()).toEqual(["createCognitiveCandidate"]);
     expect(CODE).not.toMatch(/[^=!<>]\s[+*/]\s|\+=|\*=|Math\.|sort\(|reduce\(|rank|select|best/i);
