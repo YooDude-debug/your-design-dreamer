@@ -75,18 +75,34 @@ export const STRATEGY_ACTION: Readonly<Record<OrbStrategyType, OrbActionType>> =
 type Rule = { requirements: string[]; yes: string; no: string };
 
 const RULES: Readonly<Record<OrbStrategyType, Rule>> = {
-  continue_focus: { requirements: ["currentFocus"], yes: "explicit_current_focus", no: "no_current_focus" },
+  continue_focus: {
+    requirements: ["currentFocus"],
+    yes: "explicit_current_focus",
+    no: "no_current_focus",
+  },
   ask_clarification: { requirements: ["candidate"], yes: "candidate_present", no: "no_candidate" },
   explore_gap: { requirements: ["candidate"], yes: "candidate_present", no: "no_candidate" },
-  resolve_conflict: { requirements: ["conflict"], yes: "explicit_conflict", no: "no_explicit_conflict" },
+  resolve_conflict: {
+    requirements: ["conflict"],
+    yes: "explicit_conflict",
+    no: "no_explicit_conflict",
+  },
   switch_focus: {
     requirements: ["currentFocus", "candidate"],
     yes: "focus_and_candidate_present",
     no: "focus_or_candidate_missing",
   },
   defer: { requirements: [], yes: "no_structural_requirements", no: "no_structural_requirements" },
-  observe: { requirements: [], yes: "no_structural_requirements", no: "no_structural_requirements" },
-  follow_up: { requirements: ["experience"], yes: "previous_experience_present", no: "no_previous_experience" },
+  observe: {
+    requirements: [],
+    yes: "no_structural_requirements",
+    no: "no_structural_requirements",
+  },
+  follow_up: {
+    requirements: ["experience"],
+    yes: "previous_experience_present",
+    no: "no_previous_experience",
+  },
 };
 
 function isStrategy(v: unknown): v is OrbStrategyType {

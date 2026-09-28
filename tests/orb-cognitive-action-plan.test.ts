@@ -21,7 +21,12 @@ const conflict = () =>
   );
 const exp = () => assessCognitiveExperience({ actionId: "x" });
 const full = () =>
-  snap({ currentFocus: focus, candidates: [cand()], conflicts: [conflict()], experiences: [exp()] });
+  snap({
+    currentFocus: focus,
+    candidates: [cand()],
+    conflicts: [conflict()],
+    experiences: [exp()],
+  });
 const STRATS = Object.keys(STRATEGY_ACTION) as (keyof typeof STRATEGY_ACTION)[];
 const CODE = readFileSync("src/orb-core/cognitive/action-plan.ts", "utf8").replace(
   /\/\*[\s\S]*?\*\//g,
@@ -66,9 +71,16 @@ describe("Phase 14 – Cognitive Action Planning Foundation", () => {
   });
 
   it("H/I – switch_focus", () => {
-    expect(plan("switch_focus", snap({ currentFocus: focus, candidates: [cand()] }))!.executable).toBe(true);
-    expect(plan("switch_focus", snap({ candidates: [cand()] }))!.missingRequirements).toEqual(["currentFocus"]);
-    expect(plan("switch_focus", snap())!.missingRequirements).toEqual(["currentFocus", "candidate"]);
+    expect(
+      plan("switch_focus", snap({ currentFocus: focus, candidates: [cand()] }))!.executable,
+    ).toBe(true);
+    expect(plan("switch_focus", snap({ candidates: [cand()] }))!.missingRequirements).toEqual([
+      "currentFocus",
+    ]);
+    expect(plan("switch_focus", snap())!.missingRequirements).toEqual([
+      "currentFocus",
+      "candidate",
+    ]);
   });
 
   it("J/K – defer und observe immer strukturell ausführbar", () => {
@@ -131,7 +143,11 @@ describe("Phase 14 – Cognitive Action Planning Foundation", () => {
   });
 
   it("P–S/AG – kein Score, Ranking, Winner/Loser, nextAction, kein Vergleich", () => {
-    expect(Object.keys(mod).sort()).toEqual(["ACTION_TYPES", "STRATEGY_ACTION", "createActionPlan"]);
+    expect(Object.keys(mod).sort()).toEqual([
+      "ACTION_TYPES",
+      "STRATEGY_ACTION",
+      "createActionPlan",
+    ]);
     expect(CODE).not.toMatch(
       /score|rank|winner|loser|priorit|weight|best|selected|recommend|nextAction|sort\(|Math\.|\.reduce\(/i,
     );
