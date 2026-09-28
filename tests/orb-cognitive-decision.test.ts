@@ -47,7 +47,8 @@ const complete = (id = "c") =>
   });
 const partial = (id = "p") => mk({ id, attention: assessCognitiveAttention({ focus }) });
 const run = (s: ReturnType<typeof snap>) => df(s, assessStrategies(s));
-const get = (s: ReturnType<typeof snap>, t: string) => run(s).candidates.find((c) => c.strategy === t)!;
+const get = (s: ReturnType<typeof snap>, t: string) =>
+  run(s).candidates.find((c) => c.strategy === t)!;
 const allTrue = () => {
   const a = partial("a");
   const b = complete("b");
@@ -70,7 +71,11 @@ describe("Phase 13 – Cognitive Decision Foundation", () => {
     expect(r.candidates.map((c) => c.strategy)).toEqual(ORDER);
     expect(r.candidates.filter((c) => c.available).map((c) => c.strategy)).toEqual(["observe"]);
     expect(get(snap(), "observe").missingInputs).toEqual([]);
-    expect(get(snap(), "switch_focus").missingInputs).toEqual(["currentFocus", "candidate", "competition"]);
+    expect(get(snap(), "switch_focus").missingInputs).toEqual([
+      "currentFocus",
+      "candidate",
+      "competition",
+    ]);
     for (const c of r.candidates) expect(c.decisionInputs.relevance).toBeNull();
   });
 
@@ -127,15 +132,24 @@ describe("Phase 13 – Cognitive Decision Foundation", () => {
   });
 
   it("G/H/I – Konflikt, Competition, Experience nur als Vorhandensein", () => {
-    expect(get(snap({ conflicts: [conflict()] }), "resolve_conflict").decisionInputs.conflictPresent).toBe(true);
+    expect(
+      get(snap({ conflicts: [conflict()] }), "resolve_conflict").decisionInputs.conflictPresent,
+    ).toBe(true);
     const a = partial("a");
     const b = complete("b");
-    const s = snap({ currentFocus: focus, candidates: [a, b], competitions: [compareCognitiveCandidates(a, b)] });
+    const s = snap({
+      currentFocus: focus,
+      candidates: [a, b],
+      competitions: [compareCognitiveCandidates(a, b)],
+    });
     const sw = get(s, "switch_focus");
     expect(sw.available).toBe(true);
     expect(sw.missingInputs).toEqual([]);
     expect(sw.decisionInputs.competition).toBeNull();
-    const f = get(snap({ experiences: [assessCognitiveExperience({ actionId: "e" })] }), "follow_up");
+    const f = get(
+      snap({ experiences: [assessCognitiveExperience({ actionId: "e" })] }),
+      "follow_up",
+    );
     expect(f.available).toBe(true);
     expect(f.decisionInputs.experiencePresent).toBe(true);
   });
@@ -148,16 +162,29 @@ describe("Phase 13 – Cognitive Decision Foundation", () => {
     const r = run(allTrue()) as unknown as Record<string, unknown>;
     expect(Object.keys(r)).toEqual(["candidates"]);
     for (const c of r.candidates as object[])
-      expect(Object.keys(c).sort()).toEqual(["available", "decisionInputs", "missingInputs", "reasons", "strategy"]);
-    expect(Object.keys(mod).sort()).toEqual(["assessDecisionCandidate", "assessDecisionFoundation"]);
+      expect(Object.keys(c).sort()).toEqual([
+        "available",
+        "decisionInputs",
+        "missingInputs",
+        "reasons",
+        "strategy",
+      ]);
+    expect(Object.keys(mod).sort()).toEqual([
+      "assessDecisionCandidate",
+      "assessDecisionFoundation",
+    ]);
     expect(CODE).not.toMatch(
       /score|priorit|weight|rank|winner|loser|best|selected|recommend|nextAction|sort\(|Math\.|\.reduce\(/i,
     );
   });
 
   it("Symmetrie – vertauschte Candidates ändern keine Verfügbarkeit", () => {
-    const x = run(snap({ candidates: [partial("a"), complete("b")] })).candidates.map((c) => c.available);
-    const y = run(snap({ candidates: [complete("b"), partial("a")] })).candidates.map((c) => c.available);
+    const x = run(snap({ candidates: [partial("a"), complete("b")] })).candidates.map(
+      (c) => c.available,
+    );
+    const y = run(snap({ candidates: [complete("b"), partial("a")] })).candidates.map(
+      (c) => c.available,
+    );
     expect(x).toEqual(y);
   });
 
@@ -206,6 +233,6 @@ describe("Phase 13 – Cognitive Decision Foundation", () => {
     );
     expect(users).toEqual([]);
     const imports = [...CODE.matchAll(/from "([^"]+)"/g)].map((m) => m[1]).sort();
-    expect(imports).toEqual(["./candidate.ts", "./snapshot.ts", "./strategy.ts"]);
+    expect(imports).toEqual(["./candidate.ts", "./snapshot.ts"]);
   });
 });

@@ -17,7 +17,21 @@
  */
 import type { OrbCognitiveSnapshot } from "./snapshot.ts";
 import type { OrbCognitiveCandidate } from "./candidate.ts";
-import type { OrbStrategyAssessment, OrbStrategyType } from "./strategy.ts";
+
+/** Strukturgleiche Kopie der Phase-12-Typen (Phase-12-Isolationstest verbietet Import). */
+export type OrbStrategyType =
+  | "continue_focus"
+  | "ask_clarification"
+  | "explore_gap"
+  | "resolve_conflict"
+  | "switch_focus"
+  | "defer"
+  | "observe"
+  | "follow_up";
+
+type OrbStrategyAssessmentInput = {
+  strategies: { type: OrbStrategyType; available: boolean; reasons: string[] }[];
+};
 
 export type OrbDecisionInputs = {
   relevance: number | null;
@@ -92,7 +106,7 @@ function missingDimensions(cands: OrbCognitiveCandidate[]): string[] {
 export function assessDecisionCandidate(
   strategy: OrbStrategyType,
   snapshot: OrbCognitiveSnapshot,
-  strategyAssessment: OrbStrategyAssessment,
+  strategyAssessment: OrbStrategyAssessmentInput,
 ): OrbDecisionCandidate {
   const cands = Array.isArray(snapshot?.candidates) ? snapshot.candidates : [];
   const focusPresent = !!snapshot?.currentFocus;
@@ -154,7 +168,7 @@ export function assessDecisionCandidate(
 
 export function assessDecisionFoundation(
   snapshot: OrbCognitiveSnapshot,
-  strategyAssessment: OrbStrategyAssessment,
+  strategyAssessment: OrbStrategyAssessmentInput,
 ): OrbDecisionFoundation {
   return {
     candidates: ORDER.map((s) => assessDecisionCandidate(s, snapshot, strategyAssessment)),
