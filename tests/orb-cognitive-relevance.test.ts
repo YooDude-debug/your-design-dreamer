@@ -10,7 +10,15 @@ import {
 } from "@/orb-core/cognitive/relevance";
 import { isDirectMemory, type OrbInformationSource } from "@/orb-core/cognitive/foundation";
 
-const full = { context: 0.8, goals: 0.6, knowledgeGap: 0.4, task: 0.5, recency: 0.9, experience: 0.3, userSignal: 0.7 };
+const full = {
+  context: 0.8,
+  goals: 0.6,
+  knowledgeGap: 0.4,
+  task: 0.5,
+  recency: 0.9,
+  experience: 0.3,
+  userSignal: 0.7,
+};
 
 describe("Phase 2 – Cognitive Relevance", () => {
   it("vollständige Faktoren", () => {
@@ -44,8 +52,11 @@ describe("Phase 2 – Cognitive Relevance", () => {
   });
 
   it("NaN / Infinity / Nicht-Zahl → null und invalid", () => {
-    const a = assessCognitiveRelevance({ factors: { context: NaN, goals: Infinity, task: -Infinity, recency: "0.5" } });
-    for (const k of ["context", "goals", "task", "recency"] as const) expect(a.factors[k]).toBeNull();
+    const a = assessCognitiveRelevance({
+      factors: { context: NaN, goals: Infinity, task: -Infinity, recency: "0.5" },
+    });
+    for (const k of ["context", "goals", "task", "recency"] as const)
+      expect(a.factors[k]).toBeNull();
     expect(a.invalidFactors.sort()).toEqual(["context", "goals", "recency", "task"]);
   });
 
@@ -73,7 +84,13 @@ describe("Phase 2 – Cognitive Relevance", () => {
     const a = assessCognitiveRelevance(input);
     expect(JSON.stringify({ memory, orbState, goals })).toBe(snap);
     expect(JSON.stringify(input)).toBe(inSnap);
-    expect(Object.keys(a).sort()).toEqual(["confidence", "factors", "invalidFactors", "provenance", "unknownFactors"]);
+    expect(Object.keys(a).sort()).toEqual([
+      "confidence",
+      "factors",
+      "invalidFactors",
+      "provenance",
+      "unknownFactors",
+    ]);
   });
 
   it("hohe Importance kann niedrige Relevance haben und umgekehrt", () => {
@@ -91,7 +108,8 @@ describe("Phase 2 – Cognitive Relevance", () => {
     const a = assessCognitiveRelevance({ factors: full }) as Record<string, unknown>;
     expect(a.score).toBeUndefined();
     expect(a.relevance).toBeUndefined();
-    for (const k of RELEVANCE_FACTOR_KEYS) expect(RELEVANCE_FACTOR_SPEC[k].unknownWhen.length).toBeGreaterThan(0);
+    for (const k of RELEVANCE_FACTOR_KEYS)
+      expect(RELEVANCE_FACTOR_SPEC[k].unknownWhen.length).toBeGreaterThan(0);
     expect(RELEVANCE_FACTOR_SPEC.context.dynamic).toBe(true);
     expect(RELEVANCE_FACTOR_SPEC.recency.persistable).toBe(false);
   });
@@ -108,7 +126,11 @@ describe("Phase 2 – Cognitive Relevance", () => {
       }
     };
     walk("src");
-    const users = files.filter((f) => !f.endsWith("cognitive/relevance.ts") && readFileSync(f, "utf8").includes("cognitive/relevance"));
+    const users = files.filter(
+      (f) =>
+        !f.endsWith("cognitive/relevance.ts") &&
+        readFileSync(f, "utf8").includes("cognitive/relevance"),
+    );
     expect(users).toEqual([]);
   });
 });
