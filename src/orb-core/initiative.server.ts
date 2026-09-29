@@ -6,6 +6,7 @@
  */
 
 import type * as Engine from "@/orb-core/engine.server";
+import { internalError } from "@/orb-core/internal-error";
 import type {
   CuriosityContext,
   DB,
@@ -164,7 +165,7 @@ export async function tryExtendedInitiative(input: {
       .select("id")
       .single(),
   );
-  if (questionRow.error) throw new Error(questionRow.error.message);
+  if (questionRow.error) throw internalError(questionRow.error);
 
   const msg = await q.tick(
     db.from("orb_messages").insert({
@@ -193,7 +194,7 @@ export async function tryExtendedInitiative(input: {
   );
   if (msg.error) {
     await db.from("orb_questions").delete().eq("id", questionRow.data.id).eq("user_id", userId);
-    throw new Error(msg.error.message);
+    throw internalError(msg.error);
   }
 
   // Identische Kosten wie jede eigene Frage (Energy-System unverändert).
@@ -206,7 +207,7 @@ export async function tryExtendedInitiative(input: {
       })
       .eq("user_id", userId),
   );
-  if (stateUpdate.error) throw new Error(stateUpdate.error.message);
+  if (stateUpdate.error) throw internalError(stateUpdate.error);
 
   const perf: OrbPerf = {
     retrievalMs: ctx.retrievalMs,

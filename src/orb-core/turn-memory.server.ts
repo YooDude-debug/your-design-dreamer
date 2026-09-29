@@ -4,6 +4,7 @@
  * Wird aktuell von keiner Entscheidungslogik aufgerufen.
  */
 import { findPreviousOrbTurn, type OrbTurnMemoryRef } from "@/orb-core/memory-usage";
+import { internalError } from "@/orb-core/internal-error";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- schmaler Supabase-Ausschnitt
 type Db = { from: (t: string) => any };
@@ -23,7 +24,7 @@ export async function loadPreviousOrbTurnMemoryRef(
     .order("created_at", { ascending: false })
     .order("id", { ascending: false })
     .limit(1);
-  if (res.error) throw new Error(res.error.message);
+  if (res.error) throw internalError(res.error);
   return findPreviousOrbTurn(res.data ?? [], before);
 }
 

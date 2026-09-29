@@ -9,6 +9,7 @@
  */
 
 import { createServerFn } from "@tanstack/react-start";
+import { internalError } from "@/orb-core/internal-error";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type KgNode = {
@@ -108,7 +109,7 @@ export const getOrbKnowledgeGraph = createServerFn({ method: "GET" })
         .maybeSingle(),
     ]);
     for (const r of [nodesRes, edgesRes, threadsRes, stateRes, msgRes]) {
-      if (r.error) throw new Error(r.error.message);
+      if (r.error) throw internalError(r.error);
     }
 
     const s = stateRes.data;

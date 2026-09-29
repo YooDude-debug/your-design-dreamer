@@ -13,6 +13,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { internalError } from "@/orb-core/internal-error";
 import type { Database } from "@/integrations/supabase/types";
 
 import {
@@ -65,7 +66,7 @@ export async function loadProcessContext(
       .order("updated_at", { ascending: false })
       .limit(PROCESS_LIMIT),
   );
-  if (nodeRes.error) throw new Error(nodeRes.error.message);
+  if (nodeRes.error) throw internalError(nodeRes.error);
 
   const nodes: ProcessNode[] = (nodeRes.data ?? []).map((row) => ({
     id: row.id,
@@ -89,7 +90,7 @@ export async function loadProcessContext(
         .in("source_node_id", ids)
         .limit(PROCESS_LIMIT * 3),
     );
-    if (connRes.error) throw new Error(connRes.error.message);
+    if (connRes.error) throw internalError(connRes.error);
     connections = (connRes.data ?? []).map((row) => ({
       sourceNodeId: row.source_node_id,
       targetNodeId: row.target_node_id,
@@ -108,7 +109,7 @@ export async function loadProcessContext(
       .order("created_at", { ascending: false })
       .limit(5),
   );
-  if (msgRes.error) throw new Error(msgRes.error.message);
+  if (msgRes.error) throw internalError(msgRes.error);
 
   let pending: PendingGuardrail = null;
   let lastGuardrailAt: number | null = null;
@@ -165,7 +166,7 @@ export async function applyProcessDecision(
     const row = await tick(
       db.from("orb_nodes").select("metadata").eq("id", stepId).eq("user_id", userId).maybeSingle(),
     );
-    if (row.error) throw new Error(row.error.message);
+    if (row.error) throw internalError(row.error);
     if (!row.data) continue;
     const meta = asRecord(row.data.metadata) ?? {};
     const res = await tick(
@@ -183,7 +184,7 @@ export async function applyProcessDecision(
         .eq("id", stepId)
         .eq("user_id", userId),
     );
-    if (res.error) throw new Error(res.error.message);
+    if (res.error) throw internalError(res.error);
     updated.push(stepId);
   }
   return { updated, blockedReason: null };

@@ -245,7 +245,7 @@ describe("Persistenz-Kompensation und Seitenkennzeichnung", () => {
     expect(msgError).toBeGreaterThan(-1);
     expect(cleanup).toBeGreaterThan(msgError);
     // Erst aufräumen, dann Fehler melden.
-    expect(source.indexOf("throw new Error(msg.error.message)", msgError)).toBeGreaterThan(cleanup);
+    expect(source.indexOf("throw internalError(msg.error)", msgError)).toBeGreaterThan(cleanup);
   });
 
   it("Serverversuche sind als side=server gekennzeichnet", () => {

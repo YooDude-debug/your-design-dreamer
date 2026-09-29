@@ -2,6 +2,7 @@ import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/r
 
 import { renderErrorPage } from "./lib/error-page";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
+import { SAFE_SERVER_ERROR, shouldMaskServerError } from "@/orb-core/internal-error";
 
 // Laufzeit-Kennzahlen: zählt nur anonyme Summen (Anzahl, gleichzeitig laufende
 // Anfragen, Dauer, Fehler) und verändert die Antwort nie.
@@ -86,6 +87,23 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
   }
 });
 
+/**
+ * S6 – Fehlergrenze für Server-Funktionen. Das Framework serialisiert Fehler
+ * aus Server-Funktionen selbst (inkl. `cause`), bevor Request-Middleware sie
+ * sieht; deshalb greift die Grenze hier. DB-/RPC-, Laufzeit- und
+ * Nicht-Error-Fehler werden vollständig serverseitig protokolliert; der
+ * Client erhält nur SAFE_SERVER_ERROR. Alle übrigen Fehler bleiben unverändert.
+ */
+const safeServerFnErrors = createMiddleware({ type: "function" }).server(async ({ next }) => {
+  try {
+    return await next();
+  } catch (error) {
+    if (!shouldMaskServerError(error)) throw error;
+    console.error("[serverFn:internal]", error);
+    throw new Error(SAFE_SERVER_ERROR);
+  }
+});
+
 // Start installs this automatically when src/start.ts is absent; defining the
 // file opts out, so re-add it explicitly to keep server functions protected
 // from cross-site requests.
@@ -94,6 +112,6 @@ const csrfMiddleware = createCsrfMiddleware({
 });
 
 export const startInstance = createStart(() => ({
-  functionMiddleware: [attachSupabaseAuth],
+  functionMiddleware: [safeServerFnErrors, attachSupabaseAuth],
   requestMiddleware: [metricsMiddleware, errorMiddleware, csrfMiddleware],
 }));

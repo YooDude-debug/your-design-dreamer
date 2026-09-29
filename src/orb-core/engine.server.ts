@@ -14,6 +14,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { internalError } from "@/orb-core/internal-error";
 import type { Database } from "@/integrations/supabase/types";
 import type { OrbImageAttachment } from "@/lib/orb-attachments";
 
@@ -307,12 +308,12 @@ function toState(row: StateRow): OrbState {
 async function ensureState(db: DB, userId: string, q?: QueryCounter): Promise<StateRow> {
   const read = db.from("orb_state").select("*").eq("user_id", userId).maybeSingle();
   const existing = await (q ? q.tick(read) : read);
-  if (existing.error) throw new Error(existing.error.message);
+  if (existing.error) throw internalError(existing.error);
   if (existing.data) return existing.data;
 
   const create = db.from("orb_state").insert({ user_id: userId }).select("*").single();
   const created = await (q ? q.tick(create) : create);
-  if (created.error) throw new Error(created.error.message);
+  if (created.error) throw internalError(created.error);
   return created.data;
 }
 
@@ -444,15 +445,15 @@ export async function getSnapshot(
       .limit(12),
     db.from("orb_style").select("*").eq("user_id", userId).maybeSingle(),
   ]);
-  if (nodesRes.error) throw new Error(nodesRes.error.message);
-  if (threadRes.error) throw new Error(threadRes.error.message);
-  if (styleRes.error) throw new Error(styleRes.error.message);
-  if (connRes.error) throw new Error(connRes.error.message);
-  if (msgRes.error) throw new Error(msgRes.error.message);
-  if (interestRes.error) throw new Error(interestRes.error.message);
-  if (suggRes.error) throw new Error(suggRes.error.message);
-  if (acceptedRes.error) throw new Error(acceptedRes.error.message);
-  if (rejectedRes.error) throw new Error(rejectedRes.error.message);
+  if (nodesRes.error) throw internalError(nodesRes.error);
+  if (threadRes.error) throw internalError(threadRes.error);
+  if (styleRes.error) throw internalError(styleRes.error);
+  if (connRes.error) throw internalError(connRes.error);
+  if (msgRes.error) throw internalError(msgRes.error);
+  if (interestRes.error) throw internalError(interestRes.error);
+  if (suggRes.error) throw internalError(suggRes.error);
+  if (acceptedRes.error) throw internalError(acceptedRes.error);
+  if (rejectedRes.error) throw internalError(rejectedRes.error);
 
   const connections = mapConnections(connRes.data, now);
 
@@ -808,7 +809,7 @@ async function retrieveCandidates(
   const results = await Promise.all(queries);
   const byId = new Map<string, NodeRow>();
   for (const r of results) {
-    if (r.error) throw new Error(r.error.message);
+    if (r.error) throw internalError(r.error);
     for (const row of r.data ?? []) byId.set(row.id, row);
   }
   const exact = key ? ([...byId.values()].find((n) => n.norm_key === key) ?? null) : null;
@@ -829,7 +830,7 @@ async function upsertInterest(
   const existing = await q.tick(
     db.from("orb_interests").select("*").eq("user_id", userId).eq("topic", topic).maybeSingle(),
   );
-  if (existing.error) throw new Error(existing.error.message);
+  if (existing.error) throw internalError(existing.error);
   const prev = existing.data
     ? {
         topic: existing.data.topic,
@@ -858,7 +859,7 @@ async function upsertInterest(
     ? db.from("orb_interests").update(row).eq("id", existing.data.id)
     : db.from("orb_interests").insert(row);
   const res = await q.tick(write);
-  if (res.error) throw new Error(res.error.message);
+  if (res.error) throw internalError(res.error);
 }
 
 /** Verbindung anlegen oder – falls vorhanden – reaktivieren (keine Duplikate). */
@@ -896,7 +897,7 @@ export async function touchConnection(
           .eq("target_node_id", targetId)
           .maybeSingle(),
       );
-  if (existing.error) throw new Error(existing.error.message);
+  if (existing.error) throw internalError(existing.error);
 
   if (existing.data) {
     const c = existing.data;
@@ -935,7 +936,7 @@ export async function touchConnection(
         .eq("id", c.id)
         .eq("user_id", userId),
     );
-    if (res.error) throw new Error(res.error.message);
+    if (res.error) throw internalError(res.error);
     return "reactivated";
   }
 
@@ -952,7 +953,7 @@ export async function touchConnection(
       metadata: { origin: input.origin },
     }),
   );
-  if (res.error) throw new Error(res.error.message);
+  if (res.error) throw internalError(res.error);
   return "created";
 }
 
@@ -1020,7 +1021,7 @@ export async function processInput(
         .order("weight", { ascending: false })
         .limit(CANDIDATE_LIMIT * 3),
     );
-    if (connRes.error) throw new Error(connRes.error.message);
+    if (connRes.error) throw internalError(connRes.error);
     connections = mapConnections(connRes.data, now);
   }
   const retrievalMs = Date.now() - retrievalStart;
@@ -1089,7 +1090,7 @@ export async function processInput(
       .order("created_at", { ascending: false })
       .limit(CONTEXT_WINDOW_MESSAGES),
   );
-  if (ctxRes.error) throw new Error(ctxRes.error.message);
+  if (ctxRes.error) throw internalError(ctxRes.error);
   const recentMessages: ConversationMessage[] = contextWindow(
     [...ctxRes.data]
       .reverse()
@@ -1126,7 +1127,7 @@ export async function processInput(
       .order("weight", { ascending: false })
       .limit(8),
   );
-  if (interestRes.error) throw new Error(interestRes.error.message);
+  if (interestRes.error) throw internalError(interestRes.error);
   const interests = mapInterests(interestRes.data);
 
   // --- Kontinuität: Fäden, Stil, mögliche Widersprüche --------------------
@@ -1492,7 +1493,7 @@ export async function processInput(
         asked_at: new Date(now).toISOString(),
       }),
     );
-    if (row.error) throw new Error(row.error.message);
+    if (row.error) throw internalError(row.error);
   }
 
   // --- Gedächtnis aktualisieren -------------------------------------------
@@ -1533,7 +1534,7 @@ export async function processInput(
         .eq("id", node.id)
         .eq("user_id", userId),
     );
-    if (res.error) throw new Error(res.error.message);
+    if (res.error) throw internalError(res.error);
     reactivations += 1;
   }
 
@@ -1605,7 +1606,7 @@ export async function processInput(
         .eq("id", exact.id)
         .eq("user_id", userId),
     );
-    if (res.error) throw new Error(res.error.message);
+    if (res.error) throw internalError(res.error);
     reactivations += 1;
     // Ausnahmen wie bisher fallbezogen (nicht global): Antwort auf eine eigene
     // Frage – und neu eine ausdrücklich belegte Merk-Aufforderung des Benutzers.
@@ -1650,7 +1651,7 @@ export async function processInput(
           .single(),
       );
     }
-    if (inserted.error) throw new Error(inserted.error.message);
+    if (inserted.error) throw internalError(inserted.error);
     focusNodeId = inserted.data.id;
     learnedNew = true;
   }
@@ -1805,7 +1806,7 @@ export async function processInput(
       })
       .eq("user_id", userId),
   );
-  if (stateUpdate.error) throw new Error(stateUpdate.error.message);
+  if (stateUpdate.error) throw internalError(stateUpdate.error);
 
   // P5-C: einmal berechnet, identisch für Diagnose und Turn-Zuordnung.
   const memoryUsage = traceMemoryUsage(
@@ -1858,7 +1859,7 @@ export async function processInput(
       },
     ]),
   );
-  if (msgInsert.error) throw new Error(msgInsert.error.message);
+  if (msgInsert.error) throw internalError(msgInsert.error);
 
   const perf: OrbPerf = {
     retrievalMs,
@@ -2023,7 +2024,7 @@ export async function recordLearning(db: DB, userId: string, lesson: string): Pr
   const existing = key
     ? await db.from("orb_nodes").select("*").eq("user_id", userId).eq("norm_key", key).maybeSingle()
     : { data: null, error: null };
-  if (existing.error) throw new Error(existing.error.message);
+  if (existing.error) throw internalError(existing.error);
 
   let nodeId: string;
   if (existing.data) {
@@ -2059,7 +2060,7 @@ export async function recordLearning(db: DB, userId: string, lesson: string): Pr
         .select("id")
         .single();
     }
-    if (node.error) throw new Error(node.error.message);
+    if (node.error) throw internalError(node.error);
     nodeId = node.data.id;
   }
 
@@ -2070,7 +2071,7 @@ export async function recordLearning(db: DB, userId: string, lesson: string): Pr
     .eq("type", "goal")
     .limit(1)
     .maybeSingle();
-  if (goalNode.error) throw new Error(goalNode.error.message);
+  if (goalNode.error) throw internalError(goalNode.error);
 
   const goalId =
     goalNode.data?.id ??
@@ -2142,7 +2143,7 @@ async function applyFeedback(
     .eq("user_id", userId)
     .eq("id", input.nodeId)
     .maybeSingle();
-  if (node.error) throw new Error(node.error.message);
+  if (node.error) throw internalError(node.error);
   if (!node.data) throw new Error("unknown node");
 
   const delta = feedbackDelta(input.kind, node.data.importance);
@@ -2155,7 +2156,7 @@ async function applyFeedback(
     .eq("user_id", userId)
     .or(`source_node_id.eq.${input.nodeId},target_node_id.eq.${input.nodeId}`)
     .limit(50);
-  if (conns.error) throw new Error(conns.error.message);
+  if (conns.error) throw internalError(conns.error);
 
   for (const c of conns.data) {
     const live = currentWeight({
@@ -2361,7 +2362,7 @@ async function loadCuriosityContext(
               .limit(8),
           )
           .then((res) => {
-            if (res.error) throw new Error(res.error.message);
+            if (res.error) throw internalError(res.error);
             return res.data;
           }),
     preloaded
@@ -2376,7 +2377,7 @@ async function loadCuriosityContext(
               .limit(8),
           )
           .then((res) => {
-            if (res.error) throw new Error(res.error.message);
+            if (res.error) throw internalError(res.error);
             return res.data;
           }),
     q.tick(
@@ -2397,9 +2398,9 @@ async function loadCuriosityContext(
         .limit(60),
     ),
   ]);
-  if (nodeRes.error) throw new Error(nodeRes.error.message);
-  if (questionRes.error) throw new Error(questionRes.error.message);
-  if (connRes.error) throw new Error(connRes.error.message);
+  if (nodeRes.error) throw internalError(nodeRes.error);
+  if (questionRes.error) throw internalError(questionRes.error);
+  if (connRes.error) throw internalError(connRes.error);
   const retrievalMs = Date.now() - retrievalStart;
 
   const questions = questionRes.data;
@@ -2822,7 +2823,7 @@ export async function askProactively(
       .select("id")
       .single(),
   );
-  if (questionRow.error) throw new Error(questionRow.error.message);
+  if (questionRow.error) throw internalError(questionRow.error);
 
   const msg = await q.tick(
     db.from("orb_messages").insert({
@@ -2854,7 +2855,7 @@ export async function askProactively(
     // Ohne sichtbare Nachricht darf keine offene Frage zurückbleiben, sonst blockiert
     // sie künftige autonome Fragen unsichtbar. Kein Transaktionsumbau.
     await db.from("orb_questions").delete().eq("id", questionRow.data.id).eq("user_id", userId);
-    throw new Error(msg.error.message);
+    throw internalError(msg.error);
   }
 
   // Eine gestellte Frage senkt die Neugier leicht und kostet Energie.
@@ -2867,7 +2868,7 @@ export async function askProactively(
       })
       .eq("user_id", userId),
   );
-  if (stateUpdate.error) throw new Error(stateUpdate.error.message);
+  if (stateUpdate.error) throw internalError(stateUpdate.error);
 
   const perf: OrbPerf = {
     retrievalMs: ctx.retrievalMs,
@@ -2952,7 +2953,7 @@ async function findOpenQuestion(
       .limit(1)
       .maybeSingle(),
   );
-  if (open.error) throw new Error(open.error.message);
+  if (open.error) throw internalError(open.error);
   const row = open.data;
   if (!row || !row.asked_at) return null;
   if (now - new Date(row.asked_at).getTime() > ANSWER_WINDOW_MS) return null;
@@ -2978,7 +2979,7 @@ async function closeOpenQuestion(
       .eq("id", row.id)
       .eq("user_id", userId),
   );
-  if (update.error) throw new Error(update.error.message);
+  if (update.error) throw internalError(update.error);
 
   // Die Antwort verknüpft sich mit der Erinnerung, aus der die Frage entstand.
   const sourceId = row.source_memory_ids[0] ?? null;

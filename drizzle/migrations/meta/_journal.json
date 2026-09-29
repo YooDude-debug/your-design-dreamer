@@ -365,6 +365,13 @@
       "when": 1790284070870,
       "tag": "0051_orb_metrics_analysis_telemetry",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1790680021068,
+      "tag": "0052_revoke_anon_orb_owns_node",
+      "breakpoints": true
     }
   ]
 }

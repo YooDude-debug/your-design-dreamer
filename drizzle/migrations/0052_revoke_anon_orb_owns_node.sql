@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.orb_owns_node(uuid, uuid) FROM PUBLIC, anon;

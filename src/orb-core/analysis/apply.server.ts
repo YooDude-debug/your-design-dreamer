@@ -13,6 +13,7 @@
  */
 
 import { reinforcement, scoreImportance } from "@/orb-core/core";
+import { internalError } from "@/orb-core/internal-error";
 import { QueryCounter, touchConnection, type DB } from "@/orb-core/engine.server";
 import { normKey, topicOf } from "@/orb-core/memory";
 import {
@@ -349,7 +350,7 @@ async function applyOne(
         .eq("id", row.id)
         .eq("user_id", userId),
     );
-    if (res.error) throw new Error(res.error.message);
+    if (res.error) throw internalError(res.error);
     await q.tick(
       db.from("orb_node_history").insert({
         user_id: userId,
@@ -379,7 +380,7 @@ async function applyOne(
         .eq("id", row.id)
         .eq("user_id", userId),
     );
-    if (res.error) throw new Error(res.error.message);
+    if (res.error) throw internalError(res.error);
     await q.tick(
       db.from("orb_node_history").insert({
         user_id: userId,
@@ -414,7 +415,7 @@ async function applyOne(
         .eq("id", row.id)
         .eq("user_id", userId),
     );
-    if (res.error) throw new Error(res.error.message);
+    if (res.error) throw internalError(res.error);
     await q.tick(
       db.from("orb_node_history").insert({
         user_id: userId,
@@ -454,7 +455,7 @@ async function applyOne(
         .eq("user_id", userId),
     );
     // Schlüsselkonflikt = Unsicherheit: der bestehende Knoten bleibt, wie er ist.
-    if (res.error && res.error.code !== "23505") throw new Error(res.error.message);
+    if (res.error && res.error.code !== "23505") throw internalError(res.error);
     await q.tick(
       db.from("orb_node_history").insert({
         user_id: userId,
@@ -507,7 +508,7 @@ async function applyOne(
   if (inserted.error) {
     // Konflikt heisst: es gibt bereits etwas Gleichwertiges – nicht verdoppeln.
     if (inserted.error.code === "23505") return null;
-    throw new Error(inserted.error.message);
+    throw internalError(inserted.error);
   }
   const newId = inserted.data.id;
   report.memoriesCreated += 1;
