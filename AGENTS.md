@@ -14,3 +14,4 @@
 ## Architecture rules
 
 - Cognitive Globe geometry derives from the compact observation and measured existing Memory bounds; camera framing follows visible layer bounds, so presentation cannot alter ORB or Memory semantics.
+- Server-function DB/RPC errors are thrown via internalError() and masked to "Interner Serverfehler" by the global safeServerFnErrors function middleware in src/start.ts; the framework serializes server-fn errors (incl. cause) before request middleware sees them.
