@@ -43,10 +43,13 @@ describe("Cognitive Globe – Mapping", () => {
     expect(v.outcome).toBeNull();
     expect(v.adaptation).toBeNull();
     expect(v.snapshot.attentionAvailability).toBeNull();
-    expect(v.candidates.every((c) => Object.values(c.factors).every((f) => f === false))).toBe(
-      true,
-    );
-    expect(layerHasData(v, "factors")).toBe(false);
+    // Phase 4 erhält Herkunftsdaten; alle anderen Dimensionen bleiben leer.
+    expect(
+      v.candidates.every((c) =>
+        Object.entries(c.factors).every(([k, f]) => f === (k === "uncertainty")),
+      ),
+    ).toBe(true);
+    expect(layerHasData(v, "factors")).toBe(true);
     // Phase 14 ist angeschlossen: Pläne für die 4 verfügbaren Strategien.
     expect(layerHasData(v, "action")).toBe(true);
     expect(layerHasData(v, "outcome")).toBe(false);
