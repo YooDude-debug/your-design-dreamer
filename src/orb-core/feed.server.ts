@@ -52,7 +52,7 @@ export async function observeFeed(db: DB, userId: string): Promise<ObserveResult
     .eq("user_id", userId)
     .order("weight", { ascending: false })
     .limit(10);
-  if (interestRes.error) throw new Error(interestRes.error.message);
+  if (interestRes.error) throw internalError(interestRes.error);
 
   const interests: InterestRow[] = interestRes.data.map((i) => ({
     topic: i.topic,
@@ -73,7 +73,7 @@ export async function observeFeed(db: DB, userId: string): Promise<ObserveResult
     .neq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(OBSERVE_LIMIT);
-  if (postRes.error) throw new Error(postRes.error.message);
+  if (postRes.error) throw internalError(postRes.error);
 
   let created = 0;
   let skipped = 0;
@@ -92,7 +92,7 @@ export async function observeFeed(db: DB, userId: string): Promise<ObserveResult
       .eq("user_id", userId)
       .eq("post_id", post.id)
       .maybeSingle();
-    if (existing.error) throw new Error(existing.error.message);
+    if (existing.error) throw internalError(existing.error);
     if (existing.data) {
       skipped += 1;
       continue;
@@ -106,7 +106,7 @@ export async function observeFeed(db: DB, userId: string): Promise<ObserveResult
       relevance: match.relevance,
       status: "pending",
     });
-    if (insert.error) throw new Error(insert.error.message);
+    if (insert.error) throw internalError(insert.error);
     created += 1;
 
     // Beobachtung als eigene Erinnerung – ausdrücklich OBSERVED, niemals
@@ -120,7 +120,7 @@ export async function observeFeed(db: DB, userId: string): Promise<ObserveResult
         .eq("user_id", userId)
         .eq("norm_key", key)
         .maybeSingle();
-      if (known.error) throw new Error(known.error.message);
+      if (known.error) throw internalError(known.error);
       if (known.data) {
         await db
           .from("orb_nodes")
@@ -189,7 +189,7 @@ export async function decideSuggestion(
     .eq("user_id", userId)
     .eq("id", input.suggestionId)
     .maybeSingle();
-  if (sugg.error) throw new Error(sugg.error.message);
+  if (sugg.error) throw internalError(sugg.error);
   if (!sugg.data) throw new Error("unknown suggestion");
 
   const update = await db
@@ -200,7 +200,7 @@ export async function decideSuggestion(
     })
     .eq("id", input.suggestionId)
     .eq("user_id", userId);
-  if (update.error) throw new Error(update.error.message);
+  if (update.error) throw internalError(update.error);
 
   if (sugg.data.topic) {
     const delta = feedbackDelta(input.accepted ? "positive" : "negative", sugg.data.relevance);
@@ -210,7 +210,7 @@ export async function decideSuggestion(
       .eq("user_id", userId)
       .eq("topic", sugg.data.topic)
       .maybeSingle();
-    if (current.error) throw new Error(current.error.message);
+    if (current.error) throw internalError(current.error);
     if (current.data) {
       const prev: InterestRow = {
         topic: current.data.topic,

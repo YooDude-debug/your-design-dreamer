@@ -31,6 +31,11 @@ const RUNTIME_ERRORS = [TypeError, ReferenceError, RangeError, SyntaxError, Eval
  */
 export function shouldMaskServerError(error: unknown): boolean {
   if (error instanceof OrbInternalError) return true;
-  if (!(error instanceof Error)) return true;
+  if (!(error instanceof Error)) {
+    // Framework-Steuerobjekte (redirect = Response, notFound) nie verändern.
+    if (typeof Response !== "undefined" && error instanceof Response) return false;
+    if (error && typeof error === "object" && "isNotFound" in error) return false;
+    return true;
+  }
   return RUNTIME_ERRORS.some((C) => error.constructor === C);
 }

@@ -23,7 +23,7 @@ export async function loadPreviousOrbTurnMemoryRef(
     .order("created_at", { ascending: false })
     .order("id", { ascending: false })
     .limit(1);
-  if (res.error) throw new Error(res.error.message);
+  if (res.error) throw internalError(res.error);
   return findPreviousOrbTurn(res.data ?? [], before);
 }
 

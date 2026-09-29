@@ -92,7 +92,7 @@ export async function loadThreads(
       .order("last_activation_at", { ascending: false })
       .limit(limit),
   );
-  if (res.error) throw new Error(res.error.message);
+  if (res.error) throw internalError(res.error);
   return res.data.map((row) => ({
     thread: mapThread(row),
     lastResumeAt: row.last_resume_at === null ? null : new Date(row.last_resume_at).getTime(),
@@ -119,7 +119,7 @@ export async function loadMatchCandidates(
       .order("last_activation_at", { ascending: false })
       .limit(limit),
   );
-  if (res.error) throw new Error(res.error.message);
+  if (res.error) throw internalError(res.error);
   return res.data.map((row) => ({
     thread: mapThread(row),
     lastResumeAt: row.last_resume_at === null ? null : new Date(row.last_resume_at).getTime(),
@@ -158,7 +158,7 @@ async function writeThread(
       .eq("id", thread.id)
       .eq("user_id", userId),
   );
-  if (res.error) throw new Error(res.error.message);
+  if (res.error) throw internalError(res.error);
 }
 
 export type ThreadSyncResult = {
@@ -259,7 +259,7 @@ export async function syncThreads(
         .limit(1)
         .maybeSingle(),
     );
-    if (existing.error) throw new Error(existing.error.message);
+    if (existing.error) throw internalError(existing.error);
     if (existing.data) {
       const updated = reactivateThread(projectThread(mapThread(existing.data), now), {
         now,
@@ -270,7 +270,7 @@ export async function syncThreads(
     }
     return result;
   }
-  if (inserted.error) throw new Error(inserted.error.message);
+  if (inserted.error) throw internalError(inserted.error);
   result.created = mapThread(inserted.data);
   return result;
 }
@@ -345,7 +345,7 @@ export async function loadStyle(
   q: Ticker,
 ): Promise<{ profile: StyleProfile; exists: boolean }> {
   const res = await q.tick(db.from("orb_style").select("*").eq("user_id", userId).maybeSingle());
-  if (res.error) throw new Error(res.error.message);
+  if (res.error) throw internalError(res.error);
   if (!res.data) return { profile: EMPTY_STYLE, exists: false };
   return {
     exists: true,
@@ -385,7 +385,7 @@ export async function recordStyle(
       ? db.from("orb_style").update(row).eq("user_id", userId)
       : db.from("orb_style").insert(row),
   );
-  if (res.error) throw new Error(res.error.message);
+  if (res.error) throw internalError(res.error);
   return next;
 }
 

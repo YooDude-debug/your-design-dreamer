@@ -133,7 +133,7 @@ export async function audit(
     result: redactAuditText(entry.result),
     metadata: JSON.parse(redactAuditText(JSON.stringify(entry.metadata ?? {}))),
   });
-  if (error) throw new Error(`Audit-Eintrag fehlgeschlagen: ${error.message}`);
+  if (error) throw internalError(error, "Audit-Eintrag fehlgeschlagen");
 }
 
 export async function auditLog(db: Db, limit = 100): Promise<AuditEntry[]> {
@@ -142,7 +142,7 @@ export async function auditLog(db: Db, limit = 100): Promise<AuditEntry[]> {
     .select("*")
     .order("at", { ascending: false })
     .limit(limit);
-  if (error) throw new Error(error.message);
+  if (error) throw internalError(error);
   return (data ?? []).map(toAudit);
 }
 
@@ -154,7 +154,7 @@ export async function nextFixId(db: Db): Promise<string> {
     .select("fix_id")
     .order("fix_id", { ascending: false })
     .limit(1);
-  if (error) throw new Error(error.message);
+  if (error) throw internalError(error);
   const last = data?.[0]?.fix_id;
   const sequence = last ? Number(last.slice("ORB-FIX-".length)) + 1 : 1;
   return formatFixId(sequence);
@@ -166,7 +166,7 @@ export async function listProposals(db: Db, limit = 50): Promise<StoredProposal[
     .select("*")
     .order("created_at", { ascending: false })
     .limit(limit);
-  if (error) throw new Error(error.message);
+  if (error) throw internalError(error);
   return (data ?? []).map(toProposal);
 }
 
@@ -176,7 +176,7 @@ export async function getProposal(db: Db, fixId: string): Promise<StoredProposal
     .select("*")
     .eq("fix_id", fixId)
     .maybeSingle();
-  if (error) throw new Error(error.message);
+  if (error) throw internalError(error);
   return data ? toProposal(data) : null;
 }
 
@@ -209,7 +209,7 @@ export async function insertProposal(
     })
     .select("*")
     .single();
-  if (error) throw new Error(error.message);
+  if (error) throw internalError(error);
   return toProposal(data);
 }
 
@@ -228,7 +228,7 @@ export async function setProposalState(
     .eq("fix_id", fixId)
     .select("*")
     .single();
-  if (error) throw new Error(error.message);
+  if (error) throw internalError(error);
   return toProposal(data);
 }
 
@@ -241,7 +241,7 @@ export async function getActiveApproval(db: Db, fixId: string): Promise<FixAppro
     .eq("fix_id", fixId)
     .eq("status", "APPROVED")
     .maybeSingle();
-  if (error) throw new Error(error.message);
+  if (error) throw internalError(error);
   return data ? toApproval(data) : null;
 }
 
@@ -251,7 +251,7 @@ export async function listApprovals(db: Db, limit = 100): Promise<ApprovalRow[]>
     .select("*")
     .order("approved_at", { ascending: false })
     .limit(limit);
-  if (error) throw new Error(error.message);
+  if (error) throw internalError(error);
   return data ?? [];
 }
 
@@ -326,7 +326,7 @@ export async function reviseProposal(
     })
     .eq("fix_id", fixId)
     .eq("status", "APPROVED");
-  if (invalidateError) throw new Error(invalidateError.message);
+  if (invalidateError) throw internalError(invalidateError);
 
   await db.from("orb_dev_fix_proposals").update({ status: "INVALIDATED" }).eq("fix_id", fixId);
 
@@ -396,7 +396,7 @@ export async function listSandboxEvents(db: Db, limit = 50): Promise<SandboxExec
     .like("action", "SANDBOX_%")
     .order("at", { ascending: false })
     .limit(limit);
-  if (error) throw new Error(error.message);
+  if (error) throw internalError(error);
   return (data ?? []).map((row) => ({
     at: row.at,
     actor: row.actor,
@@ -506,7 +506,7 @@ export async function getActiveDeploymentApproval(
     .eq("target", target)
     .eq("status", "DEPLOYMENT_APPROVED")
     .maybeSingle();
-  if (error) throw new Error(error.message);
+  if (error) throw internalError(error);
   return data ? toDeploymentApproval(data) : null;
 }
 
@@ -519,7 +519,7 @@ export async function listDeploymentApprovals(
     .select("*")
     .order("approved_at", { ascending: false })
     .limit(limit);
-  if (error) throw new Error(error.message);
+  if (error) throw internalError(error);
   return (data ?? []).map(toDeploymentApproval);
 }
 
@@ -534,7 +534,7 @@ export async function invalidateDeploymentApprovals(
     .update({ status: "DEPLOYMENT_INVALIDATED", invalidated_reason: redactAuditText(reason) })
     .eq("fix_id", fixId)
     .eq("status", "DEPLOYMENT_APPROVED");
-  if (error) throw new Error(error.message);
+  if (error) throw internalError(error);
 }
 
 /** Deployment-Ereignisse werden ausschliesslich angehängt (append-only). */
@@ -561,7 +561,7 @@ export async function listDeploymentEvents(db: Db, limit = 50): Promise<SandboxE
     .like("action", "DEPLOY%")
     .order("at", { ascending: false })
     .limit(limit);
-  if (error) throw new Error(error.message);
+  if (error) throw internalError(error);
   return (data ?? []).map((row) => ({
     at: row.at,
     actor: row.actor,
@@ -603,7 +603,7 @@ export async function getSandboxEvidence(db: Db, fixId: string): Promise<Sandbox
     .eq("fix_id", fixId)
     .order("at", { ascending: false })
     .limit(1);
-  if (error) throw new Error(error.message);
+  if (error) throw internalError(error);
   const row = data?.[0];
   if (!row) return null;
   const meta = (row.metadata ?? {}) as { evidence?: SandboxEvidence };

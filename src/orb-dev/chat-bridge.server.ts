@@ -264,7 +264,7 @@ export async function listChatBridgeEvents(
     .like("action", "CHAT_BRIDGE_%")
     .order("at", { ascending: false })
     .limit(limit);
-  if (error) throw new Error(error.message);
+  if (error) throw internalError(error);
   return (data ?? []).map((row) => ({
     at: row.at,
     actor: row.actor,

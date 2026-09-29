@@ -108,7 +108,7 @@ export const getOrbKnowledgeGraph = createServerFn({ method: "GET" })
         .maybeSingle(),
     ]);
     for (const r of [nodesRes, edgesRes, threadsRes, stateRes, msgRes]) {
-      if (r.error) throw new Error(r.error.message);
+      if (r.error) throw internalError(r.error);
     }
 
     const s = stateRes.data;
