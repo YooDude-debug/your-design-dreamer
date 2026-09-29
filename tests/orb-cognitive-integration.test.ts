@@ -218,13 +218,13 @@ describe("Cognitive Architecture – ORB-Core-Integration (observational)", () =
     for (const k of [
       "relevance",
       "novelty",
-      "uncertainty",
       "goalPressure",
       "attention",
       "experience",
       "contradiction",
     ])
       expect((c as Record<string, unknown>)[k]).toBeNull();
+    expect(c.uncertainty?.provenance).toEqual({ type: "memory", memoryId: "m1" });
     expect(c.topic).toBeNull();
     expect(r.snapshot.goals).toEqual([]);
     expect(r.snapshot.experiences).toEqual([]);

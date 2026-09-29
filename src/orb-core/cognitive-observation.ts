@@ -10,9 +10,13 @@
  * - Candidates: je eine bereits geladene Memory-ID (Chat: abgerufene
  *   Memories; autonome Frage: Knoten der bereits geladenen Lücken).
  *   Quelle { type: "memory", memoryId }. Kein Inhalt, kein Topic.
- * - Alle Dimensionen (Relevance … Contradiction): null – ORB liefert dafür
- *   noch keine Daten in der Semantik der Cognitive-Schichten. Insbesondere
- *   werden Retrieval-Score und Gap-Novelty NICHT umgedeutet.
+ * - Phase 4 (Uncertainty): nur aus der Herkunft { type: "memory" }
+ *   (sourceCertainty/missingEvidence/inferenceDependency laut Contract).
+ *   Keine Aussage, kein Zeitstempel, keine Vergleichsaussagen → Rest null.
+ * - Phasen 2, 3, 5, 6, 7, 8: null – im Aufrufkontext liegen nur IDs vor,
+ *   keine Texte, Ziele, Fokusangaben, Erfahrungen oder Aussagen-Tripel.
+ *   Retrieval-Score und Gap-Novelty werden NICHT umgedeutet; eine Gap-ID
+ *   ist nur Kandidatenreferenz (Wissenslücken-Knoten), keine Wahrheit.
  * - Fokus, Goals, Experiences, Conflicts: nicht vorhanden → null / [].
  * - Action Plan (Phase 14): je ein Plan für JEDE Strategie mit
  *   available=true aus Phase 12, in deren fester Reihenfolge. Keine Auswahl,
@@ -29,6 +33,7 @@
  */
 import { isInformationSource } from "./cognitive/foundation";
 import { createCognitiveCandidate, type OrbCognitiveCandidate } from "./cognitive/candidate";
+import { assessCognitiveUncertainty } from "./cognitive/uncertainty";
 import { compareCognitiveCandidates } from "./cognitive/competition";
 import { createCognitiveSnapshot, type OrbCognitiveSnapshot } from "./cognitive/snapshot";
 import { assessStrategies, type OrbStrategyAssessment } from "./cognitive/strategy";
@@ -86,10 +91,12 @@ export function runCognitiveObservation(input: {
     const ids = all.slice(0, COGNITIVE_OBSERVATION_MAX_CANDIDATES);
     const candidates: OrbCognitiveCandidate[] = ids.map((id) => {
       const source = { type: "memory" as const, memoryId: id };
-      return createCognitiveCandidate({
-        id,
-        source: isInformationSource(source) ? source : undefined,
-      });
+      const valid = isInformationSource(source) ? source : undefined;
+      // Phase 4: einziger belegter Input ist die Herkunft (Referenz auf eine
+      // bereits geladene Memory-ID). Kein Text, kein Zeitstempel, keine
+      // Vergleichsaussagen → alle übrigen Faktoren bleiben null.
+      const uncertainty = valid ? assessCognitiveUncertainty({ source: valid }) : null;
+      return createCognitiveCandidate({ id, source: valid, uncertainty });
     });
     const competitions = [];
     for (let i = 0; i < candidates.length; i++)
