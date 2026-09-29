@@ -177,8 +177,7 @@ export function runCognitiveObservation(input: {
     let inputNovelty: OrbNoveltyAssessment | null = null;
     const inp = input?.input;
     if (path === "chat" && inp && typeof inp.text === "string" && inp.text.trim()) {
-      const messageId =
-        typeof inp.messageId === "string" && inp.messageId ? inp.messageId : null;
+      const messageId = typeof inp.messageId === "string" && inp.messageId ? inp.messageId : null;
       inputNovelty = assessCognitiveNovelty({
         statement: inp.text,
         source: messageId ? { type: "conversation", messageId } : undefined,

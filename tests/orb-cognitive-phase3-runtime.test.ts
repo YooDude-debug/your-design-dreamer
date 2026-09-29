@@ -10,7 +10,11 @@ const mem = (id: string, content: string, lastAccessedAt?: string) => ({
 });
 const NOW = "2026-09-29T10:00:00.000Z";
 
-function chat(text: string, memories: ReturnType<typeof mem>[], extra: Record<string, unknown> = {}) {
+function chat(
+  text: string,
+  memories: ReturnType<typeof mem>[],
+  extra: Record<string, unknown> = {},
+) {
   const r = runCognitiveObservation({
     path: "chat",
     memoryIds: memories.map((m) => m.id),
@@ -23,7 +27,9 @@ function chat(text: string, memories: ReturnType<typeof mem>[], extra: Record<st
 
 describe("Phase 3 Novelty – Chat-Runtime (passiv)", () => {
   it("A) Nutzereingabe + bekannte Memory-Inhalte → Faktoren bestimmt", () => {
-    const r = chat("Mein Hund heißt Bello", [mem("m1", "Mein Hund heißt Bello", "2026-09-01T00:00:00Z")]);
+    const r = chat("Mein Hund heißt Bello", [
+      mem("m1", "Mein Hund heißt Bello", "2026-09-01T00:00:00Z"),
+    ]);
     const f = r.inputNovelty!.factors;
     expect(f.repetition).toBe(1);
     expect(f.memoryNovelty).toBe(0);
@@ -33,14 +39,16 @@ describe("Phase 3 Novelty – Chat-Runtime (passiv)", () => {
   });
 
   it("B) abweichende Eingabe → memoryNovelty 1, detailNovelty null (kein verwandter Inhalt)", () => {
-    const f = chat("Quantenphysik fasziniert", [mem("m1", "Mein Hund heißt Bello")]).inputNovelty!.factors;
+    const f = chat("Quantenphysik fasziniert", [mem("m1", "Mein Hund heißt Bello")]).inputNovelty!
+      .factors;
     expect(f.memoryNovelty).toBe(1);
     expect(f.detailNovelty).toBeNull();
     expect(f.reactivation).toBeNull();
   });
 
   it("C) ähnliche Eingabe → repetition > 0", () => {
-    const f = chat("Mein Hund Bello schläft", [mem("m1", "Mein Hund heißt Bello")]).inputNovelty!.factors;
+    const f = chat("Mein Hund Bello schläft", [mem("m1", "Mein Hund heißt Bello")]).inputNovelty!
+      .factors;
     expect(f.repetition!).toBeGreaterThan(0);
     expect(f.detailNovelty!).toBeGreaterThan(0);
   });
