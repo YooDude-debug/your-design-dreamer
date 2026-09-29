@@ -95,12 +95,80 @@ describe("Cognitive Architecture – ORB-Core-Integration (observational)", () =
     ]);
   });
 
-  it("G/H/I/Y – Action Plan, Outcome, Adaptation passiv", () => {
+  it("G/H/I/Y – 14 alle verfügbaren Strategien, 15/16 ohne beobachtetes Outcome null", () => {
     const r = observed(["a"]);
-    expect(r.actionPlans).toEqual([]);
+    const avail = r.strategies.strategies.filter((s) => s.available).map((s) => s.type);
+    expect(r.actionPlans.map((p) => p.strategy)).toEqual(avail);
     expect(r.outcome).toBeNull();
     expect(r.adaptation).toBeNull();
-    expect(CODE).not.toMatch(/createActionPlan\(|createOutcome\(|assessAdaptation\(/);
+    // Laufzeitpfad übergibt nie ein Outcome.
+    expect(engine).not.toMatch(/observedOutcome/);
+  });
+
+  it("E2E-A/B – Plan je verfügbarer Strategie, keine Auswahl, nicht verfügbare ohne Plan", () => {
+    const r = observed(["a", "b"]);
+    expect(r.actionPlans.map((p) => p.strategy)).toEqual([
+      "ask_clarification",
+      "explore_gap",
+      "defer",
+      "observe",
+    ]);
+    expect(r.actionPlans.map((p) => p.action)).toEqual([
+      "ask_user",
+      "explore_information",
+      "defer_response",
+      "observe_state",
+    ]);
+    for (const p of r.actionPlans) {
+      expect(Object.keys(p).sort()).toEqual([
+        "action",
+        "executable",
+        "missingRequirements",
+        "reasons",
+        "requirements",
+        "strategy",
+      ]);
+    }
+    const none = observed([]);
+    expect(none.actionPlans.map((p) => p.strategy)).toEqual(["observe"]);
+  });
+
+  it("E2E-C/D/E – Outcome nur explizit; Adaptation nur aus Outcome", () => {
+    expect(observed(["a"]).outcome).toBeNull();
+    const withNull = run({ path: "chat", memoryIds: ["a"], observedOutcome: null });
+    if (withNull.status !== "observed") throw new Error("x");
+    expect(withNull.outcome).toBeNull();
+    expect(withNull.adaptation).toBeNull();
+    const r = run({
+      path: "chat",
+      memoryIds: ["a"],
+      observedOutcome: {
+        actionId: "observe_state",
+        outcomeStatus: "observed",
+        outcomeMatch: "matched",
+      },
+    });
+    if (r.status !== "observed") throw new Error("x");
+    expect(r.outcome?.outcomeMatch).toBe("matched");
+    expect(r.outcome?.usefulness).toBeNull();
+    expect(r.adaptation?.type).toBe("reinforce");
+    expect(r.adaptation?.source).toBe("explicit_outcome");
+  });
+
+  it("E2E-F/G/H/I/J – deterministisch, Eingaben unverändert, keine externen Aufrufe", () => {
+    const outcome = { outcomeStatus: "observed" as const, userFeedback: "negative" as const };
+    const ids = ["a", "b", "c"];
+    const before = structuredClone({ ids, outcome });
+    const a = run({ path: "chat", memoryIds: ids, observedOutcome: outcome });
+    const b = run({ path: "chat", memoryIds: ids, observedOutcome: outcome });
+    expect(a).toEqual(b);
+    expect({ ids, outcome }).toEqual(before);
+    expect(CODE).toMatch(/createActionPlan\(/);
+    expect(CODE).toMatch(/createOutcome\(/);
+    expect(CODE).toMatch(/assessAdaptation\(/);
+    expect(CODE).not.toMatch(
+      /execute|dispatch|emit\(|speak\(|energy|curiosity|autonomy|recall|retriev/i,
+    );
   });
 
   it("J–O – Antwort, Retrieval, Memory, Energy, Curiosity, Autonomy Gate unverändert", () => {
