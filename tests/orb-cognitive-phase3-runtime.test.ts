@@ -29,7 +29,7 @@ describe("Phase 3 Novelty – Chat-Runtime (passiv)", () => {
     expect(f.memoryNovelty).toBe(0);
     expect(f.contradiction).toBe(0);
     expect(f.contextNovelty).toBe(1);
-    expect(f.reactivation).toBeCloseTo(28 / 180, 5);
+    expect(f.reactivation).toBeCloseTo((28 + 10 / 24) / 180, 5);
   });
 
   it("B) abweichende Eingabe → memoryNovelty 1, detailNovelty null (kein verwandter Inhalt)", () => {
