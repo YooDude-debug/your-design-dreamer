@@ -2746,7 +2746,7 @@ export async function askProactively(
       cognitive: runCognitiveObservation({
         path: "proactive_question",
         memoryIds: ctx.gaps.map((g) => g.nodeId),
-      memories: ctx.gaps.map((g) => ({ id: g.nodeId, content: g.memory })),
+        memories: ctx.gaps.map((g) => ({ id: g.nodeId, content: g.memory })),
       }),
     };
   };

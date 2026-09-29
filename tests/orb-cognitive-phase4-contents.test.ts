@@ -12,10 +12,7 @@ const ENTRY = readFileSync("src/orb-core/cognitive-observation.ts", "utf8").repl
   "",
 );
 
-const obs = (
-  memories: OrbObservedMemory[],
-  path: "chat" | "proactive_question" = "chat",
-) => {
+const obs = (memories: OrbObservedMemory[], path: "chat" | "proactive_question" = "chat") => {
   const r = run({ path, memoryIds: memories.map((m) => m.id), memories });
   if (r.status !== "observed") throw new Error("expected observed");
   return r;
@@ -136,7 +133,7 @@ describe("Phase 4 – Memory-Inhalte aus dem Runtimepfad", () => {
     const a = obs(mem);
     expect(mem).toEqual(before);
     expect(a).toEqual(obs(mem));
-    expect(a.competitions ?? a.snapshot.competitions).toHaveLength(1);
+    expect(a.snapshot.competitions).toHaveLength(1);
     expect(a.actionPlans.length).toBeGreaterThan(0);
     expect(a.outcome).toBeNull();
     expect(a.adaptation).toBeNull();
