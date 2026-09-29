@@ -10,9 +10,13 @@
  * - Candidates: je eine bereits geladene Memory-ID (Chat: abgerufene
  *   Memories; autonome Frage: Knoten der bereits geladenen Lücken).
  *   Quelle { type: "memory", memoryId }. Kein Inhalt, kein Topic.
- * - Phase 4 (Uncertainty): nur aus der Herkunft { type: "memory" }
- *   (sourceCertainty/missingEvidence/inferenceDependency laut Contract).
- *   Keine Aussage, kein Zeitstempel, keine Vergleichsaussagen → Rest null.
+ * - Phase 4 (Uncertainty): Herkunft { type: "memory" } plus – falls
+ *   übergeben – gespeicherter Inhalt (statement) und die Inhalte der übrigen
+ *   Candidates (others). sourceAgreement/contradiction nur aus der
+ *   bestehenden lexikalischen Regel; recencyUncertainty bleibt null
+ *   (timeDependent liegt nicht vor). Engine-Herkunft (user_stated/observed/
+ *   inferred) wird nur in memoryOrigins durchgereicht: "inference" verlangt
+ *   Quell-IDs, die nicht vorliegen – daher keine Umdeutung.
  * - Phasen 2, 3, 5, 6, 7, 8: null – im Aufrufkontext liegen nur IDs vor,
  *   keine Texte, Ziele, Fokusangaben, Erfahrungen oder Aussagen-Tripel.
  *   Retrieval-Score und Gap-Novelty werden NICHT umgedeutet; eine Gap-ID
@@ -61,6 +65,8 @@ export type OrbCognitiveObservation =
       candidateCount: number;
       /** true, wenn mehr IDs vorlagen als COGNITIVE_OBSERVATION_MAX_CANDIDATES. */
       truncated: boolean;
+      /** Engine-Herkunft je Candidate, unverändert (null = nicht übergeben). */
+      memoryOrigins: { memoryId: string; origin: string | null }[];
       snapshot: OrbCognitiveSnapshot;
       strategies: OrbStrategyAssessment;
       decision: OrbDecisionFoundation;
@@ -173,6 +179,7 @@ export function runCognitiveObservation(input: {
       path,
       candidateCount: candidates.length,
       truncated: all.length > ids.length,
+      memoryOrigins,
       snapshot,
       strategies,
       decision,

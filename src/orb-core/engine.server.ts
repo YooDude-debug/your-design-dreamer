@@ -1914,6 +1914,11 @@ export async function processInput(
     cognitive: runCognitiveObservation({
       path: "chat",
       memoryIds: recalled.map((r) => r.node.id),
+      memories: recalled.map((r) => ({
+        id: r.node.id,
+        content: r.node.content,
+        origin: r.node.source,
+      })),
     }),
     answeredQuestion,
     context: {
@@ -2741,6 +2746,7 @@ export async function askProactively(
       cognitive: runCognitiveObservation({
         path: "proactive_question",
         memoryIds: ctx.gaps.map((g) => g.nodeId),
+      memories: ctx.gaps.map((g) => ({ id: g.nodeId, content: g.memory })),
       }),
     };
   };
@@ -2907,6 +2913,7 @@ export async function askProactively(
     cognitive: runCognitiveObservation({
       path: "proactive_question",
       memoryIds: ctx.gaps.map((g) => g.nodeId),
+      memories: ctx.gaps.map((g) => ({ id: g.nodeId, content: g.memory })),
     }),
   };
 }
