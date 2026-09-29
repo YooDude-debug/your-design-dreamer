@@ -77,15 +77,30 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
     // Server-Funktionen dürfen keine HTML-Fehlerseite bekommen – der Client
     // kann sie nicht lesen und rendert dann eine leere Seite. Der Fehler wird
     // weitergeworfen, damit das Framework ihn serialisiert.
-    // S6: DB-/RPC-, Laufzeit- und Nicht-Error-Fehler sind oben vollständig
-    // protokolliert; nach außen geht nur ein generischer Text.
     if (isServerFn) {
-      throw shouldMaskServerError(error) ? new Error(SAFE_SERVER_ERROR) : error;
+      throw error;
     }
     return new Response(renderErrorPage(), {
       status: 500,
       headers: { "content-type": "text/html; charset=utf-8" },
     });
+  }
+});
+
+/**
+ * S6 – Fehlergrenze für Server-Funktionen. Das Framework serialisiert Fehler
+ * aus Server-Funktionen selbst (inkl. `cause`), bevor Request-Middleware sie
+ * sieht; deshalb greift die Grenze hier. DB-/RPC-, Laufzeit- und
+ * Nicht-Error-Fehler werden vollständig serverseitig protokolliert; der
+ * Client erhält nur SAFE_SERVER_ERROR. Alle übrigen Fehler bleiben unverändert.
+ */
+const safeServerFnErrors = createMiddleware({ type: "function" }).server(async ({ next }) => {
+  try {
+    return await next();
+  } catch (error) {
+    if (!shouldMaskServerError(error)) throw error;
+    console.error("[serverFn:internal]", error);
+    throw new Error(SAFE_SERVER_ERROR);
   }
 });
 
@@ -97,6 +112,6 @@ const csrfMiddleware = createCsrfMiddleware({
 });
 
 export const startInstance = createStart(() => ({
-  functionMiddleware: [attachSupabaseAuth],
+  functionMiddleware: [safeServerFnErrors, attachSupabaseAuth],
   requestMiddleware: [metricsMiddleware, errorMiddleware, csrfMiddleware],
 }));
