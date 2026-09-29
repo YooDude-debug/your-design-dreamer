@@ -77,9 +77,10 @@ describe("Phasen 2–8 im Runtimepfad (passiv)", () => {
 
   it("I – Phase 4 wird im Orchestrator tatsächlich aufgerufen; 2/3/5/6/7/8 nicht", () => {
     expect(ENTRY).toMatch(/assessCognitiveUncertainty\(/);
+    // Phase 3 seit Novelty-Integration nur im Chat für die Nutzereingabe.
+    expect(ENTRY).toMatch(/assessCognitiveNovelty\(/);
     for (const fn of [
       "assessCognitiveRelevance",
-      "assessCognitiveNovelty",
       "assessCognitiveGoalPressure",
       "assessCognitiveAttention",
       "assessCognitiveExperience",

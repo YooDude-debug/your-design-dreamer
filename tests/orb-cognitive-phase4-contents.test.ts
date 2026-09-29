@@ -99,7 +99,7 @@ describe("Phase 4 – Memory-Inhalte aus dem Runtimepfad", () => {
 
   it("11 – Runtime-Contract Chat: recalled-Inhalt/Herkunft gelangt zu Phase 4", () => {
     expect(engine).toMatch(
-      /memoryIds: recalled\.map\(\(r\) => r\.node\.id\),\s+memories: recalled\.map\(\(r\) => \(\{\s+id: r\.node\.id,\s+content: r\.node\.content,\s+origin: r\.node\.source,\s+\}\)\),/,
+      /memoryIds: recalled\.map\(\(r\) => r\.node\.id\),\s+memories: recalled\.map\(\(r\) => \(\{\s+id: r\.node\.id,\s+content: r\.node\.content,\s+origin: r\.node\.source,\s+lastAccessedAt: r\.node\.lastAccessedAt,\s+\}\)\),/,
     );
     expect(ENTRY).toMatch(/assessCognitiveUncertainty\(/);
   });
