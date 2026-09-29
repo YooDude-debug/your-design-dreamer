@@ -17,7 +17,15 @@
  *   (timeDependent liegt nicht vor). Engine-Herkunft (user_stated/observed/
  *   inferred) wird nur in memoryOrigins durchgereicht: "inference" verlangt
  *   Quell-IDs, die nicht vorliegen – daher keine Umdeutung.
- * - Phasen 2, 3, 5, 6, 7, 8: null – im Aufrufkontext liegen nur IDs vor,
+ * - Phase 3 (Novelty, nur Chat): bewertet ausschließlich die aktuelle
+ *   Nutzereingabe (inputNovelty), nie einen Memory-Candidate, eine Lücke oder
+ *   eine ORB-eigene Frage. known = bereits geladene Memory-Inhalte (Quelle
+ *   memory, lastActivatedAt = geladener last_accessed_at), context = bereits
+ *   geladene recentMessages, now vom Aufrufer. Quelle "conversation" nur mit
+ *   echter, übergebener messageId; sonst Quelle unbekannt (keine erfundene
+ *   ID). Ergebnis der bestehenden lexikalischen Regel in novelty.ts – keine
+ *   Aussage über inhaltliche Neuheit. Fließt nicht in Candidates/Snapshot.
+ * - Phasen 2, 5, 6, 7, 8: null – im Aufrufkontext liegen nur IDs vor,
  *   keine Texte, Ziele, Fokusangaben, Erfahrungen oder Aussagen-Tripel.
  *   Retrieval-Score und Gap-Novelty werden NICHT umgedeutet; eine Gap-ID
  *   ist nur Kandidatenreferenz (Wissenslücken-Knoten), keine Wahrheit.
@@ -38,6 +46,7 @@
 import { isInformationSource } from "./cognitive/foundation";
 import { createCognitiveCandidate, type OrbCognitiveCandidate } from "./cognitive/candidate";
 import { assessCognitiveUncertainty } from "./cognitive/uncertainty";
+import { assessCognitiveNovelty, type OrbNoveltyAssessment } from "./cognitive/novelty";
 import { compareCognitiveCandidates } from "./cognitive/competition";
 import { createCognitiveSnapshot, type OrbCognitiveSnapshot } from "./cognitive/snapshot";
 import { assessStrategies, type OrbStrategyAssessment } from "./cognitive/strategy";
@@ -67,6 +76,8 @@ export type OrbCognitiveObservation =
       truncated: boolean;
       /** Engine-Herkunft je Candidate, unverändert (null = nicht übergeben). */
       memoryOrigins: { memoryId: string; origin: string | null }[];
+      /** Phase 3 zur aktuellen Nutzereingabe (nur Chat); sonst null. */
+      inputNovelty: OrbNoveltyAssessment | null;
       snapshot: OrbCognitiveSnapshot;
       strategies: OrbStrategyAssessment;
       decision: OrbDecisionFoundation;
@@ -91,6 +102,18 @@ export type OrbObservedMemory = {
   content: string;
   /** Gespeicherte Engine-Herkunft, unverändert durchgereicht; fehlt → null. */
   origin?: string | null;
+  /** Bereits geladener last_accessed_at (ISO); nur für Phase 3 reactivation. */
+  lastAccessedAt?: string | null;
+};
+
+/** Aktuelle Nutzereingabe (nur Chat). messageId nur, wenn tatsächlich vorhanden. */
+export type OrbObservedInput = {
+  text: string;
+  messageId?: string | null;
+  /** Bereits geladene Gesprächsnachrichten (ohne die aktuelle Eingabe). */
+  context?: readonly string[];
+  /** Referenzzeit des Aufrufers (ISO). */
+  now?: string | null;
 };
 
 function contentMap(list: readonly unknown[] | undefined): Map<string, OrbObservedMemory> {
@@ -105,6 +128,8 @@ function contentMap(list: readonly unknown[] | undefined): Map<string, OrbObserv
       id: r.id,
       content: r.content,
       origin: typeof r.origin === "string" && r.origin ? r.origin : null,
+      lastAccessedAt:
+        typeof r.lastAccessedAt === "string" && r.lastAccessedAt ? r.lastAccessedAt : null,
     });
   }
   return out;
@@ -115,6 +140,8 @@ export function runCognitiveObservation(input: {
   memoryIds: readonly unknown[];
   /** Bereits geladene Inhalte zu den IDs (keine neue Datenquelle). */
   memories?: readonly OrbObservedMemory[];
+  /** Aktuelle Nutzereingabe; wird nur im Pfad "chat" ausgewertet. */
+  input?: OrbObservedInput | null;
   /** Explizit beobachtetes Outcome. Der ORB-Laufzeitpfad übergibt keines. */
   observedOutcome?: OrbOutcomeInput | null;
 }): OrbCognitiveObservation {
@@ -146,6 +173,25 @@ export function runCognitiveObservation(input: {
       memoryId: id,
       origin: contents.get(id)?.origin ?? null,
     }));
+    // Phase 3: nur Chat, nur aktuelle Nutzereingabe, eigene Ausgabe.
+    let inputNovelty: OrbNoveltyAssessment | null = null;
+    const inp = input?.input;
+    if (path === "chat" && inp && typeof inp.text === "string" && inp.text.trim()) {
+      const messageId = typeof inp.messageId === "string" && inp.messageId ? inp.messageId : null;
+      inputNovelty = assessCognitiveNovelty({
+        statement: inp.text,
+        source: messageId ? { type: "conversation", messageId } : undefined,
+        known: [...contents.values()].map((m) => ({
+          text: m.content,
+          source: { type: "memory" as const, memoryId: m.id },
+          lastActivatedAt: m.lastAccessedAt ?? null,
+        })),
+        context: Array.isArray(inp.context)
+          ? inp.context.filter((c): c is string => typeof c === "string")
+          : undefined,
+        now: typeof inp.now === "string" ? inp.now : null,
+      });
+    }
     const competitions = [];
     for (let i = 0; i < candidates.length; i++)
       for (let j = i + 1; j < candidates.length; j++)
@@ -180,6 +226,7 @@ export function runCognitiveObservation(input: {
       candidateCount: candidates.length,
       truncated: all.length > ids.length,
       memoryOrigins,
+      inputNovelty,
       snapshot,
       strategies,
       decision,

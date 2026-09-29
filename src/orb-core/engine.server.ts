@@ -1918,7 +1918,15 @@ export async function processInput(
         id: r.node.id,
         content: r.node.content,
         origin: r.node.source,
+        lastAccessedAt: r.node.lastAccessedAt,
       })),
+      // Phase 3: aktuelle Nutzereingabe; die eingefügte Zeile liefert keine ID
+      // zurück → keine messageId (keine erfundene ID, kein zusätzlicher Abruf).
+      input: {
+        text,
+        context: recentMessages.map((m) => m.body),
+        now: new Date(now).toISOString(),
+      },
     }),
     answeredQuestion,
     context: {
