@@ -47,7 +47,8 @@ describe("Cognitive Globe – Mapping", () => {
       true,
     );
     expect(layerHasData(v, "factors")).toBe(false);
-    expect(layerHasData(v, "action")).toBe(false);
+    // Phase 14 ist angeschlossen: Pläne für die 4 verfügbaren Strategien.
+    expect(layerHasData(v, "action")).toBe(true);
     expect(layerHasData(v, "outcome")).toBe(false);
     expect(layerHasData(v, "adaptation")).toBe(false);
   });
@@ -124,7 +125,7 @@ describe("Cognitive Globe – Darstellungsgrenzen", () => {
     expect(layout.nodes.filter((node) => node.layer === "snapshot")).toHaveLength(7);
     expect(layout.nodes.filter((node) => node.layer === "strategy")).toHaveLength(8);
     expect(layout.nodes.filter((node) => node.layer === "decision")).toHaveLength(7);
-    expect(layout.nodes.filter((node) => node.layer === "action")).toHaveLength(0);
+    expect(layout.nodes.filter((node) => node.layer === "action")).toHaveLength(4);
     expect(layout.nodes.filter((node) => node.layer === "outcome")).toHaveLength(0);
     expect(layout.nodes.filter((node) => node.layer === "adaptation")).toHaveLength(0);
   });
@@ -204,7 +205,7 @@ describe("Cognitive Globe – Darstellungsgrenzen", () => {
     ] as const);
     expect(sceneGraph.getMemoryCoreRadius()).toBeCloseTo(10);
     expect(sceneGraph.framingRadius(all, null)).toBeCloseTo(
-      cognitiveLayerRadius(10, "decision"),
+      cognitiveLayerRadius(10, "action"),
     );
     expect(sceneGraph.framingRadius(all, "strategy")).toBeCloseTo(
       cognitiveLayerRadius(10, "strategy"),
