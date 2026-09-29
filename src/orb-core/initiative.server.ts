@@ -6,6 +6,7 @@
  */
 
 import type * as Engine from "@/orb-core/engine.server";
+import { internalError } from "@/orb-core/internal-error";
 import type {
   CuriosityContext,
   DB,

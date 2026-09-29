@@ -13,6 +13,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { internalError } from "@/orb-core/internal-error";
 import type { Database } from "@/integrations/supabase/types";
 
 import {

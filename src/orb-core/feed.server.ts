@@ -21,6 +21,7 @@ import {
   topicOf,
   type InterestRow,
 } from "@/orb-core/memory";
+import { internalError } from "@/orb-core/internal-error";
 import { getSnapshot, type DB, type OrbSnapshot } from "@/orb-core/engine.server";
 
 /** Wie viele Beiträge eine Beobachtung höchstens ansieht (keine Vollabfrage). */

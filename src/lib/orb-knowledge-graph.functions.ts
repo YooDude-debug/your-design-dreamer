@@ -9,6 +9,7 @@
  */
 
 import { createServerFn } from "@tanstack/react-start";
+import { internalError } from "@/orb-core/internal-error";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type KgNode = {

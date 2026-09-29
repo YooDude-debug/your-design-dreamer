@@ -4,6 +4,7 @@
  * Wird aktuell von keiner Entscheidungslogik aufgerufen.
  */
 import { findPreviousOrbTurn, type OrbTurnMemoryRef } from "@/orb-core/memory-usage";
+import { internalError } from "@/orb-core/internal-error";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- schmaler Supabase-Ausschnitt
 type Db = { from: (t: string) => any };
