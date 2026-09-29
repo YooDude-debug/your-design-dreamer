@@ -8,7 +8,14 @@ const ENTRY = readFileSync("src/orb-core/cognitive-observation.ts", "utf8").repl
   "",
 );
 const engine = readFileSync("src/orb-core/engine.server.ts", "utf8");
-const NULL_DIMS = ["relevance", "novelty", "goalPressure", "attention", "experience", "contradiction"];
+const NULL_DIMS = [
+  "relevance",
+  "novelty",
+  "goalPressure",
+  "attention",
+  "experience",
+  "contradiction",
+];
 
 const obs = (ids: unknown[], path: "chat" | "proactive_question" = "chat") => {
   const r = run({ path, memoryIds: ids });
@@ -82,7 +89,14 @@ describe("Phasen 2–8 im Runtimepfad (passiv)", () => {
   });
 
   it("J/K – kein DB-, Netzwerk-, Modell- oder Uhrzugriff im Orchestrator", () => {
-    for (const p of [/fetch\(/, /supabase/i, /\bdb\./, /Date\.now|new Date/, /Math\.random/, /llm/i])
+    for (const p of [
+      /fetch\(/,
+      /supabase/i,
+      /\bdb\./,
+      /Date\.now|new Date/,
+      /Math\.random/,
+      /llm/i,
+    ])
       expect(ENTRY).not.toMatch(p);
   });
 
@@ -93,11 +107,13 @@ describe("Phasen 2–8 im Runtimepfad (passiv)", () => {
 
   it("M – Phase 9–14 bleiben funktional (Coverage bei genau einem Candidate)", () => {
     const one = obs(["a"]);
-    expect(one.decision.candidates[0].decisionInputs.uncertaintyCoverage).toBeCloseTo(4 / 6);
+    expect(one.decision.candidates[0].decisionInputs.uncertaintyCoverage).toBe(0.5);
     expect(one.decision.candidates[0].decisionInputs.relevanceCoverage).toBeNull();
     expect(one.actionPlans.length).toBeGreaterThan(0);
     const two = obs(["a", "b"]);
     expect(two.decision.candidates[0].decisionInputs.uncertaintyCoverage).toBeNull();
-    expect(run({ path: "chat", memoryIds: ["a"] })).toEqual(run({ path: "chat", memoryIds: ["a"] }));
+    expect(run({ path: "chat", memoryIds: ["a"] })).toEqual(
+      run({ path: "chat", memoryIds: ["a"] }),
+    );
   });
 });
