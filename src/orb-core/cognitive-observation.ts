@@ -14,8 +14,15 @@
  *   noch keine Daten in der Semantik der Cognitive-Schichten. Insbesondere
  *   werden Retrieval-Score und Gap-Novelty NICHT umgedeutet.
  * - Fokus, Goals, Experiences, Conflicts: nicht vorhanden → null / [].
- * - Action Plan: keine explizit vorgegebene Strategie → keine Pläne.
- * - Outcome / Adaptation: kein explizites Outcome → null.
+ * - Action Plan (Phase 14): je ein Plan für JEDE Strategie mit
+ *   available=true aus Phase 12, in deren fester Reihenfolge. Keine Auswahl,
+ *   kein Ranking, kein Gewinner; Phase 13 wird nur als strukturgleicher
+ *   Begleitwert übergeben, nicht zur Auswahl genutzt. Pläne werden nie
+ *   ausgeführt.
+ * - Outcome (Phase 15): nur wenn der Aufrufer ein explizit beobachtetes
+ *   Outcome übergibt. Der ORB-Laufzeitpfad übergibt keines (Pläne werden
+ *   nicht ausgeführt, es gibt nichts zu beobachten) → null.
+ * - Adaptation (Phase 16): nur aus einem vorhandenen Outcome, sonst null.
  *
  * Fehler: jede Ausnahme → { status: "failed" } ohne Ersatzdaten; der
  * aufrufende ORB-Lauf bleibt unberührt.
@@ -26,12 +33,19 @@ import { compareCognitiveCandidates } from "./cognitive/competition";
 import { createCognitiveSnapshot, type OrbCognitiveSnapshot } from "./cognitive/snapshot";
 import { assessStrategies, type OrbStrategyAssessment } from "./cognitive/strategy";
 import { assessDecisionFoundation, type OrbDecisionFoundation } from "./cognitive/decision";
-import type { OrbActionPlan } from "./cognitive/action-plan";
+import { createActionPlan, type OrbActionPlan } from "./cognitive/action-plan";
+import { createOutcome, type OrbOutcome, type OrbOutcomeInput } from "./cognitive/outcome";
+import { assessAdaptation, type OrbAdaptationObservation } from "./cognitive/adaptation";
 
 /** Obergrenze für Candidates je Vorgang (Paarvergleiche bleiben klein). */
 export const COGNITIVE_OBSERVATION_MAX_CANDIDATES = 12;
 
 export type OrbCognitivePath = "chat" | "proactive_question";
+
+/** Outcome ohne freie Provenance (bleibt serialisierbar). */
+export type OrbObservedOutcome = Omit<OrbOutcome, "provenance"> & {
+  provenance: string | number | boolean | null | Record<string, unknown> | undefined;
+};
 
 export type OrbCognitiveObservation =
   | {
@@ -45,10 +59,10 @@ export type OrbCognitiveObservation =
       strategies: OrbStrategyAssessment;
       decision: OrbDecisionFoundation;
       actionPlans: OrbActionPlan[];
-      /** Kein explizites Outcome im ORB-Lauf → immer null. */
-      outcome: null;
-      /** Ohne Outcome keine Adaptation Observation → immer null. */
-      adaptation: null;
+      /** Nur bei explizit übergebenem, beobachtetem Outcome; sonst null. */
+      outcome: OrbObservedOutcome | null;
+      /** Nur aus vorhandenem Outcome; sonst null. */
+      adaptation: OrbAdaptationObservation | null;
     }
   | { kind: "orb.cognitive_observation"; status: "failed"; path: OrbCognitivePath };
 
@@ -62,6 +76,8 @@ function uniqueIds(ids: readonly unknown[]): string[] {
 export function runCognitiveObservation(input: {
   path: OrbCognitivePath;
   memoryIds: readonly unknown[];
+  /** Explizit beobachtetes Outcome. Der ORB-Laufzeitpfad übergibt keines. */
+  observedOutcome?: OrbOutcomeInput | null;
 }): OrbCognitiveObservation {
   const path = input?.path === "proactive_question" ? "proactive_question" : "chat";
   try {
@@ -81,6 +97,26 @@ export function runCognitiveObservation(input: {
     const snapshot = createCognitiveSnapshot({ candidates, competitions });
     const strategies = assessStrategies(snapshot);
     const decision = assessDecisionFoundation(snapshot, strategies);
+
+    // Phase 14: alle verfügbaren Strategien, feste Reihenfolge aus Phase 12.
+    const actionPlans: OrbActionPlan[] = [];
+    for (const s of strategies.strategies) {
+      if (!s.available) continue;
+      const dc = decision.candidates.find((c) => c.strategy === s.type) ?? null;
+      const plan = createActionPlan(s.type, snapshot, dc);
+      if (plan) actionPlans.push(plan);
+    }
+
+    // Phase 15: nur explizit übergebenes Outcome.
+    const rawOutcome = input?.observedOutcome;
+    const outcome =
+      rawOutcome && typeof rawOutcome === "object"
+        ? (createOutcome(rawOutcome) as OrbObservedOutcome)
+        : null;
+
+    // Phase 16: nur aus vorhandenem Outcome.
+    const adaptation = outcome ? assessAdaptation(outcome) : null;
+
     return {
       kind: "orb.cognitive_observation",
       status: "observed",
@@ -90,9 +126,9 @@ export function runCognitiveObservation(input: {
       snapshot,
       strategies,
       decision,
-      actionPlans: [],
-      outcome: null,
-      adaptation: null,
+      actionPlans,
+      outcome,
+      adaptation,
     };
   } catch {
     return { kind: "orb.cognitive_observation", status: "failed", path };
