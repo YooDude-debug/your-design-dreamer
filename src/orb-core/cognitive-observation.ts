@@ -43,8 +43,9 @@ export const COGNITIVE_OBSERVATION_MAX_CANDIDATES = 12;
 export type OrbCognitivePath = "chat" | "proactive_question";
 
 /** Outcome ohne freie Provenance (bleibt serialisierbar). */
+type OrbJson = string | number | boolean | null | OrbJson[] | { [key: string]: OrbJson };
 export type OrbObservedOutcome = Omit<OrbOutcome, "provenance"> & {
-  provenance: string | number | boolean | null | Record<string, unknown> | undefined;
+  provenance: OrbJson | undefined;
 };
 
 export type OrbCognitiveObservation =

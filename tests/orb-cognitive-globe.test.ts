@@ -204,9 +204,7 @@ describe("Cognitive Globe – Darstellungsgrenzen", () => {
       "adaptation",
     ] as const);
     expect(sceneGraph.getMemoryCoreRadius()).toBeCloseTo(10);
-    expect(sceneGraph.framingRadius(all, null)).toBeCloseTo(
-      cognitiveLayerRadius(10, "action"),
-    );
+    expect(sceneGraph.framingRadius(all, null)).toBeCloseTo(cognitiveLayerRadius(10, "action"));
     expect(sceneGraph.framingRadius(all, "strategy")).toBeCloseTo(
       cognitiveLayerRadius(10, "strategy"),
     );
