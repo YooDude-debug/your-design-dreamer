@@ -79,9 +79,36 @@ function uniqueIds(ids: readonly unknown[]): string[] {
   return out;
 }
 
+/** Bereits geladener Memory-Inhalt (nur für Phase 4). */
+export type OrbObservedMemory = {
+  id: string;
+  content: string;
+  /** Gespeicherte Engine-Herkunft, unverändert durchgereicht; fehlt → null. */
+  origin?: string | null;
+};
+
+function contentMap(list: readonly unknown[] | undefined): Map<string, OrbObservedMemory> {
+  const out = new Map<string, OrbObservedMemory>();
+  if (!Array.isArray(list)) return out;
+  for (const m of list) {
+    if (!m || typeof m !== "object") continue;
+    const r = m as Record<string, unknown>;
+    if (typeof r.id !== "string" || !r.id || out.has(r.id)) continue;
+    if (typeof r.content !== "string" || !r.content.trim()) continue;
+    out.set(r.id, {
+      id: r.id,
+      content: r.content,
+      origin: typeof r.origin === "string" && r.origin ? r.origin : null,
+    });
+  }
+  return out;
+}
+
 export function runCognitiveObservation(input: {
   path: OrbCognitivePath;
   memoryIds: readonly unknown[];
+  /** Bereits geladene Inhalte zu den IDs (keine neue Datenquelle). */
+  memories?: readonly OrbObservedMemory[];
   /** Explizit beobachtetes Outcome. Der ORB-Laufzeitpfad übergibt keines. */
   observedOutcome?: OrbOutcomeInput | null;
 }): OrbCognitiveObservation {
@@ -89,15 +116,30 @@ export function runCognitiveObservation(input: {
   try {
     const all = uniqueIds(Array.isArray(input?.memoryIds) ? input.memoryIds : []);
     const ids = all.slice(0, COGNITIVE_OBSERVATION_MAX_CANDIDATES);
-    const candidates: OrbCognitiveCandidate[] = ids.map((id) => {
+    const contents = contentMap(input?.memories);
+    const sourced = ids.map((id) => {
       const source = { type: "memory" as const, memoryId: id };
-      const valid = isInformationSource(source) ? source : undefined;
-      // Phase 4: einziger belegter Input ist die Herkunft (Referenz auf eine
-      // bereits geladene Memory-ID). Kein Text, kein Zeitstempel, keine
-      // Vergleichsaussagen → alle übrigen Faktoren bleiben null.
-      const uncertainty = valid ? assessCognitiveUncertainty({ source: valid }) : null;
-      return createCognitiveCandidate({ id, source: valid, uncertainty });
+      return { id, source: isInformationSource(source) ? source : undefined };
     });
+    // Phase 4: Herkunft + (falls vorhanden) gespeicherter Inhalt als statement,
+    // übrige Candidate-Inhalte mit Memory-Quelle als others. Vergleich nur über
+    // die bestehende lexikalische Regel in uncertainty.ts. Kein timeDependent
+    // → recencyUncertainty bleibt null.
+    const candidates: OrbCognitiveCandidate[] = sourced.map(({ id, source }) => {
+      if (!source) return createCognitiveCandidate({ id, source: undefined });
+      const statement = contents.get(id)?.content;
+      const others = sourced
+        .filter((o) => o.id !== id && o.source && contents.has(o.id))
+        .map((o) => ({ text: contents.get(o.id)!.content, source: o.source! }));
+      const uncertainty = assessCognitiveUncertainty(
+        statement && others.length > 0 ? { source, statement, others } : { source },
+      );
+      return createCognitiveCandidate({ id, source, uncertainty });
+    });
+    const memoryOrigins = ids.map((id) => ({
+      memoryId: id,
+      origin: contents.get(id)?.origin ?? null,
+    }));
     const competitions = [];
     for (let i = 0; i < candidates.length; i++)
       for (let j = i + 1; j < candidates.length; j++)
