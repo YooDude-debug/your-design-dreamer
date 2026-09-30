@@ -1843,6 +1843,9 @@ export async function processInput(
         created_at: new Date(now).toISOString(),
       },
       {
+        // Mehrzeilen-Insert: fehlt die id in einer Zeile, sendet PostgREST
+        // NULL statt des Defaults – daher auch hier explizit setzen.
+        id: crypto.randomUUID(),
         user_id: userId,
         role: "orb",
         body: reply,
