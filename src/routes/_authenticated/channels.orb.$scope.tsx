@@ -311,7 +311,8 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
   });
 
   const decideMutation = useMutation({
-    mutationFn: (input: { suggestionId: string; accepted: boolean }) => decide({ data: { ...input, scope } }),
+    mutationFn: (input: { suggestionId: string; accepted: boolean }) =>
+      decide({ data: { ...input, scope } }),
     onSuccess: (snapshot) => queryClient.setQueryData(["orb", "snapshot", scope], snapshot),
     onError: () => toast.error("Die Entscheidung konnte nicht gespeichert werden."),
   });

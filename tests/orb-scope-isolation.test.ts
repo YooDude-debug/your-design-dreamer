@@ -17,7 +17,11 @@ import {
   scopeOf,
   type OrbDataScope,
 } from "@/orb-core/scope";
-import { CONTEXT_WINDOW_MESSAGES, PROACTIVE_CONTEXT_MESSAGES, contextWindow } from "@/orb-core/context";
+import {
+  CONTEXT_WINDOW_MESSAGES,
+  PROACTIVE_CONTEXT_MESSAGES,
+  contextWindow,
+} from "@/orb-core/context";
 import type { DB } from "@/orb-core/engine.server";
 
 type Req = { method: string; url: URL; body: unknown };
@@ -95,7 +99,11 @@ describe("Bereichsfilter in jeder Abfrage", () => {
       const { db, requests } = recorder();
       const s = scopedDb(db, scope);
       for (const t of ORB_SCOPED_TABLES) {
-        await s.from(t as "orb_nodes").select("*").eq("user_id", "u").limit(5);
+        await s
+          .from(t as "orb_nodes")
+          .select("*")
+          .eq("user_id", "u")
+          .limit(5);
       }
       expect(requests).toHaveLength(ORB_SCOPED_TABLES.size);
       for (const r of requests) expect(scopeParam(r)).toBe(`eq.${scope}`);
