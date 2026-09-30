@@ -92,7 +92,7 @@ describe("P0 Prompt-Messbarkeit", () => {
     }
   });
 
-  it("8 Verlaufseinträge: Zähler korrekt, Fenster unverändert", () => {
+  it("16 Verlaufseinträge: Zähler korrekt, Fenster 16", () => {
     const msgs = Array.from({ length: 18 }, (_, k) => ({
       role: (k % 2 === 0 ? "user" : "orb") as "user" | "orb",
       body: "y".repeat(300),
