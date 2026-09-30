@@ -58,6 +58,7 @@ import {
 } from "@/orb-core/cognitive-observation";
 import {
   CONTEXT_WINDOW_MESSAGES,
+  PROACTIVE_CONTEXT_MESSAGES,
   contextWindow,
   detectExplicitLearningRequest,
   formatConversationContext,
@@ -1079,6 +1080,10 @@ export async function processInput(
     isLearning: learning,
   });
 
+  // Provenance: Kennung der Nutzernachricht vorab erzeugt (kein Modellaufruf),
+  // damit eine daraus gespeicherte user_stated-Erinnerung auf sie verweist.
+  const userMessageId = crypto.randomUUID();
+
   // --- Flüchtiger Gesprächskontext (hart begrenzt, keine neue Speicherung) --
   // Genutzt wird die bereits vorhandene Gesprächsablage `orb_messages`; es
   // entsteht keine zweite Verlaufshaltung. Eine Abfrage, festes Fenster.
@@ -1319,12 +1324,13 @@ export async function processInput(
     // Ausdrückliche Aufforderung ist kein Freifahrtschein: der Curiosity Core
     // entscheidet genauso wie bei einer eigenen, unaufgeforderten Frage.
     //
-    // P0-2: Zustand, Gesprächsfenster (8), Interessen (8) und Gedankenfäden
+    // P0-2: Zustand, Gesprächsfenster, Interessen (8) und Gedankenfäden
     // wurden in diesem Vorgang bereits mit identischer Abfrage geladen und
     // seither nicht geschrieben – sie werden weitergegeben, nicht erneut geholt.
     const ctx = await loadCuriosityContext(db, userId, q, now, {
       stateRow,
-      recentMessages: ctxRes.data,
+      // Proaktiver Pfad bleibt bei 8: die neuesten 8 aus dem 16er-Chatfenster.
+      recentMessages: ctxRes.data.slice(0, PROACTIVE_CONTEXT_MESSAGES),
       interestRows: interestRes.data,
       threadEntries: loadedThreads,
     });
@@ -1637,7 +1643,11 @@ export async function processInput(
       norm_key: normKey(memoryText) || null,
       topic: resolvedContextFact ? topicOf(memoryText) : topic,
       activation_count: 1,
-      metadata: { learning_event: learning, decision },
+      metadata: {
+        learning_event: learning,
+        decision,
+        ...(source === "user_stated" ? { message_id: userMessageId } : {}),
+      },
     };
     let inserted = await q.tick(db.from("orb_nodes").insert(row).select("id").single());
     // Schlüsselkonflikt = Unsicherheit: niemals zusammenführen, sondern
@@ -1824,6 +1834,7 @@ export async function processInput(
   const msgInsert = await q.tick(
     db.from("orb_messages").insert([
       {
+        id: userMessageId,
         user_id: userId,
         role: "user",
         body: text,
@@ -2312,7 +2323,7 @@ export type CuriosityContext = {
 type CuriosityPreloaded = {
   /** `orb_state` desselben Vorgangs (vor dieser Stelle wird nichts geschrieben). */
   stateRow: Database["public"]["Tables"]["orb_state"]["Row"];
-  /** `orb_messages` (role, body), neueste zuerst, Limit CONTEXT_WINDOW_MESSAGES = 8. */
+  /** `orb_messages` (role, body), neueste zuerst, Limit PROACTIVE_CONTEXT_MESSAGES = 8 (proaktiver Pfad). */
   recentMessages: { role: string; body: string }[];
   /** `orb_interests` (*), nach Gewicht absteigend, Limit 8. */
   interestRows: Database["public"]["Tables"]["orb_interests"]["Row"][];
@@ -2374,7 +2385,7 @@ async function loadCuriosityContext(
               .select("body, role")
               .eq("user_id", userId)
               .order("created_at", { ascending: false })
-              .limit(8),
+              .limit(PROACTIVE_CONTEXT_MESSAGES),
           )
           .then((res) => {
             if (res.error) throw internalError(res.error);

@@ -14,6 +14,7 @@
  *    (Vorschlag + append-only Audit) über den RLS-gebundenen Admin-Client.
  */
 
+import { ORB_DEV_SCOPE } from "@/orb-core/scope";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { internalError } from "@/orb-core/internal-error";
 import type { Database } from "@/integrations/supabase/types";
@@ -116,6 +117,8 @@ export async function runChatDiagnostic(
         conversationId: request.conversationId,
         sourceMessageId: request.sourceMessageId,
         source: "orb_chat",
+        // Scope-Vertrag: ORB-Dev arbeitet immer im Bereich ORB Core.
+        orbScope: ORB_DEV_SCOPE,
         ...extra,
       },
     });

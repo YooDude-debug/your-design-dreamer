@@ -63,3 +63,12 @@ export {
 
 // Flüchtige Cognitive Observation (nur Typ, nur Darstellung im Knowledge Globe).
 export type { OrbCognitiveObservation } from "@/orb-core/cognitive-observation";
+
+// Scope-Trennung: feste Bereichswerte und Prüfschema (keine Logik).
+export {
+  ORB_CHAT_SCOPES,
+  ORB_SCOPE_LABEL,
+  isOrbChatScope,
+  orbChatScopeSchema,
+  type OrbChatScope,
+} from "@/orb-core/scope-values";

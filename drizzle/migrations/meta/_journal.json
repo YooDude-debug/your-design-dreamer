@@ -372,6 +372,13 @@
       "when": 1790680021068,
       "tag": "0052_revoke_anon_orb_owns_node",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1790779188809,
+      "tag": "0053_orb_scope_isolation",
+      "breakpoints": true
     }
   ]
 }

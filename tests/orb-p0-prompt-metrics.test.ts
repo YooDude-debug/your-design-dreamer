@@ -92,17 +92,17 @@ describe("P0 Prompt-Messbarkeit", () => {
     }
   });
 
-  it("8 Verlaufseinträge: Zähler korrekt, Fenster unverändert", () => {
-    const msgs = Array.from({ length: 10 }, (_, k) => ({
+  it("16 Verlaufseinträge: Zähler korrekt, Fenster 16", () => {
+    const msgs = Array.from({ length: 18 }, (_, k) => ({
       role: (k % 2 === 0 ? "user" : "orb") as "user" | "orb",
       body: "y".repeat(300),
     }));
     const win = contextWindow(msgs);
     const formatted = formatConversationContext(win);
     const c = countConversation(win, formatted);
-    expect(c.messages).toBe(8);
-    expect(c.userMessages).toBe(4);
-    expect(c.orbMessages).toBe(4);
+    expect(c.messages).toBe(16);
+    expect(c.userMessages).toBe(8);
+    expect(c.orbMessages).toBe(8);
     expect(c.historyChars).toBe(formatted!.length);
     const { m } = measure(input({ context: formatted }));
     expect(m.sections.history.chars).toBeGreaterThanOrEqual(formatted!.length);

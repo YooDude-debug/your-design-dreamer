@@ -8,7 +8,12 @@
  *        Threads, Curiosity oder Autonomie.
  */
 
-import { contextWindow, formatConversationContext, type ConversationMessage } from "./context";
+import {
+  PROACTIVE_CONTEXT_MESSAGES,
+  contextWindow,
+  formatConversationContext,
+  type ConversationMessage,
+} from "./context";
 import type { ThoughtThread } from "./continuity";
 import { contentTokens } from "./memory";
 
@@ -34,7 +39,7 @@ export function questionContextFor(input: {
   const chronological: ConversationMessage[] = [...input.recentMessages]
     .reverse()
     .map((m) => ({ role: m.role === "user" ? "user" : "orb", body: m.body }));
-  const window = contextWindow(chronological);
+  const window = contextWindow(chronological, PROACTIVE_CONTEXT_MESSAGES);
   const open = input.threads.filter((t) => t.status !== "RESOLVED" && t.unknown.length > 0);
   const byNode = input.gap.nodeId
     ? open.find((t) => t.nodeIds.includes(input.gap.nodeId!))
