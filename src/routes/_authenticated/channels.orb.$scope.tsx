@@ -7,10 +7,10 @@
  * und schlägt vor – likt, kommentiert, folgt und schreibt aber nichts.
  */
 
-import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
+import { ClientOnly, createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { createSendGate, lastOrbMessageId } from "@/integrations/y-dude-orb/reply-ref";
 import {
   Activity,
@@ -29,16 +29,12 @@ import { toast } from "sonner";
 
 import { BackButton } from "@/components/ui/nav-buttons";
 import { goBackOr } from "@/lib/back-nav";
-import { useOrbAvatarMode } from "@/integrations/y-dude-orb/use-orb-avatar-mode";
-import { OrbAvatarPicker } from "@/components/orb/OrbAvatarPicker";
 import { OrbChat } from "@/components/orb/OrbChat";
 import { OrbDevPanel } from "@/components/orb/OrbDevPanel";
 import { OrbErrorState } from "@/components/orb/OrbErrorState";
 import { OrbExperimentNotice } from "@/components/orb/OrbExperimentNotice";
-import { OrbFace } from "@/components/orb/OrbFace";
 import { OrbGraph } from "@/components/orb/OrbGraph";
 import { OrbInterests } from "@/components/orb/OrbInterests";
-import { OrbRealFace } from "@/components/orb/OrbRealFace";
 import { OrbSuggestions } from "@/components/orb/OrbSuggestions";
 import { OrbTechnicalDeck, type OrbTechnicalItem } from "@/components/orb/OrbTechnicalDeck";
 import type { OrbAutonomyAttempt } from "@/components/orb/OrbDevPanel";
@@ -69,6 +65,11 @@ import {
   type OrbChatScope,
 } from "@/orb-sdk";
 import { COGNITIVE_CHANNEL, toCognitiveView } from "@/lib/orb-knowledge-graph/cognitive-layers";
+
+/** Bestehender Knowledge Globe – nur als visuelle Hintergrundebene, erst im Browser geladen. */
+const KnowledgeGraphStage = lazy(
+  () => import("@/components/orb-knowledge-graph/KnowledgeGraphStage"),
+);
 
 /** Nur Darstellung: kompakte Cognitive-Ansicht an den Knowledge Globe (flüchtig). */
 function broadcastCognitive(obs: unknown) {
@@ -189,7 +190,8 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
   // Ergebnis einer ausdrücklich angeforderten technischen Analyse. Rein
   // informativ: der Vorschlag wartet immer auf eine menschliche Freigabe.
   const [bridge, setBridge] = useState<ChatBridgeView | null>(null);
-  const [avatarMode, setAvatarMode] = useOrbAvatarMode();
+  // Reiner UI-Zustand: Globe als Hintergrund an/aus (keine Speicherung).
+  const [globeOn, setGlobeOn] = useState(false);
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [speechLevel, setSpeechLevel] = useState(0);
@@ -690,123 +692,126 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
 
       {snapshot && (
         <div className="space-y-4">
-          <section className="relative overflow-hidden rounded-lg border border-border bg-surface/70 px-4 py-4 shadow-subtle sm:px-5">
-            <div className="pointer-events-none absolute inset-x-16 top-4 h-24 rounded-full bg-brand/5 blur-3xl" />
-            <div className="relative flex flex-col items-center gap-2">
-              {avatarMode === "face" ? (
-                <OrbRealFace
-                  state={snapshot.state}
-                  activity={
-                    speaking
-                      ? "speaking"
-                      : listening
-                        ? "listening"
-                        : sendMutation.isPending || curiosityMutation.isPending
-                          ? "thinking"
-                          : "idle"
-                  }
-                  speechLevel={speechLevel}
-                  className="h-32 w-32 sm:h-36 sm:w-36"
-                />
-              ) : (
-                <OrbFace
-                  state={snapshot.state}
-                  cracks={snapshot.cracks}
-                  thinking={sendMutation.isPending || curiosityMutation.isPending}
-                  reaction={reaction}
-                  className="h-28 w-28 sm:h-32 sm:w-32"
-                />
-              )}
-
-              <div className="flex items-center gap-2 rounded-full border border-border bg-background/80 px-3 py-1.5">
-                <span
-                  className={`size-2 rounded-full ${listening || speaking ? "bg-brand animate-pulse" : "bg-brand"}`}
-                  aria-hidden="true"
-                />
-                <span className="text-xs font-semibold text-foreground">{orbActivity}</span>
-              </div>
-              {isAdmin && (
-                <Link
-                  to="/orb/knowledge-graph"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/80 px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-brand hover:text-brand"
-                >
-                  <Network className="size-3.5" aria-hidden />
-                  Wissensgraph
-                </Link>
-              )}
-              <div className="w-full max-w-sm pt-1">
-                <OrbAvatarPicker mode={avatarMode} onChange={setAvatarMode} />
-              </div>
+          <section className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2 rounded-full border border-border bg-background/80 px-3 py-1.5">
+              <span
+                className={`size-2 rounded-full ${listening || speaking ? "bg-brand animate-pulse" : "bg-brand"}`}
+                aria-hidden="true"
+              />
+              <span className="text-xs font-semibold text-foreground">{orbActivity}</span>
             </div>
+            {isAdmin && (
+              <Link
+                to="/orb/knowledge-graph"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/80 px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-brand hover:text-brand"
+              >
+                <Network className="size-3.5" aria-hidden />
+                Wissensgraph
+              </Link>
+            )}
+            {isAdmin && (
+              <button
+                type="button"
+                role="switch"
+                aria-checked={globeOn}
+                onClick={() => setGlobeOn((v) => !v)}
+                className="ml-auto inline-flex items-center gap-2 rounded-full border border-border bg-background/80 py-1 pl-3 pr-1 text-xs font-semibold text-foreground"
+              >
+                Knowledge Globe
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${globeOn ? "bg-brand text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+                >
+                  {globeOn ? "ON" : "OFF"}
+                </span>
+              </button>
+            )}
           </section>
 
-          {(bridgeMutation.isPending || bridge) && (
-            <section className="rounded-lg border border-border bg-surface/70 px-4 py-3 text-xs">
-              <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-brand">
-                Technische Analyse (nur lesend)
-              </p>
-              {bridgeMutation.isPending ? (
-                <p className="mt-1 text-muted-foreground">
-                  ORB analysiert die technische Ursache …
-                </p>
-              ) : bridge ? (
-                <div className="mt-1 space-y-1">
-                  <p>{bridge.reply}</p>
-                  {bridge.accepted && (
-                    <p className="text-[11px] text-muted-foreground">
-                      Anfrage {bridge.requestId} · Ursache {bridge.confidence} ·
-                      {bridge.fixId
-                        ? ` ${bridge.fixId} wartet auf Freigabe im Developer-Bereich`
-                        : " kein Fixvorschlag erstellt"}{" "}
-                      · nichts verändert, nichts ausgeführt, nichts veröffentlicht
+          <div className="relative isolate">
+            {isAdmin && globeOn && (
+              <div
+                aria-hidden="true"
+                inert
+                className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-lg [&>div]:!h-full [&>div>*:not(:first-child)]:hidden"
+              >
+                <ClientOnly fallback={null}>
+                  <Suspense fallback={null}>
+                    <KnowledgeGraphStage />
+                  </Suspense>
+                </ClientOnly>
+              </div>
+            )}
+            <div className="space-y-4">
+              {(bridgeMutation.isPending || bridge) && (
+                <section className="rounded-lg border border-border bg-surface/70 px-4 py-3 text-xs">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-brand">
+                    Technische Analyse (nur lesend)
+                  </p>
+                  {bridgeMutation.isPending ? (
+                    <p className="mt-1 text-muted-foreground">
+                      ORB analysiert die technische Ursache …
                     </p>
-                  )}
-                </div>
-              ) : null}
-            </section>
-          )}
+                  ) : bridge ? (
+                    <div className="mt-1 space-y-1">
+                      <p>{bridge.reply}</p>
+                      {bridge.accepted && (
+                        <p className="text-[11px] text-muted-foreground">
+                          Anfrage {bridge.requestId} · Ursache {bridge.confidence} ·
+                          {bridge.fixId
+                            ? ` ${bridge.fixId} wartet auf Freigabe im Developer-Bereich`
+                            : " kein Fixvorschlag erstellt"}{" "}
+                          · nichts verändert, nichts ausgeführt, nichts veröffentlicht
+                        </p>
+                      )}
+                    </div>
+                  ) : null}
+                </section>
+              )}
 
-          <OrbChat
-            messages={snapshot.messages}
-            pending={sendMutation.isPending || curiosityMutation.isPending}
-            onSend={(text, images) => {
-              presence.noteActivity();
-              sendUserInput({ text, images });
-              // Nur eine AUSDRÜCKLICHE technische Anweisung darf zusätzlich eine
-              // Analyse anfordern. Normale Nachrichten lösen nichts aus.
-              if (isAdmin && detectDeveloperDiagnosticIntent(text).kind === "diagnostic") {
-                setBridge(null);
-                bridgeMutation.mutate(text);
-              }
-            }}
-            onTypingChange={setTyping}
-            onActivity={presence.noteActivity}
-            voiceControls={
-              <OrbVoice
-                compact
-                onTranscript={(text) => {
-                  // P5-H: Sperre im tatsächlichen Sendepfad – läuft bereits
-                  // eine Anfrage, wird das Transcript nicht gesendet.
-                  if (!sendUserInput({ text })) {
-                    toast.message("ORB antwortet noch – bitte gleich noch einmal sprechen.");
-                    return;
+              <OrbChat
+                glass={isAdmin && globeOn}
+                messages={snapshot.messages}
+                pending={sendMutation.isPending || curiosityMutation.isPending}
+                onSend={(text, images) => {
+                  presence.noteActivity();
+                  sendUserInput({ text, images });
+                  // Nur eine AUSDRÜCKLICHE technische Anweisung darf zusätzlich eine
+                  // Analyse anfordern. Normale Nachrichten lösen nichts aus.
+                  if (isAdmin && detectDeveloperDiagnosticIntent(text).kind === "diagnostic") {
+                    setBridge(null);
+                    bridgeMutation.mutate(text);
                   }
-                  presence.noteActivity();
                 }}
-                transcribe={(audioBase64) => transcribe({ data: { audioBase64 } })}
-                speak={(text) => speak({ data: { text } })}
-                lastReply={lastReply}
-                busy={sendMutation.isPending || curiosityMutation.isPending}
-                onListeningChange={(value) => {
-                  presence.noteActivity();
-                  setListening(value);
-                }}
-                onSpeakingChange={setSpeaking}
-                onSpeechLevel={setSpeechLevel}
-                speakRequest={speakRequest}
+                onTypingChange={setTyping}
+                onActivity={presence.noteActivity}
+                voiceControls={
+                  <OrbVoice
+                    compact
+                    onTranscript={(text) => {
+                      // P5-H: Sperre im tatsächlichen Sendepfad – läuft bereits
+                      // eine Anfrage, wird das Transcript nicht gesendet.
+                      if (!sendUserInput({ text })) {
+                        toast.message("ORB antwortet noch – bitte gleich noch einmal sprechen.");
+                        return;
+                      }
+                      presence.noteActivity();
+                    }}
+                    transcribe={(audioBase64) => transcribe({ data: { audioBase64 } })}
+                    speak={(text) => speak({ data: { text } })}
+                    lastReply={lastReply}
+                    busy={sendMutation.isPending || curiosityMutation.isPending}
+                    onListeningChange={(value) => {
+                      presence.noteActivity();
+                      setListening(value);
+                    }}
+                    onSpeakingChange={setSpeaking}
+                    onSpeechLevel={setSpeechLevel}
+                    speakRequest={speakRequest}
+                  />
+                }
               />
-            }
-          />
+            </div>
+          </div>
 
           <OrbTechnicalDeck items={technicalItems} />
         </div>

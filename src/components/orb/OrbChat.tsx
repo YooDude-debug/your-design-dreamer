@@ -150,7 +150,8 @@ export function OrbChat({
   onTypingChange,
   onActivity,
   voiceControls,
-}: Props) {
+  glass = false,
+}: Props & { glass?: boolean }) {
   const [text, setText] = useState("");
   // Bildanhänge der aktuellen Nachricht – flüchtig, nur Anfragekontext.
   const [attachments, setAttachments] = useState<OrbAttachment[]>([]);
@@ -271,7 +272,11 @@ export function OrbChat({
   return (
     <section
       aria-label="Gespräch mit ORB"
-      className="overflow-hidden rounded-lg border border-border bg-surface/70 shadow-subtle"
+      className={
+        glass
+          ? "overflow-hidden rounded-lg border border-border/60 bg-surface/35 shadow-subtle backdrop-blur-[3px]"
+          : "overflow-hidden rounded-lg border border-border bg-surface/70 shadow-subtle"
+      }
     >
       <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
         <div>
@@ -286,7 +291,7 @@ export function OrbChat({
         onScroll={(event) => {
           autoFollowRef.current = isNearChatBottom(event.currentTarget);
         }}
-        className="h-[20rem] overflow-y-auto bg-background/50 p-3 sm:h-[24rem] sm:p-4"
+        className={`h-[20rem] overflow-y-auto p-3 sm:h-[24rem] sm:p-4 ${glass ? "bg-background/20" : "bg-background/50"}`}
       >
         <div className="flex flex-col gap-3">
           {messages.length === 0 && (
@@ -343,7 +348,9 @@ export function OrbChat({
       </div>
 
       <div className="border-t border-border p-2.5 sm:p-3">
-        <div className="rounded-lg border border-border bg-background">
+        <div
+          className={`rounded-lg border border-border ${glass ? "bg-background/85 backdrop-blur-md" : "bg-background"}`}
+        >
           <textarea
             ref={inputRef}
             value={text}
