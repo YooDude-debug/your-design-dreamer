@@ -101,8 +101,8 @@ describe("P0 Prompt-Messbarkeit", () => {
     const formatted = formatConversationContext(win);
     const c = countConversation(win, formatted);
     expect(c.messages).toBe(16);
-    expect(c.userMessages).toBe(4);
-    expect(c.orbMessages).toBe(4);
+    expect(c.userMessages).toBe(8);
+    expect(c.orbMessages).toBe(8);
     expect(c.historyChars).toBe(formatted!.length);
     const { m } = measure(input({ context: formatted }));
     expect(m.sections.history.chars).toBeGreaterThanOrEqual(formatted!.length);
