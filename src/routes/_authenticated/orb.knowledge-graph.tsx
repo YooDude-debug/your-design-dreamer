@@ -56,7 +56,7 @@ function KnowledgeGraphPage() {
         ORB Knowledge Graph · Experiment · nur Lesen
       </div>
       {/* Rein erklärend: Cognitive-Daten sind transient (nur Live-Broadcast). */}
-      <p className="pointer-events-none absolute left-3 top-[6.75rem] z-10 max-w-[16rem] text-[11px] leading-snug text-muted-foreground lg:top-12 lg:max-w-none">
+      <p className="pointer-events-none absolute inset-x-3 top-[10rem] z-10 text-center text-[11px] leading-snug text-muted-foreground lg:inset-x-auto lg:left-3 lg:top-12 lg:text-left">
         <span className="font-semibold text-foreground/80">Cognitive-Ebenen</span> erscheinen live
         während eines ORB-Chats.
       </p>
