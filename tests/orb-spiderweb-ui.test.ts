@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const graph = readFileSync("src/components/orb/OrbGraph.tsx", "utf8");
-const route = readFileSync("src/routes/_authenticated/channels.orb.tsx", "utf8");
+const route = readFileSync("src/routes/_authenticated/channels.orb.$scope.tsx", "utf8");
 
 describe("ORB Spiderweb Memory Graph UI", () => {
   it("zeigt vorhandene Nodes und Connections als Spiderweb", () => {

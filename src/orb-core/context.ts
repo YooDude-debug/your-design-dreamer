@@ -14,7 +14,10 @@
 import { contentTokens } from "./memory";
 
 /** Harte, deterministische Obergrenze des Kontextfensters (Nachrichten). */
-export const CONTEXT_WINDOW_MESSAGES = 8;
+export const CONTEXT_WINDOW_MESSAGES = 16;
+
+/** Proaktiver Pfad (Neugier/Initiative): bewusst weiterhin 8 Nachrichten. */
+export const PROACTIVE_CONTEXT_MESSAGES = 8;
 
 export type ConversationMessage = { role: "user" | "orb"; body: string };
 

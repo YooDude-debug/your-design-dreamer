@@ -15,19 +15,31 @@
 
 import type { DB } from "@/orb-core/engine.server";
 import type { OrbImageAttachment } from "@/lib/orb-attachments";
+import {
+  ORB_FEED_SCOPE,
+  OrbScopeViolation,
+  isOrbChatScope,
+  scopedDb,
+  type OrbChatScope,
+} from "@/orb-core/scope";
 
 /** Kontrollierter Datenzugang: der angemeldete Supabase-Client des Benutzers. */
 export type OrbDataSource = DB;
 
 /** Sitzung eines angemeldeten Benutzers gegen den ORB Core. */
-export type OrbSession = { data: OrbDataSource; userId: string };
+export type OrbSession = { data: OrbDataSource; userId: string; scope: OrbChatScope };
 
 /**
  * Fähigkeiten des ORB Core. Namen beschreiben Fähigkeiten, nicht Verfahren;
  * interne Gewichtungen, Schwellen und Heuristiken bleiben verborgen.
  */
 export function createOrbCore(session: OrbSession) {
-  const { data: db, userId } = session;
+  const { data: rawDb, userId, scope } = session;
+  // Scope-Vertrag: ohne gültigen Chat-Bereich kein Zugriff, kein Standardwert.
+  if (!isOrbChatScope(scope)) throw new OrbScopeViolation("Ungültiger ORB-Bereich");
+  const db = scopedDb(rawDb, scope);
+  // Feed-Beobachtung bleibt ohne Bereichszuordnung.
+  const feedDb = scopedDb(rawDb, ORB_FEED_SCOPE);
   return {
     /** Zustand, Erinnerungen, Interessen, Threads, Vorschläge, Kennzahlen. */
     async getSnapshot() {
@@ -75,12 +87,12 @@ export function createOrbCore(session: OrbSession) {
     /** Zugängliche Feed-Beiträge beobachten (nur lesen) und bewerten. */
     async observeFeed() {
       const core = await import("@/orb-core/feed.server");
-      return core.observeFeed(db, userId);
+      return core.observeFeed(feedDb, userId, db);
     },
     /** Entscheidung des Benutzers zu einem Vorschlag – wird gelernt. */
     async decideSuggestion(input: { suggestionId: string; accepted: boolean }) {
       const core = await import("@/orb-core/feed.server");
-      return core.decideSuggestion(db, userId, input);
+      return core.decideSuggestion(feedDb, userId, input, db);
     },
     /**
      * Den verfügbaren Gesprächskontext im Hintergrund auswerten und dauerhaft

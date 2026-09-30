@@ -27,13 +27,13 @@ function msgs(...pairs: [ConversationMessage["role"], string][]): ConversationMe
 
 describe("Gesprächskontext ist begrenzt und deterministisch", () => {
   it("nutzt höchstens 8 Nachrichten", () => {
-    expect(CONTEXT_WINDOW_MESSAGES).toBe(8);
+    expect(CONTEXT_WINDOW_MESSAGES).toBe(16);
     const many = Array.from({ length: 30 }, (_, i) => ({
       role: (i % 2 === 0 ? "user" : "orb") as ConversationMessage["role"],
       body: `Zug ${i}`,
     }));
     const win = contextWindow(many);
-    expect(win).toHaveLength(8);
+    expect(win).toHaveLength(16);
     expect(win[win.length - 1]?.body).toBe("Zug 29");
   });
 

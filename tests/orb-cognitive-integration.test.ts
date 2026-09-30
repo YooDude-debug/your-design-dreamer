@@ -179,9 +179,9 @@ describe("Cognitive Architecture – ORB-Core-Integration (observational)", () =
     // Einzige erlaubte Leserin: die ORB-Kanal-Oberfläche, die die Observation
     // ausschliesslich unverändert an die Globe-Darstellung weiterreicht.
     expect(readers.map((f) => f.replace(/\\/g, "/"))).toEqual([
-      "src/routes/_authenticated/channels.orb.tsx",
+      "src/routes/_authenticated/channels.orb.$scope.tsx",
     ]);
-    const ui = readFileSync("src/routes/_authenticated/channels.orb.tsx", "utf8");
+    const ui = readFileSync("src/routes/_authenticated/channels.orb.$scope.tsx", "utf8");
     const uses = ui.match(/[^\n]*\.cognitive\b[^\n]*/g) ?? [];
     expect(uses.length).toBe(2);
     for (const u of uses) expect(u).toMatch(/broadcastCognitive\((turn|result)\.cognitive\)/);

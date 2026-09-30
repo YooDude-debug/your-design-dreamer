@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const orb = readFileSync("src/routes/_authenticated/channels.orb.tsx", "utf8");
+const orb = readFileSync("src/routes/_authenticated/channels.orb.$scope.tsx", "utf8");
 const kg = readFileSync("src/routes/_authenticated/orb.knowledge-graph.tsx", "utf8");
 
 describe("ORB ↔ Wissensgraph Navigation", () => {

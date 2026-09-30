@@ -81,10 +81,12 @@ import { Route as AuthenticatedChannelsOrbRouteImport } from './routes/_authenti
 import { Route as AuthenticatedChannelsMineRouteImport } from './routes/_authenticated/channels.mine'
 import { Route as AuthenticatedChannelsChannelIdRouteImport } from './routes/_authenticated/channels.$channelId'
 import { Route as AuthenticatedBusinessCampaignsRouteImport } from './routes/_authenticated/business_.campaigns'
+import { Route as AuthenticatedChannelsOrbIndexRouteImport } from './routes/_authenticated/channels.orb.index'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as AuthenticatedMarketTxTxIdRouteImport } from './routes/_authenticated/market.tx.$txId'
 import { Route as AuthenticatedMarketShopUsernameRouteImport } from './routes/_authenticated/market.shop.$username'
+import { Route as AuthenticatedChannelsOrbScopeRouteImport } from './routes/_authenticated/channels.orb.$scope'
 
 const TransparenzRoute = TransparenzRouteImport.update({
   id: '/transparenz',
@@ -457,6 +459,12 @@ const AuthenticatedBusinessCampaignsRoute =
     path: '/business/campaigns',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedChannelsOrbIndexRoute =
+  AuthenticatedChannelsOrbIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedChannelsOrbRoute,
+  } as any)
 const LovableEmailTransactionalPreviewRoute =
   LovableEmailTransactionalPreviewRouteImport.update({
     id: '/lovable/email/transactional/preview',
@@ -480,6 +488,12 @@ const AuthenticatedMarketShopUsernameRoute =
     id: '/market/shop/$username',
     path: '/market/shop/$username',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedChannelsOrbScopeRoute =
+  AuthenticatedChannelsOrbScopeRouteImport.update({
+    id: '/$scope',
+    path: '/$scope',
+    getParentRoute: () => AuthenticatedChannelsOrbRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -535,7 +549,7 @@ export interface FileRoutesByFullPath {
   '/business/campaigns': typeof AuthenticatedBusinessCampaignsRoute
   '/channels/$channelId': typeof AuthenticatedChannelsChannelIdRoute
   '/channels/mine': typeof AuthenticatedChannelsMineRoute
-  '/channels/orb': typeof AuthenticatedChannelsOrbRoute
+  '/channels/orb': typeof AuthenticatedChannelsOrbRouteWithChildren
   '/hashtag/$name': typeof AuthenticatedHashtagNameRoute
   '/market/$itemId': typeof AuthenticatedMarketItemIdRoute
   '/market/mine': typeof AuthenticatedMarketMineRoute
@@ -554,10 +568,12 @@ export interface FileRoutesByFullPath {
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/channels/': typeof AuthenticatedChannelsIndexRoute
   '/market/': typeof AuthenticatedMarketIndexRoute
+  '/channels/orb/$scope': typeof AuthenticatedChannelsOrbScopeRoute
   '/market/shop/$username': typeof AuthenticatedMarketShopUsernameRoute
   '/market/tx/$txId': typeof AuthenticatedMarketTxTxIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/channels/orb/': typeof AuthenticatedChannelsOrbIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -611,7 +627,6 @@ export interface FileRoutesByTo {
   '/business/campaigns': typeof AuthenticatedBusinessCampaignsRoute
   '/channels/$channelId': typeof AuthenticatedChannelsChannelIdRoute
   '/channels/mine': typeof AuthenticatedChannelsMineRoute
-  '/channels/orb': typeof AuthenticatedChannelsOrbRoute
   '/hashtag/$name': typeof AuthenticatedHashtagNameRoute
   '/market/$itemId': typeof AuthenticatedMarketItemIdRoute
   '/market/mine': typeof AuthenticatedMarketMineRoute
@@ -630,10 +645,12 @@ export interface FileRoutesByTo {
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/channels': typeof AuthenticatedChannelsIndexRoute
   '/market': typeof AuthenticatedMarketIndexRoute
+  '/channels/orb/$scope': typeof AuthenticatedChannelsOrbScopeRoute
   '/market/shop/$username': typeof AuthenticatedMarketShopUsernameRoute
   '/market/tx/$txId': typeof AuthenticatedMarketTxTxIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/channels/orb': typeof AuthenticatedChannelsOrbIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -690,7 +707,7 @@ export interface FileRoutesById {
   '/_authenticated/business_/campaigns': typeof AuthenticatedBusinessCampaignsRoute
   '/_authenticated/channels/$channelId': typeof AuthenticatedChannelsChannelIdRoute
   '/_authenticated/channels/mine': typeof AuthenticatedChannelsMineRoute
-  '/_authenticated/channels/orb': typeof AuthenticatedChannelsOrbRoute
+  '/_authenticated/channels/orb': typeof AuthenticatedChannelsOrbRouteWithChildren
   '/_authenticated/hashtag/$name': typeof AuthenticatedHashtagNameRoute
   '/_authenticated/market/$itemId': typeof AuthenticatedMarketItemIdRoute
   '/_authenticated/market/mine': typeof AuthenticatedMarketMineRoute
@@ -709,10 +726,12 @@ export interface FileRoutesById {
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/_authenticated/channels/': typeof AuthenticatedChannelsIndexRoute
   '/_authenticated/market/': typeof AuthenticatedMarketIndexRoute
+  '/_authenticated/channels/orb/$scope': typeof AuthenticatedChannelsOrbScopeRoute
   '/_authenticated/market/shop/$username': typeof AuthenticatedMarketShopUsernameRoute
   '/_authenticated/market/tx/$txId': typeof AuthenticatedMarketTxTxIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/_authenticated/channels/orb/': typeof AuthenticatedChannelsOrbIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -788,10 +807,12 @@ export interface FileRouteTypes {
     | '/api/public/retention-run'
     | '/channels/'
     | '/market/'
+    | '/channels/orb/$scope'
     | '/market/shop/$username'
     | '/market/tx/$txId'
     | '/api/public/payments/webhook'
     | '/lovable/email/transactional/preview'
+    | '/channels/orb/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -845,7 +866,6 @@ export interface FileRouteTypes {
     | '/business/campaigns'
     | '/channels/$channelId'
     | '/channels/mine'
-    | '/channels/orb'
     | '/hashtag/$name'
     | '/market/$itemId'
     | '/market/mine'
@@ -864,10 +884,12 @@ export interface FileRouteTypes {
     | '/api/public/retention-run'
     | '/channels'
     | '/market'
+    | '/channels/orb/$scope'
     | '/market/shop/$username'
     | '/market/tx/$txId'
     | '/api/public/payments/webhook'
     | '/lovable/email/transactional/preview'
+    | '/channels/orb'
   id:
     | '__root__'
     | '/'
@@ -942,10 +964,12 @@ export interface FileRouteTypes {
     | '/api/public/retention-run'
     | '/_authenticated/channels/'
     | '/_authenticated/market/'
+    | '/_authenticated/channels/orb/$scope'
     | '/_authenticated/market/shop/$username'
     | '/_authenticated/market/tx/$txId'
     | '/api/public/payments/webhook'
     | '/lovable/email/transactional/preview'
+    | '/_authenticated/channels/orb/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1484,6 +1508,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBusinessCampaignsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/channels/orb/': {
+      id: '/_authenticated/channels/orb/'
+      path: '/'
+      fullPath: '/channels/orb/'
+      preLoaderRoute: typeof AuthenticatedChannelsOrbIndexRouteImport
+      parentRoute: typeof AuthenticatedChannelsOrbRoute
+    }
     '/lovable/email/transactional/preview': {
       id: '/lovable/email/transactional/preview'
       path: '/lovable/email/transactional/preview'
@@ -1512,8 +1543,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMarketShopUsernameRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/channels/orb/$scope': {
+      id: '/_authenticated/channels/orb/$scope'
+      path: '/$scope'
+      fullPath: '/channels/orb/$scope'
+      preLoaderRoute: typeof AuthenticatedChannelsOrbScopeRouteImport
+      parentRoute: typeof AuthenticatedChannelsOrbRoute
+    }
   }
 }
+
+interface AuthenticatedChannelsOrbRouteChildren {
+  AuthenticatedChannelsOrbScopeRoute: typeof AuthenticatedChannelsOrbScopeRoute
+  AuthenticatedChannelsOrbIndexRoute: typeof AuthenticatedChannelsOrbIndexRoute
+}
+
+const AuthenticatedChannelsOrbRouteChildren: AuthenticatedChannelsOrbRouteChildren =
+  {
+    AuthenticatedChannelsOrbScopeRoute: AuthenticatedChannelsOrbScopeRoute,
+    AuthenticatedChannelsOrbIndexRoute: AuthenticatedChannelsOrbIndexRoute,
+  }
+
+const AuthenticatedChannelsOrbRouteWithChildren =
+  AuthenticatedChannelsOrbRoute._addFileChildren(
+    AuthenticatedChannelsOrbRouteChildren,
+  )
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedArenaRoute: typeof AuthenticatedArenaRoute
@@ -1528,7 +1582,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBusinessCampaignsRoute: typeof AuthenticatedBusinessCampaignsRoute
   AuthenticatedChannelsChannelIdRoute: typeof AuthenticatedChannelsChannelIdRoute
   AuthenticatedChannelsMineRoute: typeof AuthenticatedChannelsMineRoute
-  AuthenticatedChannelsOrbRoute: typeof AuthenticatedChannelsOrbRoute
+  AuthenticatedChannelsOrbRoute: typeof AuthenticatedChannelsOrbRouteWithChildren
   AuthenticatedHashtagNameRoute: typeof AuthenticatedHashtagNameRoute
   AuthenticatedMarketItemIdRoute: typeof AuthenticatedMarketItemIdRoute
   AuthenticatedMarketMineRoute: typeof AuthenticatedMarketMineRoute
@@ -1557,7 +1611,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBusinessCampaignsRoute: AuthenticatedBusinessCampaignsRoute,
   AuthenticatedChannelsChannelIdRoute: AuthenticatedChannelsChannelIdRoute,
   AuthenticatedChannelsMineRoute: AuthenticatedChannelsMineRoute,
-  AuthenticatedChannelsOrbRoute: AuthenticatedChannelsOrbRoute,
+  AuthenticatedChannelsOrbRoute: AuthenticatedChannelsOrbRouteWithChildren,
   AuthenticatedHashtagNameRoute: AuthenticatedHashtagNameRoute,
   AuthenticatedMarketItemIdRoute: AuthenticatedMarketItemIdRoute,
   AuthenticatedMarketMineRoute: AuthenticatedMarketMineRoute,

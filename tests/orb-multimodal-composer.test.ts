@@ -23,7 +23,7 @@ import {
 
 const chat = readFileSync("src/components/orb/OrbChat.tsx", "utf8");
 const attach = readFileSync("src/components/orb/OrbComposerAttachments.tsx", "utf8");
-const route = readFileSync("src/routes/_authenticated/channels.orb.tsx", "utf8");
+const route = readFileSync("src/routes/_authenticated/channels.orb.$scope.tsx", "utf8");
 const adapter = readFileSync("src/integrations/y-dude-orb/orb.functions.ts", "utf8");
 const sdk = readFileSync("src/orb-sdk/orb-core.server.ts", "utf8");
 const openai = readFileSync("src/orb-core/llm/openai.server.ts", "utf8");

@@ -55,7 +55,7 @@ describe("P0-2: keine doppelten Ladevorgänge im selben Vorgang", () => {
 
   it("der Gesprächszug übergibt die vier bereits geladenen Werte", () => {
     expect(engine).toContain("await loadCuriosityContext(db, userId, q, now, {");
-    expect(engine).toContain("recentMessages: ctxRes.data,");
+    expect(engine).toContain("recentMessages: ctxRes.data.slice(0, PROACTIVE_CONTEXT_MESSAGES),");
     expect(engine).toContain("interestRows: interestRes.data,");
     expect(engine).toContain("threadEntries: loadedThreads,");
   });
@@ -76,7 +76,7 @@ describe("P0-2: keine doppelten Ladevorgänge im selben Vorgang", () => {
 
   it("die übernommenen Abfragen sind identisch begrenzt (8 Nachrichten, 8 Interessen)", () => {
     const context = readFileSync("src/orb-core/context.ts", "utf8");
-    expect(context).toContain("CONTEXT_WINDOW_MESSAGES = 8");
+    expect(context).toContain("CONTEXT_WINDOW_MESSAGES = 16");
     expect(engine).toContain('.from("orb_interests")');
   });
 

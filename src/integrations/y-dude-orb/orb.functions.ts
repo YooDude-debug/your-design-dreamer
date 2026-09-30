@@ -16,6 +16,10 @@ import {
   ORB_IMAGE_MIME_TYPES,
   validateImageAttachments,
 } from "@/lib/orb-attachments";
+import { orbChatScopeSchema } from "@/orb-sdk";
+
+/** Scope-Vertrag: jede ORB-Anfrage nennt ihren Bereich; kein Standardwert. */
+const scopeOnly = z.object({ scope: orbChatScopeSchema });
 
 /** Neutrale Frage, wenn der Benutzer nur ein Bild ohne Text sendet. */
 const DEFAULT_IMAGE_PROMPT = "Was ist auf diesem Bild zu sehen?";
@@ -23,9 +27,10 @@ const DEFAULT_IMAGE_PROMPT = "Was ist auf diesem Bild zu sehen?";
 /** Zustand, Ziele, Erinnerungen, Interessen, Vorschläge und Kennzahlen. */
 export const getOrbSnapshot = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((data) => scopeOnly.parse(data))
+  .handler(async ({ data, context }) => {
     const { createOrbCore } = await import("@/orb-sdk/orb-core.server");
-    return createOrbCore({ data: context.supabase, userId: context.userId }).getSnapshot();
+    return createOrbCore({ data: context.supabase, userId: context.userId, scope: data.scope }).getSnapshot();
   });
 
 /**
@@ -40,6 +45,7 @@ export const sendOrbInput = createServerFn({ method: "POST" })
   .inputValidator((data) =>
     z
       .object({
+        scope: orbChatScopeSchema,
         text: z.string().max(1000),
         viaVoice: z.boolean().optional(),
         replyToOrbMessageId: z.string().uuid().optional(),
@@ -67,7 +73,7 @@ export const sendOrbInput = createServerFn({ method: "POST" })
     if (!text) throw new Error("empty input");
 
     const { createOrbCore } = await import("@/orb-sdk/orb-core.server");
-    return createOrbCore({ data: context.supabase, userId: context.userId }).processInput(text, {
+    return createOrbCore({ data: context.supabase, userId: context.userId, scope: data.scope }).processInput(text, {
       source: "user_stated",
       images: checked.images,
       replyToOrbMessageId: data.replyToOrbMessageId,
@@ -81,56 +87,70 @@ export const sendOrbInput = createServerFn({ method: "POST" })
  */
 export const requestOrbCuriosity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((data) => scopeOnly.parse(data))
+  .handler(async ({ data, context }) => {
     const { createOrbCore } = await import("@/orb-sdk/orb-core.server");
-    return createOrbCore({ data: context.supabase, userId: context.userId }).evaluateCuriosity();
+    return createOrbCore({ data: context.supabase, userId: context.userId, scope: data.scope }).evaluateCuriosity();
   });
 
 /** Testbereich: aktuelle Neugier, offene Wissenslücken und Entscheidung (nur lesend). */
 export const inspectOrbCuriosity = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((data) => scopeOnly.parse(data))
+  .handler(async ({ data, context }) => {
     const { createOrbCore } = await import("@/orb-sdk/orb-core.server");
-    return createOrbCore({ data: context.supabase, userId: context.userId }).inspectCuriosity();
+    return createOrbCore({ data: context.supabase, userId: context.userId, scope: data.scope }).inspectCuriosity();
   });
 
 /** Ausdrückliches Lernereignis („Riss“) mit hoher Wichtigkeit. */
 export const recordOrbLearning = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => z.object({ lesson: z.string().min(1).max(1000) }).parse(data))
+  .inputValidator((data) => z.object({ scope: orbChatScopeSchema, lesson: z.string().min(1).max(1000) }).parse(data))
   .handler(async ({ data, context }) => {
     const { createOrbCore } = await import("@/orb-sdk/orb-core.server");
-    return createOrbCore({ data: context.supabase, userId: context.userId }).learn(data.lesson);
+    return createOrbCore({ data: context.supabase, userId: context.userId, scope: data.scope }).learn(data.lesson);
   });
 
 /** Rückmeldung zu einer Erinnerung: positiv verstärkt, negativ schwächt ab. */
 export const sendOrbFeedback = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) =>
-    z.object({ nodeId: z.string().uuid(), kind: z.enum(["positive", "negative"]) }).parse(data),
+    z
+      .object({
+        scope: orbChatScopeSchema,
+        nodeId: z.string().uuid(),
+        kind: z.enum(["positive", "negative"]),
+      })
+      .parse(data),
   )
   .handler(async ({ data, context }) => {
     const { createOrbCore } = await import("@/orb-sdk/orb-core.server");
-    return createOrbCore({ data: context.supabase, userId: context.userId }).recordFeedback(data);
+    return createOrbCore({ data: context.supabase, userId: context.userId, scope: data.scope }).recordFeedback({ nodeId: data.nodeId, kind: data.kind });
   });
 
 /** Level 1: zugängliche Feed-Beiträge beobachten (nur lesen) und bewerten. */
 export const observeOrbFeed = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((data) => scopeOnly.parse(data))
+  .handler(async ({ data, context }) => {
     const { createOrbCore } = await import("@/orb-sdk/orb-core.server");
-    return createOrbCore({ data: context.supabase, userId: context.userId }).observeFeed();
+    return createOrbCore({ data: context.supabase, userId: context.userId, scope: data.scope }).observeFeed();
   });
 
 /** Level 2: Entscheidung des Benutzers zu einem Vorschlag – wird gelernt. */
 export const decideOrbSuggestion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) =>
-    z.object({ suggestionId: z.string().uuid(), accepted: z.boolean() }).parse(data),
+    z
+      .object({ scope: orbChatScopeSchema, suggestionId: z.string().uuid(), accepted: z.boolean() })
+      .parse(data),
   )
   .handler(async ({ data, context }) => {
     const { createOrbCore } = await import("@/orb-sdk/orb-core.server");
-    return createOrbCore({ data: context.supabase, userId: context.userId }).decideSuggestion(data);
+    return createOrbCore({ data: context.supabase, userId: context.userId, scope: data.scope }).decideSuggestion({
+      suggestionId: data.suggestionId,
+      accepted: data.accepted,
+    });
   });
 
 /**
@@ -139,9 +159,10 @@ export const decideOrbSuggestion = createServerFn({ method: "POST" })
  */
 export const analyzeOrbContext = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((data) => scopeOnly.parse(data))
+  .handler(async ({ data, context }) => {
     const { createOrbCore } = await import("@/orb-sdk/orb-core.server");
-    return createOrbCore({ data: context.supabase, userId: context.userId }).analyzeContext();
+    return createOrbCore({ data: context.supabase, userId: context.userId, scope: data.scope }).analyzeContext();
   });
 
 /** Spracheingabe: Aufnahme (WAV, base64) → deutscher Text. */

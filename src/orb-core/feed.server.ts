@@ -43,7 +43,12 @@ function postText(p: { title: string; description: string; hashtags: string[] })
  * Interessenmodell und erzeugt ab der Relevanzschwelle Vorschläge.
  * Beobachtungen gelten als OBSERVED, abgeleitete Interessen als INFERRED.
  */
-export async function observeFeed(db: DB, userId: string): Promise<ObserveResult> {
+export async function observeFeed(
+  db: DB,
+  userId: string,
+  /** Scope: Beobachtung bleibt `unassigned`; Snapshot kommt aus dem Chat-Bereich. */
+  snapshotDb: DB = db,
+): Promise<ObserveResult> {
   // Harte Schranke: in V0.2 ist keine autonome Aktion erlaubt.
   if (AUTONOMOUS_SOCIAL_ACTIONS_ENABLED) throw new Error("autonomous actions are disabled in V0.2");
 
@@ -64,7 +69,7 @@ export async function observeFeed(db: DB, userId: string): Promise<ObserveResult
   }));
 
   if (interests.length === 0) {
-    return { observed: 0, created: 0, skipped: 0, snapshot: await getSnapshot(db, userId) };
+    return { observed: 0, created: 0, skipped: 0, snapshot: await getSnapshot(snapshotDb, userId) };
   }
 
   // Nur Beiträge anderer Nutzer, begrenzt und nach Aktualität sortiert.
@@ -171,7 +176,7 @@ export async function observeFeed(db: DB, userId: string): Promise<ObserveResult
     observed: postRes.data.length,
     created,
     skipped,
-    snapshot: await getSnapshot(db, userId),
+    snapshot: await getSnapshot(snapshotDb, userId),
   };
 }
 
@@ -183,6 +188,7 @@ export async function decideSuggestion(
   db: DB,
   userId: string,
   input: { suggestionId: string; accepted: boolean },
+  snapshotDb: DB = db,
 ): Promise<OrbSnapshot> {
   const sugg = await db
     .from("orb_suggestions")
@@ -240,5 +246,5 @@ export async function decideSuggestion(
     }
   }
 
-  return getSnapshot(db, userId);
+  return getSnapshot(snapshotDb, userId);
 }

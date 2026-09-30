@@ -3656,6 +3656,7 @@ export type Database = {
           node_id: string | null
           related_node_ids: string[]
           relevance: number
+          scope: Database["public"]["Enums"]["orb_scope"]
           source: string
           source_reference: string | null
           temporal_scope: Database["public"]["Enums"]["orb_temporal_scope"]
@@ -3677,6 +3678,7 @@ export type Database = {
           node_id?: string | null
           related_node_ids?: string[]
           relevance?: number
+          scope?: Database["public"]["Enums"]["orb_scope"]
           source?: string
           source_reference?: string | null
           temporal_scope?: Database["public"]["Enums"]["orb_temporal_scope"]
@@ -3698,6 +3700,7 @@ export type Database = {
           node_id?: string | null
           related_node_ids?: string[]
           relevance?: number
+          scope?: Database["public"]["Enums"]["orb_scope"]
           source?: string
           source_reference?: string | null
           temporal_scope?: Database["public"]["Enums"]["orb_temporal_scope"]
@@ -3724,6 +3727,7 @@ export type Database = {
           importance: number
           last_activated_at: string
           metadata: Json
+          scope: Database["public"]["Enums"]["orb_scope"]
           source_node_id: string
           target_node_id: string
           updated_at: string
@@ -3738,6 +3742,7 @@ export type Database = {
           importance?: number
           last_activated_at?: string
           metadata?: Json
+          scope?: Database["public"]["Enums"]["orb_scope"]
           source_node_id: string
           target_node_id: string
           updated_at?: string
@@ -3752,6 +3757,7 @@ export type Database = {
           importance?: number
           last_activated_at?: string
           metadata?: Json
+          scope?: Database["public"]["Enums"]["orb_scope"]
           source_node_id?: string
           target_node_id?: string
           updated_at?: string
@@ -4018,6 +4024,7 @@ export type Database = {
           id: string
           last_activated_at: string
           metadata: Json
+          scope: Database["public"]["Enums"]["orb_scope"]
           source: Database["public"]["Enums"]["orb_info_source"]
           topic: string
           updated_at: string
@@ -4031,6 +4038,7 @@ export type Database = {
           id?: string
           last_activated_at?: string
           metadata?: Json
+          scope?: Database["public"]["Enums"]["orb_scope"]
           source?: Database["public"]["Enums"]["orb_info_source"]
           topic: string
           updated_at?: string
@@ -4044,6 +4052,7 @@ export type Database = {
           id?: string
           last_activated_at?: string
           metadata?: Json
+          scope?: Database["public"]["Enums"]["orb_scope"]
           source?: Database["public"]["Enums"]["orb_info_source"]
           topic?: string
           updated_at?: string
@@ -4106,6 +4115,7 @@ export type Database = {
           decision: string | null
           id: string
           role: string
+          scope: Database["public"]["Enums"]["orb_scope"]
           state_snapshot: Json
           user_id: string
         }
@@ -4115,6 +4125,7 @@ export type Database = {
           decision?: string | null
           id?: string
           role: string
+          scope?: Database["public"]["Enums"]["orb_scope"]
           state_snapshot?: Json
           user_id: string
         }
@@ -4124,6 +4135,7 @@ export type Database = {
           decision?: string | null
           id?: string
           role?: string
+          scope?: Database["public"]["Enums"]["orb_scope"]
           state_snapshot?: Json
           user_id?: string
         }
@@ -4260,6 +4272,7 @@ export type Database = {
           long_term_value: number
           metadata: Json
           norm_key: string | null
+          scope: Database["public"]["Enums"]["orb_scope"]
           source: Database["public"]["Enums"]["orb_info_source"]
           source_reference: string | null
           temporal_scope: Database["public"]["Enums"]["orb_temporal_scope"]
@@ -4282,6 +4295,7 @@ export type Database = {
           long_term_value?: number
           metadata?: Json
           norm_key?: string | null
+          scope?: Database["public"]["Enums"]["orb_scope"]
           source?: Database["public"]["Enums"]["orb_info_source"]
           source_reference?: string | null
           temporal_scope?: Database["public"]["Enums"]["orb_temporal_scope"]
@@ -4304,6 +4318,7 @@ export type Database = {
           long_term_value?: number
           metadata?: Json
           norm_key?: string | null
+          scope?: Database["public"]["Enums"]["orb_scope"]
           source?: Database["public"]["Enums"]["orb_info_source"]
           source_reference?: string | null
           temporal_scope?: Database["public"]["Enums"]["orb_temporal_scope"]
@@ -4326,6 +4341,7 @@ export type Database = {
           knowledge_gap: string
           question: string
           reason: string
+          scope: Database["public"]["Enums"]["orb_scope"]
           score: number
           source_memory_ids: string[]
           topic: string | null
@@ -4342,6 +4358,7 @@ export type Database = {
           knowledge_gap: string
           question: string
           reason?: string
+          scope?: Database["public"]["Enums"]["orb_scope"]
           score?: number
           source_memory_ids?: string[]
           topic?: string | null
@@ -4358,6 +4375,7 @@ export type Database = {
           knowledge_gap?: string
           question?: string
           reason?: string
+          scope?: Database["public"]["Enums"]["orb_scope"]
           score?: number
           source_memory_ids?: string[]
           topic?: string | null
@@ -4511,6 +4529,7 @@ export type Database = {
           last_resume_at: string | null
           node_ids: string[]
           resolved_at: string | null
+          scope: Database["public"]["Enums"]["orb_scope"]
           status: string
           title: string
           topic: string | null
@@ -4529,6 +4548,7 @@ export type Database = {
           last_resume_at?: string | null
           node_ids?: string[]
           resolved_at?: string | null
+          scope?: Database["public"]["Enums"]["orb_scope"]
           status?: string
           title: string
           topic?: string | null
@@ -4547,6 +4567,7 @@ export type Database = {
           last_resume_at?: string | null
           node_ids?: string[]
           resolved_at?: string | null
+          scope?: Database["public"]["Enums"]["orb_scope"]
           status?: string
           title?: string
           topic?: string | null
@@ -6878,6 +6899,7 @@ export type Database = {
         | "perception"
         | "decision"
         | "goal"
+      orb_scope: "unassigned" | "normal" | "orb_core" | "y_dude"
       orb_suggestion_status: "pending" | "shown" | "accepted" | "rejected"
       orb_temporal_scope: "persistent" | "long_term" | "temporary" | "one_time"
       post_visibility: "public" | "connections" | "private" | "following"
@@ -7145,6 +7167,7 @@ export const Constants = {
         "decision",
         "goal",
       ],
+      orb_scope: ["unassigned", "normal", "orb_core", "y_dude"],
       orb_suggestion_status: ["pending", "shown", "accepted", "rejected"],
       orb_temporal_scope: ["persistent", "long_term", "temporary", "one_time"],
       post_visibility: ["public", "connections", "private", "following"],
