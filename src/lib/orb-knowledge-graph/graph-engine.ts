@@ -95,9 +95,12 @@ export function nextFramedDistance(o: {
   prevFraming: number;
   framing: number;
   min: number;
+  /** true = Resize (Verhältnis halten); false = Ebenen-/Cognitive-Update (Abstand halten). */
+  keepRatio: boolean;
 }): number {
   if (!o.userZoomed || o.prevFraming <= 0) return o.framing;
-  return clampZoomDistance(o.distance * (o.framing / o.prevFraming), o.min, o.framing);
+  const d = o.keepRatio ? o.distance * (o.framing / o.prevFraming) : o.distance;
+  return clampZoomDistance(d, o.min, o.framing);
 }
 
 export class KnowledgeGraphEngine {
@@ -490,7 +493,7 @@ export class KnowledgeGraphEngine {
     this.renderer.setSize(w, h);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
-    this.updateFraming();
+    this.updateFraming(true);
   };
 
   /**
@@ -498,7 +501,7 @@ export class KnowledgeGraphEngine {
    * der Memory-Kugel (Memory-Nodes bleiben erreichbar). Ein manueller Zoom
    * bleibt als Verhältnis zum Rahmen erhalten (Cognitive-Update, Resize).
    */
-  private updateFraming(): void {
+  private updateFraming(keepRatio = false): void {
     const radius = this.cognitiveScene.framingRadius(this.layerVisible, this.layerFocus);
     const prevFraming = this.framingDistance;
     this.framingDistance = calculateFramingDistance(radius, this.camera.fov, this.camera.aspect);
@@ -515,6 +518,7 @@ export class KnowledgeGraphEngine {
       prevFraming,
       framing: this.framingDistance,
       min: this.minDistance,
+      keepRatio,
     });
   }
 
