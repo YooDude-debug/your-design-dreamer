@@ -454,8 +454,25 @@ async function applyOne(
         .eq("id", row.id)
         .eq("user_id", userId),
     );
-    // Schlüsselkonflikt = Unsicherheit: der bestehende Knoten bleibt, wie er ist.
     if (res.error && res.error.code !== "23505") throw internalError(res.error);
+    if (res.error) {
+      // Schlüsselkonflikt: Die neue Angabe existiert bereits als eigener Knoten
+      // (gleicher norm_key). Bestehender Knoten bleibt unverändert, KEIN
+      // Erfolgs-Historieneintrag. Nur Code protokollieren, keine Inhalte.
+      console.warn("[orb-analysis] update skipped", { code: res.error.code });
+      const key = normKey(v.candidate.value);
+      if (!key) return null;
+      const existing = await q.tick(
+        db
+          .from("orb_nodes")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("norm_key", key)
+          .limit(1)
+          .maybeSingle(),
+      );
+      return (existing.data as { id: string } | null)?.id ?? null;
+    }
     await q.tick(
       db.from("orb_node_history").insert({
         user_id: userId,
