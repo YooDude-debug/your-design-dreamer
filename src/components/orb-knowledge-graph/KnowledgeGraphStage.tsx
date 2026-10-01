@@ -86,6 +86,12 @@ export default function KnowledgeGraphStage() {
     };
     return () => ch.close();
   }, []);
+  const cognitiveRef = useRef(cognitive);
+  cognitiveRef.current = cognitive;
+  const layerOnRef = useRef(layerOn);
+  layerOnRef.current = layerOn;
+  const layerFocusRef = useRef(layerFocus);
+  layerFocusRef.current = layerFocus;
   useEffect(() => engineRef.current?.setCognitive(cognitive), [cognitive]);
   useEffect(() => engineRef.current?.setLayers(layerOn, layerFocus), [layerOn, layerFocus]);
 
@@ -110,6 +116,10 @@ export default function KnowledgeGraphStage() {
     if (!hostRef.current) return;
     const engine = new KnowledgeGraphEngine(hostRef.current, setSelected);
     engineRef.current = engine;
+    // Neu erzeugte Engine: aktuellen Ebenen-/Cognitive-Zustand einmal anwenden
+    // (die Effekte oben liefen vor der Erzeugung ins Leere).
+    engine.setLayers(layerOnRef.current, layerFocusRef.current);
+    engine.setCognitive(cognitiveRef.current);
     return () => {
       engine.dispose();
       engineRef.current = null;
