@@ -39,10 +39,6 @@ export const Route = createFileRoute("/_authenticated/market/shop/$username")({
   component: MarketShopPage,
 });
 
-function ShopError() {
-  const { lang } = useLang();
-  return <p className="p-6 text-sm text-muted-foreground">{marketTexts[lang].shopNotFound}</p>;
-}
 
 function useShopImages(items: MarketItemSummary[], avatarPath: string | null) {
   const [urls, setUrls] = useState<Record<string, string>>({});
