@@ -2996,7 +2996,22 @@ async function closeOpenQuestion(
   if (update.error) throw internalError(update.error);
 
   // Die Antwort verknüpft sich mit der Erinnerung, aus der die Frage entstand.
-  const sourceId = row.source_memory_ids[0] ?? null;
+  // Präventiv: Quelle muss existieren, dem Benutzer gehören und (über scopedDb)
+  // im aktuellen Scope liegen – sonst keine Verbindung (kein DB-Fehler im Chat).
+  const candidateSourceId = row.source_memory_ids[0] ?? null;
+  let sourceId: string | null = null;
+  if (candidateSourceId && input.answerNodeId) {
+    const owned = await q.tick(
+      db
+        .from("orb_nodes")
+        .select("id")
+        .eq("id", candidateSourceId)
+        .eq("user_id", userId)
+        .maybeSingle(),
+    );
+    if (owned.error) throw internalError(owned.error);
+    sourceId = (owned.data as { id: string } | null)?.id ?? null;
+  }
   if (sourceId && input.answerNodeId) {
     await touchConnection(
       db,
