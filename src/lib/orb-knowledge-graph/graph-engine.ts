@@ -80,6 +80,26 @@ export function calculateFramingDistance(radius: number, fovDegrees: number, asp
   return (radius / Math.sin(limitingHalfFov)) * 1.08;
 }
 
+/** Zoom-Grenzen: min aus der Memory-Kugel, max aus dem sichtbaren Rahmen. */
+export function clampZoomDistance(d: number, min: number, framing: number): number {
+  return Math.min(Math.max(framing, min) * 2.5, Math.max(min, d));
+}
+
+/**
+ * Abstand nach Rahmen-Änderung: ohne manuellen Zoom → neuer Rahmen; mit
+ * manuellem Zoom → gleiches Verhältnis zum Rahmen, innerhalb der Grenzen.
+ */
+export function nextFramedDistance(o: {
+  userZoomed: boolean;
+  distance: number;
+  prevFraming: number;
+  framing: number;
+  min: number;
+}): number {
+  if (!o.userZoomed || o.prevFraming <= 0) return o.framing;
+  return clampZoomDistance(o.distance * (o.framing / o.prevFraming), o.min, o.framing);
+}
+
 export class KnowledgeGraphEngine {
   private renderer: WebGLRenderer;
   private scene = new Scene();
@@ -106,6 +126,8 @@ export class KnowledgeGraphEngine {
   private lastInteraction = 0;
   private distance = 30;
   private framingDistance = 30;
+  private minDistance = 30 * 0.55;
+  private userZoomed = false;
   private pinchStart = 0;
   private pointers = new Map<number, Vector2>();
   private raycaster = new Raycaster();
@@ -271,6 +293,7 @@ export class KnowledgeGraphEngine {
     this.focusNodes = nodeIds ? new Set(nodeIds) : null;
     this.focusEdges = edgeIds ? new Set(edgeIds) : null;
     this.pathQueue = [];
+    this.userZoomed = false;
     this.distance =
       nodeIds && nodeIds.length ? Math.min(this.framingDistance, 22) : this.framingDistance;
   }
