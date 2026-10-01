@@ -106,7 +106,10 @@ describe("touchConnection – 23505-Rennen", () => {
   });
 
   it("T5 fremder Benutzer wird beim erneuten Lesen nicht verwendet", async () => {
-    const { db } = mockDb([], { insertError: DUP, onInsert: (r) => r.push(conn({ user_id: "b" })) });
+    const { db } = mockDb([], {
+      insertError: DUP,
+      onInsert: (r) => r.push(conn({ user_id: "b" })),
+    });
     await expect(run(db)).rejects.toThrow();
   });
 
