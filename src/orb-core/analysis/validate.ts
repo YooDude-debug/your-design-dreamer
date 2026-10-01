@@ -181,10 +181,17 @@ export function validateCandidate(
   }
 
   if (confidence < MIN_CONFIDENCE) {
+    // Confidence-Semantik bleibt: unsichere Ableitungen werden nicht angewendet.
+    // Ein möglicher Widerspruch wird aber ausdrücklich benannt (Kandidaten-
+    // Protokoll), damit er nicht still verschwindet.
+    const possibleContradiction =
+      !!match && hasNegation(candidate.value) !== hasNegation(match.content);
     return {
       ...base,
       decision: "rejected",
-      reason: `Unsichere Ableitung (confidence ${confidence.toFixed(2)} < ${MIN_CONFIDENCE}).`,
+      reason: possibleContradiction
+        ? `Möglicher Widerspruch zu bestehender Erinnerung, aber unsichere Ableitung (confidence ${confidence.toFixed(2)} < ${MIN_CONFIDENCE}) – nicht angewendet, bestehende Erinnerung unverändert.`
+        : `Unsichere Ableitung (confidence ${confidence.toFixed(2)} < ${MIN_CONFIDENCE}).`,
       nodeId: null,
     };
   }

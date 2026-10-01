@@ -107,7 +107,8 @@ const TECHNICAL_SUBJECT_RES: RegExp[] = [
   /\bautonome[nr]?\s+frage\b/i,
   /\bfrage\s+nicht\s+ausgelöst\b/i,
   /\bfix(?:vorschlag|\s*vorschlag)\b/i,
-  /\bwarum\b/i,
+  // Bloßes „warum" ist KEIN technischer Gegenstand („Untersuche, warum ich
+  // schlecht schlafe"). „prüfe/finde heraus warum" bleiben Anweisungen oben.
 ];
 
 /**
