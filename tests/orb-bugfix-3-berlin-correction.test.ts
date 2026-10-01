@@ -120,7 +120,7 @@ describe("BUG 3 – Berlin-Korrektur", () => {
     expect(n.content).toBe(OLD); // alte Erinnerung unverändert vorhanden
     expect(t.history).toHaveLength(0); // kein falscher Erfolgsstatus
     expect(t.candidates[0].decision).toBe("rejected");
-    expect(t.candidates[0].reason).toMatch(/Möglicher Widerspruch/); // nicht still
+    expect(t.candidates[0].decision_reason).toMatch(/Möglicher Widerspruch/); // nicht still
   });
 
   it("C simuliertes 23505: keine Erfolgs-Historie, neue Angabe existiert bereits", async () => {
