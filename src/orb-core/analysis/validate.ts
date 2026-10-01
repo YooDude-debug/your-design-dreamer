@@ -192,7 +192,7 @@ export function validateCandidate(
       reason: possibleContradiction
         ? `Möglicher Widerspruch zu bestehender Erinnerung, aber unsichere Ableitung (confidence ${confidence.toFixed(2)} < ${MIN_CONFIDENCE}) – nicht angewendet, bestehende Erinnerung unverändert.`
         : `Unsichere Ableitung (confidence ${confidence.toFixed(2)} < ${MIN_CONFIDENCE}).`,
-      nodeId: possibleContradiction ? match.id : null,
+      nodeId: null,
     };
   }
 
