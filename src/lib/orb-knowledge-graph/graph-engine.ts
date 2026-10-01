@@ -439,10 +439,8 @@ export class KnowledgeGraphEngine {
     this.zoomBy(Math.exp(e.deltaY * 0.0012));
   };
   private zoomBy(f: number) {
-    this.distance = Math.min(
-      this.framingDistance * 2.5,
-      Math.max(this.framingDistance * 0.55, this.distance * f),
-    );
+    this.userZoomed = true;
+    this.distance = clampZoomDistance(this.distance * f, this.minDistance, this.framingDistance);
   }
   private pick(x: number, y: number) {
     if (!this.mesh) return;
@@ -472,12 +470,29 @@ export class KnowledgeGraphEngine {
     this.updateFraming();
   };
 
+  /**
+   * Kamera-Rahmen: max. Abstand folgt den sichtbaren Ebenen, min. Abstand nur
+   * der Memory-Kugel (Memory-Nodes bleiben erreichbar). Ein manueller Zoom
+   * bleibt als Verhältnis zum Rahmen erhalten (Cognitive-Update, Resize).
+   */
   private updateFraming(): void {
     const radius = this.cognitiveScene.framingRadius(this.layerVisible, this.layerFocus);
+    const prevFraming = this.framingDistance;
     this.framingDistance = calculateFramingDistance(radius, this.camera.fov, this.camera.aspect);
+    this.minDistance = calculateFramingDistance(
+      this.cognitiveScene.getMemoryCoreRadius(),
+      this.camera.fov,
+      this.camera.aspect,
+    ) * 0.55;
     this.camera.far = Math.max(200, this.framingDistance + radius * 2);
     this.camera.updateProjectionMatrix();
-    this.distance = this.framingDistance;
+    this.distance = nextFramedDistance({
+      userZoomed: this.userZoomed,
+      distance: this.distance,
+      prevFraming,
+      framing: this.framingDistance,
+      min: this.minDistance,
+    });
   }
 
   dispose(): void {
