@@ -8,6 +8,7 @@ import { BadgeCheck, Loader2, PackageOpen, ShoppingBag } from "lucide-react";
 import { AvatarGlowRing } from "@/components/AvatarGlow";
 import { MarketItemCard } from "@/components/market/MarketItemCard";
 import { MarketSketchBackground } from "@/components/market/MarketSketchBackground";
+import { ShopError } from "@/components/market/ShopError";
 import { goBackOr } from "@/lib/back-nav";
 import { useData } from "@/lib/data-context";
 import { marketTexts } from "@/lib/i18n-market";
