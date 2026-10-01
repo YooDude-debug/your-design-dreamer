@@ -13,7 +13,7 @@
 
 ## Architecture rules
 
-- Cognitive Globe geometry derives from the compact observation and measured existing Memory bounds; camera framing follows visible layer bounds, so presentation cannot alter ORB or Memory semantics.
+- Cognitive Globe geometry derives from the compact observation and measured existing Memory bounds; camera framing follows visible layer bounds, so presentation cannot alter ORB or Memory semantics. Zoom limits: min distance from the Memory core only, max from visible layers; manual zoom survives layer/cognitive updates (ratio kept on resize) so Memory nodes stay reachable.
 - Server-function DB/RPC errors are thrown via internalError() and masked to "Interner Serverfehler" by the global safeServerFnErrors function middleware in src/start.ts; the framework serializes server-fn errors (incl. cause) before request middleware sees them.
 - ORB scope isolation: every ORB data access goes through `createOrbCore({ data, userId, scope })`, which wraps the client in `scopedDb` (src/orb-core/scope.ts) so all orb_messages/nodes/connections/threads/questions/interests/candidates queries filter and inserts set `scope` in the query itself; why: one central guarantee instead of ~20 hand-written filters.
 - ORB scope comes only from the route `/channels/orb/$scope` (normal | orb_core | y_dude) and is re-validated by Zod in every ORB server function without default; feed observation uses `unassigned`, ORB-Dev is fixed `orb_core`, orb_state/orb_style stay user-wide; why: fixed decision, no text-based scope detection.
