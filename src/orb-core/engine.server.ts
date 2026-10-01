@@ -954,7 +954,24 @@ export async function touchConnection(
       metadata: { origin: input.origin },
     }),
   );
-  if (res.error) throw internalError(res.error);
+  if (res.error) {
+    // Paralleles Anlegen derselben Richtung: nur 23505 gilt als Rennen. Die
+    // Zeile wird erneut gelesen (user_id + Richtung, Scope über scopedDb). Wird
+    // sie gefunden, gilt sie als bereits angelegt – KEIN zweites Update, damit
+    // Gewicht und Zähler nicht doppelt steigen. Sonst: Originalfehler.
+    if ((res.error as { code?: unknown }).code !== "23505") throw internalError(res.error);
+    const again = await q.tick(
+      db
+        .from("orb_connections")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("source_node_id", sourceId)
+        .eq("target_node_id", targetId)
+        .maybeSingle(),
+    );
+    if (again.error || !again.data) throw internalError(res.error);
+    return "reactivated";
+  }
   return "created";
 }
 
