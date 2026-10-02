@@ -79,7 +79,7 @@ export const sendOrbInput = createServerFn({ method: "POST" })
     if (!text) throw new Error("empty input");
 
     const { createOrbCore } = await import("@/orb-sdk/orb-core.server");
-    return createOrbCore({
+    const { visualMarker, ...turn } = await createOrbCore({
       data: context.supabase,
       userId: context.userId,
       scope: data.scope,
@@ -87,6 +87,40 @@ export const sendOrbInput = createServerFn({ method: "POST" })
       source: "user_stated",
       images: checked.images,
       replyToOrbMessageId: data.replyToOrbMessageId,
+    });
+    // P2: Visual-Intent serverseitig prüfen und signieren. Ohne gültigen
+    // Intent entsteht kein Bildaufruf; die Textantwort bleibt unberührt.
+    let visual: { token: string; kind: "explicit" | "autonomous" } | null = null;
+    if (visualMarker) {
+      const { validateVisualIntent } = await import("@/orb-core/visual/intent");
+      const check = validateVisualIntent(visualMarker, { userText: text, scope: data.scope });
+      if (check.ok) {
+        const { signVisualIntent } = await import("@/orb-core/visual/generate.server");
+        const token = signVisualIntent(check.intent, context.userId, data.scope);
+        if (token) visual = { token, kind: check.intent.kind };
+      } else {
+        console.info("[orb.visual]", JSON.stringify({ scope: data.scope, status: "intent_rejected", reason: check.reason }));
+      }
+    }
+    return { ...turn, visual };
+  });
+
+/**
+ * P2: ein Bild zu einem zuvor signierten Visual-Intent erzeugen. Prüft
+ * Signatur (Benutzer + Bereich + Ablauf), 24-h-Limit und Wiederholung.
+ * Das Bild wird nur zurückgegeben – nie gespeichert, nie in Memory.
+ */
+export const generateOrbVisual = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ scope: orbChatScopeSchema, token: z.string().min(20).max(6000) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { generateVisual } = await import("@/orb-core/visual/generate.server");
+    return generateVisual(context.supabase, {
+      userId: context.userId,
+      scope: data.scope,
+      token: data.token,
     });
   });
 
