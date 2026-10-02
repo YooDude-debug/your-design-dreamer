@@ -30,7 +30,9 @@ const PNG = "iVBORw0KGgo" + "A".repeat(400);
 const marker = (o: object) => `[[ORB_VISUAL ${JSON.stringify(o)}]]`;
 const good = { category: "diagram", prompt: "A clean diagram of the water cycle, no text" };
 const engine = readFileSync("src/orb-core/engine.server.ts", "utf8");
-const fns = readFileSync("src/integrations/y-dude-orb/orb.functions.ts", "utf8");
+const fns =
+  readFileSync("src/integrations/y-dude-orb/orb.functions.ts", "utf8") +
+  readFileSync("src/orb-sdk/orb-core.server.ts", "utf8");
 const page = readFileSync("src/routes/_authenticated/channels.orb.$scope.tsx", "utf8");
 
 /** Minimaler Datenbank-Doppelgänger für orb_visual_generations. */

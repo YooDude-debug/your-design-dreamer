@@ -79,32 +79,19 @@ export const sendOrbInput = createServerFn({ method: "POST" })
     if (!text) throw new Error("empty input");
 
     const { createOrbCore } = await import("@/orb-sdk/orb-core.server");
-    const { visualMarker, ...turn } = await createOrbCore({
+    const core = createOrbCore({
       data: context.supabase,
       userId: context.userId,
       scope: data.scope,
-    }).processInput(text, {
+    });
+    const { visualMarker, ...turn } = await core.processInput(text, {
       source: "user_stated",
       images: checked.images,
       replyToOrbMessageId: data.replyToOrbMessageId,
     });
     // P2: Visual-Intent serverseitig prüfen und signieren. Ohne gültigen
     // Intent entsteht kein Bildaufruf; die Textantwort bleibt unberührt.
-    let visual: { token: string; kind: "explicit" | "autonomous" } | null = null;
-    if (visualMarker) {
-      const { validateVisualIntent } = await import("@/orb-core/visual/intent");
-      const check = validateVisualIntent(visualMarker, { userText: text, scope: data.scope });
-      if (check.ok) {
-        const { signVisualIntent } = await import("@/orb-core/visual/generate.server");
-        const token = signVisualIntent(check.intent, context.userId, data.scope);
-        if (token) visual = { token, kind: check.intent.kind };
-      } else {
-        console.info(
-          "[orb.visual]",
-          JSON.stringify({ scope: data.scope, status: "intent_rejected", reason: check.reason }),
-        );
-      }
-    }
+    const visual = visualMarker ? await core.prepareVisual(visualMarker, text) : null;
     return { ...turn, visual };
   });
 
@@ -119,12 +106,12 @@ export const generateOrbVisual = createServerFn({ method: "POST" })
     z.object({ scope: orbChatScopeSchema, token: z.string().min(20).max(6000) }).parse(data),
   )
   .handler(async ({ data, context }) => {
-    const { generateVisual } = await import("@/orb-core/visual/generate.server");
-    return generateVisual(context.supabase, {
+    const { createOrbCore } = await import("@/orb-sdk/orb-core.server");
+    return createOrbCore({
+      data: context.supabase,
       userId: context.userId,
       scope: data.scope,
-      token: data.token,
-    });
+    }).generateVisual(data.token);
   });
 
 /**
