@@ -50,7 +50,7 @@ export const sendOrbInput = createServerFn({ method: "POST" })
     z
       .object({
         scope: orbChatScopeSchema,
-        text: z.string().max(1000),
+        text: z.string().max(ORB_MESSAGE_MAX_CHARS, ORB_MESSAGE_TOO_LONG),
         viaVoice: z.boolean().optional(),
         replyToOrbMessageId: z.string().uuid().optional(),
         images: z

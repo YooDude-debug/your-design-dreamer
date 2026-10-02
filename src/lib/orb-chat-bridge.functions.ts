@@ -76,7 +76,7 @@ export const orbChatRequestDiagnostic = createServerFn({ method: "POST" })
       .object({
         /** Fester, gültiger Chat-Aktionstyp – nichts anderes ist erlaubt. */
         action: z.literal("developer_diagnostic"),
-        text: z.string().min(1).max(1000),
+        text: z.string().min(1).max(ORB_MESSAGE_MAX_CHARS),
         conversationId: z.string().max(200).nullable().optional(),
         sourceMessageId: z.string().max(200).nullable().optional(),
         /** Optionaler Vorschlag des Clients – nie verbindlich. */
