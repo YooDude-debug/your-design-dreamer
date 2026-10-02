@@ -214,7 +214,7 @@ describe("C: Nachvollziehbarkeit der Versuche", () => {
 
   it("die Herkunft erfolgreicher Fragen bleibt im Message-Snapshot rekonstruierbar", () => {
     expect(source).toContain("impulse: impulse");
-    expect(source).toContain("impulse_scope: IMPULSE_SCOPE");
+    expect(source).toContain("scope_check: scopeCheck");
   });
 
   it("Browser-Vorfilter: gleicher Grund erzeugt keinen zweiten Eintrag", () => {
