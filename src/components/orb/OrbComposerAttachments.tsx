@@ -7,6 +7,7 @@
  * Gültigkeit wird vor dem Senden geprüft (`@/lib/orb-attachments`).
  */
 
+import { pickConverted, shouldConvertToWebp } from "@/orb-core/visual/assets";
 import { useEffect, useRef, useState } from "react";
 import { Camera, Images, Paperclip, X } from "lucide-react";
 import { toast } from "sonner";
@@ -35,6 +36,24 @@ type Props = {
   onActivity?: () => void;
 };
 
+/** Canvas-Umwandlung nach WebP (Qualität 0.9); `null`, wenn nicht möglich. */
+async function toWebp(file: File): Promise<Uint8Array | null> {
+  try {
+    const bmp = await createImageBitmap(file);
+    const canvas = document.createElement("canvas");
+    canvas.width = bmp.width;
+    canvas.height = bmp.height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.drawImage(bmp, 0, 0);
+    bmp.close();
+    const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/webp", 0.9));
+    return blob ? new Uint8Array(await blob.arrayBuffer()) : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Datei → reines Base64 (ohne `data:`-Präfix) und echte Signatur prüfen. */
 async function readImage(file: File): Promise<OrbAttachment | string> {
   const first = checkImageFile({ type: file.type, size: file.size });
@@ -45,16 +64,36 @@ async function readImage(file: File): Promise<OrbAttachment | string> {
   if (!sniffed) return "Die Datei ist kein erlaubtes Bild.";
   if (sniffed !== first.mimeType) return "Dateityp und Bildinhalt stimmen nicht überein.";
 
+  // Visual Memory: Standbilder (PNG/JPEG) möglichst als WebP. Nur übernehmen,
+  // wenn das Ergebnis echt WebP und nicht grösser ist – sonst Original.
+  let finalBytes = buffer;
+  let finalMime: OrbImageMime = sniffed;
+  if (shouldConvertToWebp(sniffed)) {
+    const converted = await toWebp(file);
+    const head = converted ? sniffImageMime(converted.slice(0, 16)) : null;
+    if (
+      converted &&
+      pickConverted(
+        { mimeType: sniffed, bytes: buffer.length },
+        { sniffed: head, bytes: converted.length },
+      ) === "converted"
+    ) {
+      finalBytes = converted;
+      finalMime = "image/webp";
+    }
+  }
+
   let binary = "";
-  for (let i = 0; i < buffer.length; i += 1) binary += String.fromCharCode(buffer[i] as number);
+  for (let i = 0; i < finalBytes.length; i += 1)
+    binary += String.fromCharCode(finalBytes[i] as number);
   const dataBase64 = btoa(binary);
 
-  const verified = validateImageAttachment({ mimeType: sniffed, dataBase64 });
+  const verified = validateImageAttachment({ mimeType: finalMime, dataBase64 });
   if (!verified.ok) return verified.reason;
 
   return {
     id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    mimeType: sniffed,
+    mimeType: finalMime,
     dataBase64,
     name: file.name || "Bild",
   };
