@@ -402,6 +402,7 @@ export async function getSnapshot(
       .eq("user_id", userId)
       .order("importance", { ascending: false })
       .order("last_accessed_at", { ascending: false })
+      .order("id", { ascending: true })
       .limit(GRAPH_LIMIT),
     db
       .from("orb_connections")
@@ -409,6 +410,7 @@ export async function getSnapshot(
       .eq("user_id", userId)
       .order("weight", { ascending: false })
       .order("last_activated_at", { ascending: false })
+      .order("id", { ascending: true })
       .limit(GRAPH_LIMIT),
     db
       .from("orb_messages")
@@ -421,6 +423,7 @@ export async function getSnapshot(
       .select("*")
       .eq("user_id", userId)
       .order("weight", { ascending: false })
+      .order("id", { ascending: true })
       .limit(20),
     db
       .from("orb_suggestions")
@@ -447,6 +450,7 @@ export async function getSnapshot(
       .select("*")
       .eq("user_id", userId)
       .order("last_activation_at", { ascending: false })
+      .order("id", { ascending: true })
       .limit(12),
     db.from("orb_style").select("*").eq("user_id", userId).maybeSingle(),
   ]);
@@ -762,6 +766,7 @@ async function retrieveCandidates(
           .eq("user_id", userId)
           .eq("topic", topic)
           .order("importance", { ascending: false })
+          .order("id", { ascending: true })
           .limit(CANDIDATE_LIMIT),
       ),
     );
@@ -783,6 +788,7 @@ async function retrieveCandidates(
           .eq("user_id", userId)
           .or(domainFilter)
           .order("importance", { ascending: false })
+          .order("id", { ascending: true })
           .limit(CANDIDATE_LIMIT),
       ),
     );
@@ -795,6 +801,7 @@ async function retrieveCandidates(
         .select("*")
         .eq("user_id", userId)
         .order("last_accessed_at", { ascending: false })
+        .order("id", { ascending: true })
         .limit(CANDIDATE_LIMIT / 2),
     ),
   );
@@ -808,6 +815,7 @@ async function retrieveCandidates(
           .eq("user_id", userId)
           .or(filter)
           .order("importance", { ascending: false })
+          .order("id", { ascending: true })
           .limit(CANDIDATE_LIMIT),
       ),
     );
@@ -1045,6 +1053,7 @@ export async function processInput(
         .eq("user_id", userId)
         .or(`source_node_id.in.(${ids.join(",")}),target_node_id.in.(${ids.join(",")})`)
         .order("weight", { ascending: false })
+        .order("id", { ascending: true })
         .limit(CANDIDATE_LIMIT * 3),
     );
     if (connRes.error) throw internalError(connRes.error);
@@ -1155,6 +1164,7 @@ export async function processInput(
       .select("*")
       .eq("user_id", userId)
       .order("weight", { ascending: false })
+      .order("id", { ascending: true })
       .limit(8),
   );
   if (interestRes.error) throw internalError(interestRes.error);
@@ -2401,6 +2411,7 @@ async function loadCuriosityContext(
         .not("topic", "is", null)
         .order("importance", { ascending: false })
         .order("last_accessed_at", { ascending: false })
+        .order("id", { ascending: true })
         .limit(12),
     ),
     preloaded
@@ -2412,6 +2423,7 @@ async function loadCuriosityContext(
               .select("*")
               .eq("user_id", userId)
               .order("weight", { ascending: false })
+              .order("id", { ascending: true })
               .limit(8),
           )
           .then((res) => {
@@ -2439,6 +2451,7 @@ async function loadCuriosityContext(
         .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
+        .order("id", { ascending: true })
         .limit(QUESTION_HISTORY_LIMIT),
     ),
     // Verbindungen für die Lückensuche im Spiderweb – begrenzt, nur lesend.
@@ -2448,6 +2461,7 @@ async function loadCuriosityContext(
         .select("source_node_id, target_node_id, weight")
         .eq("user_id", userId)
         .order("weight", { ascending: false })
+        .order("id", { ascending: true })
         .limit(60),
     ),
     // Erinnerungssperre: alle eigenen Fragen der letzten 7 Tage (nur Bezug +
@@ -2460,6 +2474,7 @@ async function loadCuriosityContext(
         .eq("user_id", userId)
         .gte("asked_at", new Date(now - QUESTION_MEMORY_LOCK_MS).toISOString())
         .order("asked_at", { ascending: false })
+        .order("id", { ascending: true })
         .limit(QUESTION_LOCK_LIMIT),
     ),
   ]);
