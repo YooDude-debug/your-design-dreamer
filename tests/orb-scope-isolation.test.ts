@@ -65,7 +65,7 @@ describe("Scope-Validierung (Server-Eingang)", () => {
   it("alle ORB-Serverfunktionen verlangen den Scope ohne Standardwert", () => {
     const src = readFileSync("src/integrations/y-dude-orb/orb.functions.ts", "utf8");
     const calls = src.match(/createOrbCore\(\{[^}]*\}\)/g) ?? [];
-    expect(calls.length).toBe(9);
+    expect(calls.length).toBe(10);
     for (const c of calls) expect(c).toContain("scope: data.scope");
     expect(src).not.toMatch(/orbChatScopeSchema\.default|scope:[^\n]*\.optional\(\)/);
   });

@@ -379,8 +379,9 @@ describe("Integration und Darstellung", () => {
     expect(engine).not.toContain("generateVisual");
   });
   it("Bildaufruf nur nach gültigem Intent; kein Zusatzaufruf bei normalen Antworten", () => {
+    expect(fns).toContain("visualMarker ? await core.prepareVisual(visualMarker, text) : null");
     expect(fns).toMatch(
-      /if \(visualMarker\)[\s\S]*validateVisualIntent[\s\S]*if \(check\.ok\)[\s\S]*signVisualIntent/,
+      /validateVisualIntent[\s\S]*if \(!check\.ok\)[\s\S]*return null;[\s\S]*signVisualIntent/,
     );
     const sendBody = fns.slice(
       fns.indexOf("export const sendOrbInput"),
