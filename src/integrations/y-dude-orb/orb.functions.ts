@@ -102,6 +102,25 @@ export const sendOrbInput = createServerFn({ method: "POST" })
   });
 
 /**
+ * B2: eine als unvollständig gekennzeichnete ORB-Antwort fortsetzen.
+ * Nur auf ausdrücklichen Klick; genau ein Modellaufruf; serverseitig gegen
+ * Doppelklick gesperrt. Keine automatische Wiederholung.
+ */
+export const continueOrbReply = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ scope: orbChatScopeSchema, messageId: z.string().uuid() }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { createOrbCore } = await import("@/orb-sdk/orb-core.server");
+    return createOrbCore({
+      data: context.supabase,
+      userId: context.userId,
+      scope: data.scope,
+    }).continueReply(data.messageId);
+  });
+
+/**
  * P2: ein Bild zu einem zuvor signierten Visual-Intent erzeugen. Prüft
  * Signatur (Benutzer + Bereich + Ablauf), 24-h-Limit und Wiederholung.
  * Das Bild wird nur zurückgegeben – nie gespeichert, nie in Memory.

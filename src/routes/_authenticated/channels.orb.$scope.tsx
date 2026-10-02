@@ -52,6 +52,7 @@ import {
   requestOrbCuriosity,
   sendOrbFeedback,
   sendOrbInput,
+  continueOrbReply,
   generateOrbVisual,
   speakOrbReply,
   transcribeOrbAudio,
@@ -128,6 +129,7 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
   const queryClient = useQueryClient();
   const loadSnapshot = useServerFn(getOrbSnapshot);
   const send = useServerFn(sendOrbInput);
+  const continueFn = useServerFn(continueOrbReply);
   const generateVisual = useServerFn(generateOrbVisual);
   // P2: von ORB erzeugte Bilder – nur diese Sitzung, nie gespeichert.
   const [visuals, setVisuals] = useState<OrbVisualItem[]>([]);
@@ -184,6 +186,30 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
   const snapshotQuery = useQuery({
     queryKey: ["orb", "snapshot", scope],
     queryFn: () => loadSnapshot({ data: { scope } }),
+  });
+
+  // B2: Fortsetzung nur auf Klick; keine automatische Wiederholung.
+  const continueMutation = useMutation({
+    mutationFn: (messageId: string) => continueFn({ data: { scope, messageId } }),
+    onSuccess: (res) => {
+      if (res.status === "rejected") {
+        toast.error(
+          res.reason === "busy"
+            ? "Diese Antwort wird bereits fortgesetzt."
+            : res.reason === "limit_reached"
+              ? "Höchstzahl an Fortsetzungen erreicht."
+              : "Diese Antwort kann nicht fortgesetzt werden.",
+        );
+      } else if (res.status === "error") {
+        toast.error(
+          res.reason === "quota"
+            ? "Die Sprachschicht ist derzeit nicht verfügbar."
+            : "Fortsetzung fehlgeschlagen. Der bisherige Text bleibt erhalten.",
+        );
+      }
+    },
+    onError: () => toast.error("Fortsetzung fehlgeschlagen. Der bisherige Text bleibt erhalten."),
+    onSettled: () => void queryClient.invalidateQueries({ queryKey: ["orb", "snapshot", scope] }),
   });
 
   const sendMutation = useMutation({
@@ -785,6 +811,10 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
                   ) : undefined
                 }
                 messages={snapshot.messages}
+                onContinue={(id) => {
+                  if (!continueMutation.isPending) continueMutation.mutate(id);
+                }}
+                continuingId={continueMutation.isPending ? (continueMutation.variables ?? null) : null}
                 visuals={visuals.filter(
                   (v) =>
                     v.key.startsWith(`visual-${scope}-`) &&

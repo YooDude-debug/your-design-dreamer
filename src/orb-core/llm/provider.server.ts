@@ -36,6 +36,8 @@ export type OrbLlmMeta = {
   imagesSent?: number;
   /** Wurde ein vorhandener Bildkontext tatsächlich ausgewertet? */
   imageContextProcessed?: boolean;
+  /** B2: Abbruchgrund bei unvollständig erzeugter Antwort (sonst fehlt/null). */
+  incomplete?: string | null;
   /** P22: Kennungen/Kennzahlen der Werkzeugaufrufe (kein Inhalt). */
   codeTool?: {
     capability: string;
@@ -56,7 +58,13 @@ export async function speakViaLovableGateway(
   obs?: OrbEventContext,
   /** Bereits serverseitig geprüfte Bilder (flüchtig; nie geloggt, nie gespeichert). */
   images: OrbImageAttachment[] = [],
-): Promise<{ reply: string; status: OrbLlmStatus; imagesSent: number }> {
+): Promise<{
+  reply: string;
+  status: OrbLlmStatus;
+  imagesSent: number;
+  /** B2: Abbruchgrund, wenn der Text nicht vollständig erzeugt wurde (sonst null). */
+  incomplete?: string | null;
+}> {
   // Nur gesendet, was die Modellschicht tatsächlich erhält (Obergrenze bleibt 3).
   const sentImages = images.slice(0, ORB_IMAGE_MAX_COUNT);
   const key = process.env["LOVABLE_API_KEY"];
@@ -146,6 +154,8 @@ export async function speakViaLovableGateway(
     const decoder = new TextDecoder();
     let buffer = "";
     let reply = "";
+    let completed = false;
+    let incomplete: string | null = null;
     for (;;) {
       const chunk = await reader.read();
       if (chunk.done) break;
@@ -160,11 +170,17 @@ export async function speakViaLovableGateway(
           const event = JSON.parse(payload) as {
             type?: string;
             delta?: string;
-            response?: { output_text?: string };
+            response?: { output_text?: string; incomplete_details?: { reason?: string } | null };
           };
           if (event.type === "response.output_text.delta" && event.delta) reply += event.delta;
-          else if (event.type === "response.completed" && event.response?.output_text) {
-            reply = event.response.output_text;
+          else if (event.type === "response.completed") {
+            completed = true;
+            if (event.response?.output_text) reply = event.response.output_text;
+          } else if (event.type === "response.incomplete") {
+            // B2: Anbieter hat vorzeitig beendet – Text behalten, kennzeichnen.
+            incomplete = event.response?.incomplete_details?.reason || "incomplete";
+          } else if (event.type === "response.failed" || event.type === "error") {
+            incomplete = "failed";
           }
         } catch {
           // Unvollständige oder unbekannte Ereignisse werden übergangen.
@@ -173,16 +189,19 @@ export async function speakViaLovableGateway(
     }
 
     const clean = reply.trim();
+    // B2: Strom endete ohne Abschlussereignis ⇒ ebenfalls unvollständig.
+    if (!completed && !incomplete && clean) incomplete = "stream_ended";
     report({
       success: clean.length > 0,
       httpStatus: res.status,
-      failureKind: clean ? null : "empty_reply",
+      failureKind: clean ? (incomplete ? `incomplete:${incomplete}` : null) : "empty_reply",
       replyChars: clean.length,
       gatewayRunId: runId,
     });
     // Erst eine erfolgreiche Antwort belegt, dass der Modellaufruf die Bilder erhielt.
+    // Bereits erzeugter Text geht nie verloren; er wird nur gekennzeichnet.
     return clean
-      ? { reply: clean, status: "ok", imagesSent: sentImages.length }
+      ? { reply: clean, status: "ok", imagesSent: sentImages.length, incomplete }
       : { reply: "", status: "unavailable", imagesSent: 0 };
   } catch {
     report({ success: false, httpStatus: null, failureKind: "exception", replyChars: 0 });

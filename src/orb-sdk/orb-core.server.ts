@@ -64,6 +64,11 @@ export function createOrbCore(session: OrbSession) {
         replyToOrbMessageId: opts?.replyToOrbMessageId,
       });
     },
+    /** B2: abgebrochene Antwort fortsetzen – nur auf ausdrücklichen Klick. */
+    async continueReply(messageId: string) {
+      const { continueReply } = await import("@/orb-core/continuation.server");
+      return continueReply(db, userId, messageId);
+    },
     /** P2: Bild-Markierung prüfen und als Visual-Intent signieren (null = kein Bild). */
     async prepareVisual(
       marker: string,
