@@ -79,6 +79,7 @@ export async function generateReply(input: {
       // Tatsächlicher Zustand: nur bei erfolgreicher Antwort auf einen Aufruf mit Bildern.
       imagesSent: local.imagesSent,
       imageContextProcessed: local.status === "ok" && local.imagesSent > 0,
+      incomplete: local.status === "ok" ? (local.incomplete ?? null) : null,
     },
   };
 }
