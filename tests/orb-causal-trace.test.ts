@@ -123,7 +123,11 @@ describe("P2 Entscheidungsdaten", () => {
   it("Trace enthält nur IDs und Werte, keine Inhalte", () => {
     const trace = buildAutonomyTrace({
       buildId: "src-x",
-      scopeCheck: scopeCheckOf({ declaredAllowed: "orb_core", runtimeScope: "orb_core", explicit: false }),
+      scopeCheck: scopeCheckOf({
+        declaredAllowed: "orb_core",
+        runtimeScope: "orb_core",
+        explicit: false,
+      }),
       gate: "pass",
       openQuestion: false,
       thresholds: { min_energy: 0.15, impulse_min_score: 0.2, question_memory_lock_ms: 1 },

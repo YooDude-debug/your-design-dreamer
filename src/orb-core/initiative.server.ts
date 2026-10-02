@@ -16,11 +16,7 @@ import type {
 } from "@/orb-core/engine.server";
 import type { OrbAutonomyAttempt } from "@/orb-core/autonomy";
 import { finalAutonomyGate } from "@/orb-core/autonomy";
-import {
-  decideCuriosity,
-  isDuplicateQuestion,
-  type KnowledgeGap,
-} from "@/orb-core/curiosity";
+import { decideCuriosity, isDuplicateQuestion, type KnowledgeGap } from "@/orb-core/curiosity";
 import type { decideImpulse } from "@/orb-core/impulse";
 import { orbBuildId, scopeCheckOf } from "@/orb-core/decision-trace";
 import { scopeOf } from "@/orb-core/scope";
