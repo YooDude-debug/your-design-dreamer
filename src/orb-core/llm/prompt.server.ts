@@ -135,11 +135,11 @@ function speakParts(input: SpeakPromptInput): string[] {
     input.longForm ? LONG_FORM_RULE : SHORT_REPLY_RULE,
     `Innenzustand (technische Simulation, kein Bewusstsein): Neugier ${state.curiosity.toFixed(2)}, Freude ${state.joy.toFixed(2)}, Angst ${state.fear.toFixed(2)}, Vertrauen ${state.trust.toFixed(2)}, Unsicherheit ${state.uncertainty.toFixed(2)}, Energie ${state.energy.toFixed(2)}.`,
     `Ziele: ${input.goals.join(", ") || "help_user"}.`,
-    `Handlungsentscheidung: ${input.decision}. ${DECISION_HINT[input.decision] ?? DECISION_HINT["answer"]}`,
+    `Handlungsentscheidung: ${input.decision}. ${input.longForm ? "Erfülle die angeforderte Schreibaufgabe vollständig." : (DECISION_HINT[input.decision] ?? DECISION_HINT["answer"])}`,
     // Der Gesprächsmodus kommt aus dem ORB Core: er bestimmt die Art des
     // Beitrags. Das Sprachmodell formuliert nur noch, WIE das klingt.
     input.mode
-      ? `Gesprächsmodus (von dir selbst bestimmt): ${input.mode}. ${MODE_HINT[input.mode]}${input.modeReason ? ` Grund: ${input.modeReason}` : ""}`
+      ? `Gesprächsmodus (von dir selbst bestimmt): ${input.mode}.${input.longForm ? "" : ` ${MODE_HINT[input.mode]}`}${input.modeReason ? ` Grund: ${input.modeReason}` : ""}`
       : "",
     // P1: die Sicherheitsstufe steht direkt an der Erinnerung – dieselbe
     // Erinnerung wird nicht ein zweites Mal im Sicherheitsblock übertragen.
@@ -190,7 +190,9 @@ function speakParts(input: SpeakPromptInput): string[] {
       .join(" "),
     input.style ? input.style : "",
     "Erfinde keine inneren Vorgänge: sage nie, dass du nachgedacht oder etwas gefühlt hast, wenn es keinen entsprechenden Zustandswert gibt.",
-    "Schweigen oder ein einzelner kurzer Satz sind erlaubt – stelle keine Frage ohne Grund.",
+    input.longForm
+      ? "Stelle keine Frage ohne Grund."
+      : "Schweigen oder ein einzelner kurzer Satz sind erlaubt – stelle keine Frage ohne Grund.",
     "Behaupte niemals, echtes Bewusstsein oder echte Gefühle zu haben.",
     "Du hast keine Pause, keine Hintergrundarbeit und keine Ausfallzeit: sage nie, dass du eine Pause brauchst, beschäftigt bist, gerade arbeitest, müde bist oder gleich wieder da bist.",
     `Fragt der Benutzer nach deinem Zustand, einer Pause oder ob etwas kaputt ist, erkläre die technische Wahrheit: ${HONEST_PRESENCE_EXPLANATION}`,

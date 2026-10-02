@@ -13,6 +13,7 @@
  * durch Verfall oder durch negatives Feedback.
  */
 
+import { isLongFormRequest, readCompletion, type ReplyCompletion } from "@/orb-core/long-form";
 import { isConceptRow } from "@/orb-core/analysis/concepts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { internalError } from "@/orb-core/internal-error";
@@ -281,7 +282,13 @@ export type OrbSnapshot = {
   threads: OrbThreadView[];
   /** Beobachteter Gesprächsstil (erst bei wiederkehrendem Muster wirksam). */
   style: StyleTraits;
-  messages: { id: string; role: "user" | "orb"; body: string; decision: string | null }[];
+  messages: {
+    id: string;
+    role: "user" | "orb";
+    body: string;
+    decision: string | null;
+    completion?: ReplyCompletion | null;
+  }[];
   metrics: {
     nodeCount: number;
     connectionCount: number;
@@ -427,7 +434,7 @@ export async function getSnapshot(
       .limit(GRAPH_LIMIT),
     db
       .from("orb_messages")
-      .select("id, role, body, decision")
+      .select("id, role, body, decision, state_snapshot")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(40),
@@ -552,6 +559,8 @@ export async function getSnapshot(
         role: m.role === "orb" ? ("orb" as const) : ("user" as const),
         body: m.body,
         decision: m.decision,
+        // B2: nur Kennzeichnung (Status/Grund), keine Inhalte.
+        completion: m.role === "orb" ? readCompletion(m.state_snapshot) : null,
       })),
     metrics: {
       nodeCount: nodesRes.data.length,
@@ -700,7 +709,8 @@ export async function speak(input: {
   promptMetrics?: SpeakPromptMetrics;
 }> {
   const buildStart = Date.now();
-  const parts = buildSpeakSystemParts(input);
+  // B1: längere Antwort nur bei ausdrücklicher Anforderung im Benutzertext.
+  const parts = buildSpeakSystemParts({ ...input, longForm: isLongFormRequest(input.text) });
   const system = joinSpeakParts(parts);
   // P0: reine Zählung des bereits erzeugten Prompts – verändert nichts.
   const promptMetrics = measureSpeakPrompt({
@@ -1929,6 +1939,16 @@ export async function processInput(
           build_id: orbBuildId(),
           // P5-C: nur technische IDs der tatsächlich model-visible Memories.
           [TURN_VISIBLE_IDS_KEY]: turnMemoryIds,
+          // B2: abgebrochene Antwort kennzeichnen (Text bleibt erhalten).
+          ...(spoken.status === "ok" && spoken.meta?.incomplete
+            ? {
+                completion: {
+                  status: "incomplete",
+                  reason: spoken.meta.incomplete,
+                  continuations: 0,
+                },
+              }
+            : {}),
           // Offener Prozesshinweis: nur Diagnose und Wiedererkennung der
           // Rückfrage, keine zweite Prozessablage.
           ...(guardrail?.action === "ASK"
