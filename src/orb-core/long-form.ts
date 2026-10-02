@@ -120,7 +120,7 @@ export function buildContinuationInput(originalRequest: string, existing: string
  * Wortgrenzen bleiben eindeutig, da der Modelltext getrimmt ankommt).
  */
 export function continuationBase(body: string): string {
-  return body.replace(/[\p{L}\p{N}\-]+$/u, "");
+  return body.replace(/[\p{L}\p{N}-]+$/u, "");
 }
 
 /**
