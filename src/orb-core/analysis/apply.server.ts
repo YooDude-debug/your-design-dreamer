@@ -23,6 +23,12 @@ import {
   type AnalysisUsage,
 } from "@/orb-core/analysis/analyze.server";
 import type { OrbTemporalScope } from "@/orb-core/analysis/schema";
+import { isConceptRow, validateConcepts } from "@/orb-core/analysis/concepts";
+import {
+  EMPTY_CONCEPT_REPORT,
+  persistConcepts,
+  type ConceptReport,
+} from "@/orb-core/analysis/concepts.server";
 import { analysisRunColumns, logAnalysisRun } from "@/orb-core/observability.server";
 import {
   lifecycleFor,
@@ -80,6 +86,8 @@ export type AnalysisReport = {
   costUsdEstimate: number;
   /** A/B/C-Trennung je Kandidat, nur zur Auswertung. */
   trace: CandidateTrace[];
+  /** Begriffe/Beziehungen dieses Laufs (nur Zahlen, keine Inhalte). */
+  concepts: ConceptReport & { proposalsRejected: number };
 };
 
 const EMPTY_REPORT = (
@@ -101,6 +109,7 @@ const EMPTY_REPORT = (
   tokens: { promptTokens: 0, completionTokens: 0 },
   costUsdEstimate: 0,
   trace: [],
+  concepts: { ...EMPTY_CONCEPT_REPORT(), proposalsRejected: 0 },
 });
 
 const LIFECYCLE_ORDER: Lifecycle[] = ["active", "weak", "stale", "archived", "forgotten"];
@@ -152,7 +161,7 @@ export async function analyzeAndPersist(db: DB, userId: string): Promise<Analysi
       db
         .from("orb_nodes")
         .select(
-          "id, content, norm_key, category, long_term_value, temporal_scope, lifecycle, importance, decay_rate, activation_count, created_at, last_accessed_at",
+          "id, content, norm_key, category, long_term_value, temporal_scope, lifecycle, importance, decay_rate, activation_count, created_at, last_accessed_at, metadata",
         )
         .eq("user_id", userId)
         .order("last_accessed_at", { ascending: false })
@@ -164,7 +173,9 @@ export async function analyzeAndPersist(db: DB, userId: string): Promise<Analysi
   const history = (messages.data ?? []).slice().reverse();
   if (history.length === 0) return EMPTY_REPORT("no_messages", Date.now() - startedAt);
 
-  const nodeRows = nodes.data ?? [];
+  // Begriffsknoten sind keine Erinnerungen: sie werden weder als Vergleich
+  // noch als Ziel eines Erinnerungs-Updates verwendet.
+  const nodeRows = (nodes.data ?? []).filter((n) => !isConceptRow(n));
   const existing: ExistingNode[] = nodeRows.map((n) => ({
     id: n.id,
     content: n.content,
@@ -214,9 +225,11 @@ export async function analyzeAndPersist(db: DB, userId: string): Promise<Analysi
     tokens: analysis.usage,
     costUsdEstimate: estimateCostUsd(analysis.usage),
     trace: [],
+    concepts: { ...EMPTY_CONCEPT_REPORT(), proposalsRejected: 0 },
   };
 
   const now = Date.now();
+  const storedMemories: { id: string; text: string }[] = [];
   const nowIso = new Date(now).toISOString();
 
   for (const v of validated) {
@@ -271,10 +284,38 @@ export async function analyzeAndPersist(db: DB, userId: string): Promise<Analysi
           : null,
         nodeId,
       });
+      if (nodeId) {
+        storedMemories.push({
+          id: nodeId,
+          text: `${v.candidate.value} ${v.candidate.sourceReference}`,
+        });
+      }
     } catch {
       // Ein einzelner Kandidat darf den Rest der Analyse nicht verhindern.
       report.candidatesRejected += 1;
     }
+  }
+
+  // Begriffe und Beziehungen aus DERSELBEN Auswertung (kein weiterer Aufruf).
+  // Belegt werden darf nur mit wörtlichem Benutzertext.
+  try {
+    const userTexts = history.filter((m) => m.role === "user").map((m) => m.body);
+    const conceptCheck = validateConcepts(analysis.conceptsRaw, userTexts);
+    const conceptReport = await persistConcepts(
+      db,
+      userId,
+      {
+        concepts: conceptCheck.concepts,
+        relations: conceptCheck.relations,
+        memories: storedMemories,
+        runId: analysisRun.analysisRunId,
+        nowIso,
+      },
+      q,
+    );
+    report.concepts = { ...conceptReport, proposalsRejected: conceptCheck.rejected.length };
+  } catch {
+    // Begriffe sind ergänzend: ein Fehler darf die Analyse nicht verhindern.
   }
 
   // Lebenszyklus fortschreiben: Zeitbezug und Ruhezeit bestimmen die Stufe.

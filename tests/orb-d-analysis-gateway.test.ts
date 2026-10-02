@@ -179,12 +179,12 @@ describe("D – Hintergrundanalyse über das Gateway", () => {
     });
   });
 
-  it("H/I: Schema und Prompt sind unverändert (Fingerabdruck der Vorversion)", () => {
+  it("H/I: Schema und Prompt entsprechen dem freigegebenen Stand (inkl. Begriffe/Beziehungen)", () => {
     expect(sha(JSON.stringify(RESPONSE_SCHEMA))).toBe(
-      "f17bbf3773228ac61d64c6c67e8f74508c2919feb4b0b4b119efcf00390a45f5",
+      "b48f9312b823aa39a76124970d416e568269f01b0cf43c404ec427990761e0a6",
     );
     expect(sha(SYSTEM_PROMPT)).toBe(
-      "c5a81c66af6a18942ccafbda7988842fadc943ba100262cc15fb9d864e0b5c0f",
+      "e311b759ad764ae6c45dde353fc5b46b015ec5239b2d9eea4a9011e0d6ad7d7b",
     );
     expect(ANALYSIS_MODEL).toBe("openai/gpt-5.6-luna");
   });

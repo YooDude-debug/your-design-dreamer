@@ -13,6 +13,7 @@
  * durch Verfall oder durch negatives Feedback.
  */
 
+import { isConceptRow } from "@/orb-core/analysis/concepts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { internalError } from "@/orb-core/internal-error";
 import type { Database } from "@/integrations/supabase/types";
@@ -811,7 +812,9 @@ async function retrieveCandidates(
   const byId = new Map<string, NodeRow>();
   for (const r of results) {
     if (r.error) throw internalError(r.error);
-    for (const row of r.data ?? []) byId.set(row.id, row);
+    // Begriffsknoten sind keine Erinnerungen über den Benutzer und gehören
+    // nicht in den Erinnerungsabruf.
+    for (const row of r.data ?? []) if (!isConceptRow(row)) byId.set(row.id, row);
   }
   const exact = key ? ([...byId.values()].find((n) => n.norm_key === key) ?? null) : null;
   return { nodes: mapNodes([...byId.values()]), exact };
