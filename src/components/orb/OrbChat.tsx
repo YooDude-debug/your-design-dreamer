@@ -436,6 +436,18 @@ export function OrbChat({
               </div>
             );
           })}
+          {openImageGroups.map((g) => (
+            <div key={g.key} className="flex justify-end" data-testid="orb-sent-images-open">
+              <div className="max-w-[85%] rounded-lg bg-primary px-3 py-2 text-primary-foreground">
+                <SentImageThumbs images={g.images} />
+                <p className="text-right text-[11px] opacity-80" role="status">
+                  {g.status === "failed"
+                    ? "Senden fehlgeschlagen – Bilder wurden nicht übertragen."
+                    : "Wird gesendet …"}
+                </p>
+              </div>
+            </div>
+          ))}
           {pending && (
             <div className="px-1 py-1">
               <Shimmer className="text-sm">ORB denkt nach …</Shimmer>
