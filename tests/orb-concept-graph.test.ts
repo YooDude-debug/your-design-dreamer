@@ -454,8 +454,13 @@ describe("Begriffe – Speicherung im Graph", () => {
     }
     const seen = new Set<string>([nodes[0]!["id"] as string]);
     const stack = [...seen];
-    while (stack.length)
-      for (const n of adj.get(stack.pop()!) ?? []) if (!seen.has(n)) (seen.add(n), stack.push(n));
+    while (stack.length) {
+      for (const n of adj.get(stack.pop()!) ?? []) {
+        if (seen.has(n)) continue;
+        seen.add(n);
+        stack.push(n);
+      }
+    }
     expect(seen.size).toBe(5);
   });
 });
