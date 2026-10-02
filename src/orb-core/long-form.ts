@@ -165,3 +165,22 @@ export function mergeContinuation(
   const merged = existing + (needsSpace ? " " : "") + added;
   return { merged, added, overlapRemoved: removed };
 }
+
+/** Ab dieser Wortzahl (exklusiv) erscheint eine Antwort im aufklappbaren Container. */
+export const LONG_RESPONSE_WORD_THRESHOLD = 150;
+
+/** Zählt Wörter des dargestellten Textes deterministisch (Leerraum-getrennt, ohne reine Satzzeichen). */
+export function countWords(text: string): number {
+  return text.split(/\s+/).filter((t) => /[\p{L}\p{N}]/u.test(t)).length;
+}
+
+export function isLongResponse(text: string): boolean {
+  return countWords(text) > LONG_RESPONSE_WORD_THRESHOLD;
+}
+
+/** Kurze Vorschau: erste ~30 Wörter ohne Markdown-Zeichen. */
+export function longResponsePreview(text: string, words = 30): string {
+  const clean = text.replace(/[#*_>`]+/g, " ").split(/\s+/).filter(Boolean);
+  const head = clean.slice(0, words).join(" ");
+  return clean.length > words ? `${head} …` : head;
+}
