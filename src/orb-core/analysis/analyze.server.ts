@@ -46,6 +46,11 @@ export type AnalysisResult = {
    * `validateConcepts` (gegen den Benutzertext). Leer bei jedem Fehler.
    */
   conceptsRaw: { concepts: unknown[]; relations: unknown[] };
+  /**
+   * Visual Memory: Rohvorschläge Bild ↔ Kandidat. Nur vorhanden, wenn das
+   * Transkript Bildmarken enthielt; prüfen darf nur `validateImageLinks`.
+   */
+  imageLinksRaw: unknown[];
 };
 
 const EMPTY = (
@@ -58,6 +63,7 @@ const EMPTY = (
   httpStatus,
   preSanitizeCount: 0,
   conceptsRaw: { concepts: [], relations: [] },
+  imageLinksRaw: [],
 });
 
 /** D1: Rohzahl der Kandidaten im geparsten Ergebnis, ohne Filterung. */
@@ -166,6 +172,36 @@ export const RESPONSE_SCHEMA = {
  * Ein einziger Analyse-Aufruf. Liefert geprüfte Kandidaten (möglicherweise
  * keine) und wirft niemals – der Chat darf daran nicht scheitern.
  */
+/** Zusatzregel nur bei Transkripten mit Bildmarken (sonst Prompt byte-identisch). */
+export const IMAGE_LINK_RULE =
+  "Bilder: Benutzerzeilen können Bildmarken wie [Bilder: img1] tragen. image_links ordnet ein Bild NUR dann einem Kandidaten zu, wenn die Benutzerzeile mit genau dieser Bildmarke die Information des Kandidaten selbst enthält. candidate_key = key des Kandidaten, evidence_quote = wörtlicher Ausschnitt aus genau dieser Benutzerzeile. Du siehst die Bilder nicht; ordne nie nach zeitlicher Nähe zu. Im Zweifel keine Zuordnung.";
+
+/** Schema mit `image_links` – nur verwendet, wenn Bildmarken vorliegen. */
+export function responseSchemaFor(withImages: boolean) {
+  if (!withImages) return RESPONSE_SCHEMA;
+  return {
+    ...RESPONSE_SCHEMA,
+    required: [...RESPONSE_SCHEMA.required, "image_links"],
+    properties: {
+      ...RESPONSE_SCHEMA.properties,
+      image_links: {
+        type: "array",
+        maxItems: 9,
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: ["image_ref", "candidate_key", "evidence_quote"],
+          properties: {
+            image_ref: { type: "string" },
+            candidate_key: { type: "string" },
+            evidence_quote: { type: "string" },
+          },
+        },
+      },
+    },
+  };
+}
+
 export async function analyzeContextWindow(input: {
   /** Gesprächsausschnitt als Rollenzeilen, bereits begrenzt. */
   transcript: string;
@@ -173,7 +209,10 @@ export async function analyzeContextWindow(input: {
   knownMemories: string[];
   /** Erlaubte Knoten-Kennungen für `related_nodes`. */
   allowedNodeIds?: string[];
+  /** Visual Memory: im Transkript vorkommende Bildmarken (z. B. img1). */
+  imageLabels?: string[];
 }): Promise<AnalysisResult> {
+  const withImages = (input.imageLabels?.length ?? 0) > 0;
   const key = process.env["LOVABLE_API_KEY"];
   if (!key) return EMPTY("no_key");
 
@@ -197,7 +236,7 @@ export async function analyzeContextWindow(input: {
       },
       body: JSON.stringify({
         model: ANALYSIS_MODEL,
-        instructions: SYSTEM_PROMPT,
+        instructions: withImages ? `${SYSTEM_PROMPT} ${IMAGE_LINK_RULE}` : SYSTEM_PROMPT,
         input: [{ role: "user", content: [{ type: "input_text", text: user }] }],
         stream: true,
         store: false,
@@ -207,7 +246,7 @@ export async function analyzeContextWindow(input: {
             type: "json_schema",
             name: "orb_memory_candidates",
             strict: true,
-            schema: RESPONSE_SCHEMA,
+            schema: responseSchemaFor(withImages),
           },
         },
       }),
@@ -274,7 +313,18 @@ export async function analyzeContextWindow(input: {
       concepts: Array.isArray(obj.concepts) ? obj.concepts.slice(0, CONCEPT_MAX_COUNT * 2) : [],
       relations: Array.isArray(obj.relations) ? obj.relations.slice(0, RELATION_MAX_COUNT * 2) : [],
     };
-    return { candidates, usage, failure: null, httpStatus, preSanitizeCount, conceptsRaw };
+    const links = (parsed ?? {}) as { image_links?: unknown };
+    const imageLinksRaw =
+      withImages && Array.isArray(links.image_links) ? links.image_links.slice(0, 18) : [];
+    return {
+      candidates,
+      usage,
+      failure: null,
+      httpStatus,
+      preSanitizeCount,
+      conceptsRaw,
+      imageLinksRaw,
+    };
   } catch (error) {
     const timeout = error instanceof Error && error.name === "TimeoutError";
     return EMPTY(timeout ? "timeout" : "http", httpStatus);
