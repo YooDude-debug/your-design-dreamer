@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import {
   ORB_IMAGE_ACCEPT,
   ORB_IMAGE_MAX_COUNT,
+  ORB_IMAGE_MAX_BYTES,
   checkImageFile,
   sniffImageMime,
   validateImageAttachment,
@@ -193,7 +194,10 @@ export function OrbComposerAttachments({ attachments, onChange, disabled, onActi
                 role="menuitem"
                 className="h-8 justify-start"
                 data-testid="orb-attach-camera"
-                onClick={() => cameraRef.current?.click()}
+                onClick={() => {
+                setOpen(false);
+                cameraRef.current?.click();
+              }}
               >
                 <Camera className="mr-1 size-3.5" /> Kamera
               </Button>
@@ -205,7 +209,10 @@ export function OrbComposerAttachments({ attachments, onChange, disabled, onActi
               role="menuitem"
               className="h-8 justify-start"
               data-testid="orb-attach-gallery"
-              onClick={() => galleryRef.current?.click()}
+              onClick={() => {
+                setOpen(false);
+                galleryRef.current?.click();
+              }}
             >
               <Images className="mr-1 size-3.5" /> Galerie
             </Button>
@@ -216,7 +223,10 @@ export function OrbComposerAttachments({ attachments, onChange, disabled, onActi
               role="menuitem"
               className="h-8 justify-start"
               data-testid="orb-attach-file"
-              onClick={() => fileRef.current?.click()}
+              onClick={() => {
+                setOpen(false);
+                fileRef.current?.click();
+              }}
             >
               <Paperclip className="mr-1 size-3.5" /> Datei
             </Button>
