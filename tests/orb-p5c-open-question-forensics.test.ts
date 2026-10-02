@@ -48,9 +48,11 @@ describe("P5-C Forensik: Confirmation vs. offene Frage", () => {
     const order = [
       "confirmationDiag = confirmationTurnDiagnostic(",
       "const resolvedContextFact = learnRequest",
+      // Offene eigene Frage wird vor der Antwort geladen (Frage + Lücke für die
+      // Sprachschicht); zwischen hier und closeOpenQuestion wird keine Frage geschrieben.
+      "const openQuestionRow = isAskMeRequest(text) ? null : await findOpenQuestion(",
       "if (selfQuestion) {\n    const row",
       "confirmationEffect = await applyConfirmationEffect(",
-      "const openQuestionRow = isAskMeRequest(text) ? null : await findOpenQuestion(",
       "!suppressLearningForConfirmation(confirmationEffect) &&",
       "answeringQuestion ||",
       'db.from("orb_nodes").insert(row)',
