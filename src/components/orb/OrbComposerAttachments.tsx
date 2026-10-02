@@ -66,7 +66,7 @@ async function readImage(file: File): Promise<OrbAttachment | string> {
 
   // Visual Memory: Standbilder (PNG/JPEG) möglichst als WebP. Nur übernehmen,
   // wenn das Ergebnis echt WebP und nicht grösser ist – sonst Original.
-  let finalBytes = buffer;
+  let finalBytes: Uint8Array = buffer;
   let finalMime: OrbImageMime = sniffed;
   if (shouldConvertToWebp(sniffed)) {
     const converted = await toWebp(file);
