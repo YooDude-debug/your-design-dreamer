@@ -94,7 +94,7 @@ export function createOrbCore(session: OrbSession) {
           const stored = await storeImageAsset(db, {
             userId,
             scope,
-            mimeType: result.mimeType,
+            mimeType: result.mimeType as OrbImageAttachment["mimeType"],
             dataBase64: result.dataBase64,
             sourceType: "orb_generated",
             sourceMessageId: null,
