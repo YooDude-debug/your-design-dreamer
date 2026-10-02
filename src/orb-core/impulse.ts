@@ -144,6 +144,11 @@ export type ImpulseDecisionInput = {
   previousImpulses?: string[];
   /** Inhalte, die im Spiderweb bereits beantwortet vorliegen. */
   knownAnswers?: string[];
+  /**
+   * Erinnerungen, zu denen ORB innerhalb der Sperrfrist bereits selbst gefragt
+   * hat (Erinnerungsebene, unabhängig von Wortlaut und Antwortstatus).
+   */
+  recentlyAskedMemoryIds?: ReadonlySet<string>;
   /** Eine eigene Frage ist noch unbeantwortet. */
   openQuestion?: boolean;
   /** Zeitpunkt des letzten eigenen Impulses (ms) oder null. */
@@ -175,6 +180,8 @@ export function decideImpulse(input: ImpulseDecisionInput): ImpulseDecision {
     if (gap.expiresAt <= input.now) continue;
     const priority = GAP_PRIORITY[gap.type];
     if (!isProactivePriority(priority)) continue;
+    // Erinnerungssperre vor jeder Wortlaut-Prüfung.
+    if (gap.relatedNodes.some((id) => input.recentlyAskedMemoryIds?.has(id))) continue;
     // Bereits gestellt oder bereits bekannt: kein neuer Impuls.
     if (
       previous.some((p) => similarity(gap.suggestedQuestion, p) >= IMPULSE_DUPLICATE_SIMILARITY) ||

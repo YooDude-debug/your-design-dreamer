@@ -37,6 +37,11 @@ export type SpeakPromptInput = {
   mode?: ConversationMode;
   /** Begründung des Modus (kurz, ohne interne Zahlen). */
   modeReason?: string | null;
+  /**
+   * Der Benutzer reagiert auf eine eigene, noch offene ORB-Frage: Wortlaut und
+   * gespeicherte Wissenslücke, damit ORB den Bezug ehrlich erklären kann.
+   */
+  ownQuestion?: { question: string; gap: string | null } | null;
 };
 
 /**
@@ -168,9 +173,14 @@ function speakParts(input: SpeakPromptInput): string[] {
       : "",
     // Flüchtiger Gesprächskontext: darf genutzt werden, ist aber kein
     // Langzeitgedächtnis und wird nicht als Erinnerung ausgegeben.
-    input.context
-      ? `Letzte Züge dieses Gesprächs (flüchtiger Kontext, keine dauerhafte Erinnerung): ${input.context}. Du darfst Angaben daraus verwenden, um die aktuelle Eingabe zu verstehen und Fragen dazu zu beantworten. Behaupte nicht, du hättest sie dauerhaft gespeichert, und sage nicht, dir sei etwas nicht genannt worden, wenn es im Kontext steht.`
-      : "",
+    [
+      input.context
+        ? `Letzte Züge dieses Gesprächs (flüchtiger Kontext, keine dauerhafte Erinnerung): ${input.context}. Du darfst Angaben daraus verwenden, um die aktuelle Eingabe zu verstehen und Fragen dazu zu beantworten. Behaupte nicht, du hättest sie dauerhaft gespeichert, und sage nicht, dir sei etwas nicht genannt worden, wenn es im Kontext steht.`
+        : "",
+      ownQuestionHint(input.ownQuestion ?? null),
+    ]
+      .filter(Boolean)
+      .join(" "),
     input.style ? input.style : "",
     "Erfinde keine inneren Vorgänge: sage nie, dass du nachgedacht oder etwas gefühlt hast, wenn es keinen entsprechenden Zustandswert gibt.",
     "Schweigen oder ein einzelner kurzer Satz sind erlaubt – stelle keine Frage ohne Grund.",
@@ -178,4 +188,24 @@ function speakParts(input: SpeakPromptInput): string[] {
     "Du hast keine Pause, keine Hintergrundarbeit und keine Ausfallzeit: sage nie, dass du eine Pause brauchst, beschäftigt bist, gerade arbeitest, müde bist oder gleich wieder da bist.",
     `Fragt der Benutzer nach deinem Zustand, einer Pause oder ob etwas kaputt ist, erkläre die technische Wahrheit: ${HONEST_PRESENCE_EXPLANATION}`,
   ];
+}
+
+/**
+ * Hinweis zur eigenen offenen Frage. Leer ohne Frage – der Prompt bleibt dann
+ * byte-identisch zum bisherigen Stand.
+ */
+export function ownQuestionHint(own: { question: string; gap: string | null } | null): string {
+  if (!own || !own.question.trim()) return "";
+  const q = own.question.trim().slice(0, 300);
+  const gap = own.gap?.trim() ? own.gap.trim().slice(0, 300) : null;
+  return [
+    `Deine letzte eigene Frage an den Benutzer war: „${q}“.`,
+    gap
+      ? `Sie entstand aus dieser gespeicherten Wissenslücke: ${gap}`
+      : "Zu dieser Frage ist keine Wissenslücke gespeichert.",
+    "Fragt der Benutzer, was du damit meintest, erkläre genau diesen Ursprung in eigenen Worten.",
+    gap
+      ? "Erfinde keinen anderen Bezug und stelle dieselbe Frage nicht erneut."
+      : "Sage offen, dass du den Bezug nicht sicher rekonstruieren kannst, statt einen zu erfinden, und stelle dieselbe Frage nicht erneut.",
+  ].join(" ");
 }

@@ -92,6 +92,8 @@ import {
   isAskMeRequest,
   isDuplicateQuestion,
   KNOWLEDGE_GAP_KINDS,
+  QUESTION_MEMORY_LOCK_MS,
+  recentlyAskedMemoryIds,
   type AskedQuestion,
   type CuriosityAction,
   type KnowledgeGap,
@@ -157,6 +159,7 @@ import {
   type OrbEventContext,
 } from "@/orb-core/observability.server";
 import type { OrbLlmMeta } from "@/orb-core/llm/provider.server";
+import { scopeOf } from "@/orb-core/scope";
 
 export type DB = SupabaseClient<Database>;
 
@@ -658,6 +661,8 @@ export async function speak(input: {
   /** Gesprächsmodus des Core – bestimmt die Art des Beitrags. */
   mode?: ConversationMode;
   modeReason?: string | null;
+  /** Offene eigene ORB-Frage, auf die der Benutzer gerade reagiert. */
+  ownQuestion?: { question: string; gap: string | null } | null;
   /** P3 Observability: Ereigniskontext, ausschliesslich zur Korrelation. */
   obs?: OrbEventContext;
   /** P22: nur für ausdrückliche, admingeprüfte Codeanalyse-Anforderungen. */
@@ -1335,6 +1340,14 @@ export async function processInput(
     meta: OrbLlmMeta;
     promptMetrics?: SpeakPromptMetrics;
   };
+  // Offene eigene Frage VOR der Antwort laden (gleiche Abfrage wie bisher,
+  // nur früher): die Sprachschicht kennt so Frage und Lücke und muss den
+  // Bezug nicht erfinden. Zwischen hier und dem Schliessen wird keine Frage
+  // geschrieben (Aufforderungen „frag mich“ laden weiterhin keine).
+  const openQuestionRow = isAskMeRequest(text) ? null : await findOpenQuestion(db, userId, q, now);
+  const ownQuestion = openQuestionRow
+    ? { question: openQuestionRow.question, gap: openQuestionRow.knowledge_gap ?? null }
+    : null;
   let selfQuestion: { question: string; gap: KnowledgeGap; score: number; reason: string } | null =
     null;
   /** Interne Begründung – nur Diagnose, nie Antworttext. */
@@ -1458,6 +1471,7 @@ export async function processInput(
       images,
       mode: conversationPlan.mode,
       modeReason: conversationPlan.reason,
+      ownQuestion,
     });
   }
   const aiMs = Date.now() - aiStart;
@@ -1613,7 +1627,6 @@ export async function processInput(
 
   // Eine Antwort auf eine eigene Frage ist immer ein Lernereignis: sie wird
   // gespeichert, auch wenn die Aussage für sich genommen unauffällig wäre.
-  const openQuestionRow = isAskMeRequest(text) ? null : await findOpenQuestion(db, userId, q, now);
   const answeringQuestion = openQuestionRow !== null;
 
   // 2. Knoten: bestehende gleiche Erfahrung verstärken statt duplizieren.
@@ -2306,6 +2319,10 @@ function asGapKind(value: string): KnowledgeGapKind | null {
 
 /** Wie viele vergangene eigene Fragen für Duplikatprüfung geladen werden. */
 const QUESTION_HISTORY_LIMIT = 30;
+/** Einziger Bereich, in dem ORB autonom eigene Fragen stellt. */
+export const AUTONOMOUS_QUESTION_SCOPE = "orb_core" as const;
+/** Obergrenze der Sperr-Abfrage (7 Tage); liegt weit über dem beobachteten Aufkommen. */
+const QUESTION_LOCK_LIMIT = 500;
 /** Nach dieser Zeit gilt eine offene Frage als nicht mehr beantwortbar. */
 const ANSWER_WINDOW_MS = 30 * 60_000;
 
@@ -2322,6 +2339,8 @@ export type CuriosityContext = {
   gaps: KnowledgeGap[];
   /** Lücken aus dem Spiderweb (Proactive Intent) – rein lesend erkannt. */
   detectedGaps: DetectedGap[];
+  /** Erinnerungen mit eigener Frage innerhalb der 7-Tage-Sperre. */
+  recentlyAskedMemoryIds: Set<string>;
   /** Letzte Nutzertexte – für Abbruch-/Freigabe-Erkennung. */
   recentUserTexts: string[];
   /** PoC 1: geladene `orb_messages` (neueste zuerst, max. 8). */
@@ -2373,7 +2392,7 @@ async function loadCuriosityContext(
   const state = toState(stateRow);
 
   const retrievalStart = Date.now();
-  const [nodeRes, interestRows, messageRows, questionRes, connRes] = await Promise.all([
+  const [nodeRes, interestRows, messageRows, questionRes, connRes, lockRes] = await Promise.all([
     q.tick(
       db
         .from("orb_nodes")
@@ -2431,20 +2450,59 @@ async function loadCuriosityContext(
         .order("weight", { ascending: false })
         .limit(60),
     ),
+    // Erinnerungssperre: alle eigenen Fragen der letzten 7 Tage (nur Bezug +
+    // Zeitpunkt) – unabhängig vom 30er-Verlauf oben, damit keine Frage
+    // innerhalb der Sperrfrist aus dem Blick fällt.
+    q.tick(
+      db
+        .from("orb_questions")
+        .select("source_memory_ids, asked_at")
+        .eq("user_id", userId)
+        .gte("asked_at", new Date(now - QUESTION_MEMORY_LOCK_MS).toISOString())
+        .order("asked_at", { ascending: false })
+        .limit(QUESTION_LOCK_LIMIT),
+    ),
   ]);
   if (nodeRes.error) throw internalError(nodeRes.error);
   if (questionRes.error) throw internalError(questionRes.error);
   if (connRes.error) throw internalError(connRes.error);
+  if (lockRes.error) throw internalError(lockRes.error);
   const retrievalMs = Date.now() - retrievalStart;
 
+  const lockRows = (lockRes.data ?? []) as {
+    source_memory_ids: string[] | null;
+    asked_at: string | null;
+  }[];
+  const recentlyAsked = recentlyAskedMemoryIds(
+    lockRows.map((r) => ({
+      memoryIds: r.source_memory_ids ?? [],
+      askedAt: r.asked_at ? new Date(r.asked_at).getTime() : null,
+    })),
+    now,
+  );
+
   const questions = questionRes.data;
-  const asked: AskedQuestion[] = questions.map((row) => ({
-    nodeId: row.source_memory_ids[0] ?? null,
-    topic: row.topic,
-    kind: asGapKind(row.gap_kind),
-    question: row.question,
-    answered: row.answered,
-  }));
+  const asked: AskedQuestion[] = [
+    ...questions.map((row) => ({
+      nodeId: row.source_memory_ids[0] ?? null,
+      topic: row.topic,
+      kind: asGapKind(row.gap_kind),
+      question: row.question,
+      answered: row.answered,
+      askedAt: row.asked_at ? new Date(row.asked_at).getTime() : null,
+    })),
+    // Sperr-Einträge ohne Wortlaut: wirken nur auf die Erinnerungssperre.
+    ...lockRows.flatMap((r) =>
+      (r.source_memory_ids ?? []).map((id) => ({
+        nodeId: id,
+        topic: null,
+        kind: null,
+        question: "",
+        answered: true,
+        askedAt: r.asked_at ? new Date(r.asked_at).getTime() : null,
+      })),
+    ),
+  ];
 
   const conversationTopics = messageRows.flatMap((m) => topicsOf(m.body));
   const memories: ProactiveMemory[] = mapNodes(nodeRes.data).map((n) => ({
@@ -2533,6 +2591,7 @@ async function loadCuriosityContext(
     openQuestion,
     gaps: mergedGaps,
     detectedGaps,
+    recentlyAskedMemoryIds: recentlyAsked,
     recentUserTexts: messageRows.filter((m) => m.role === "user").map((m) => m.body),
     // PoC 1: bereits geladene Daten, nur weitergereicht (0 zusätzliche Abfragen).
     recentMessages: messageRows,
@@ -2701,6 +2760,25 @@ export async function askProactively(
   const obs = newEventContext({ path: "proactive_question", callType: "user_visible" });
   const q = new QueryCounter();
   const now = Date.now();
+  // Autonome eigene Fragen ausschliesslich im ORB-Core-Chat. Andere Bereiche
+  // (normal, y_dude, unassigned) bleiben ohne Laden, Modellaufruf oder Eintrag
+  // still. Ausdrückliche Aufforderungen (explicit) sind keine autonomen Fragen.
+  if (options.explicit !== true && scopeOf(db) !== AUTONOMOUS_QUESTION_SCOPE) {
+    const reason = "Eigene Fragen stellt ORB nur im ORB-Core-Chat.";
+    console.info("[orb.autonomy]", JSON.stringify({ userId, result: "silent", gate: "scope" }));
+    return {
+      asked: false,
+      action: "DO_NOTHING",
+      reason,
+      question: null,
+      topic: null,
+      kind: null,
+      score: 0,
+      snapshot: null,
+      perf: null,
+      attempt: null,
+    };
+  }
   const ctx = await loadCuriosityContext(db, userId, q, now);
 
   const decision = decideCuriosity({
@@ -2722,6 +2800,7 @@ export async function askProactively(
     recentUserTexts: ctx.recentUserTexts,
     previousImpulses: ctx.questions.map((row) => row.question),
     knownAnswers: ctx.memories.map((m) => m.content),
+    recentlyAskedMemoryIds: ctx.recentlyAskedMemoryIds,
     openQuestion: ctx.openQuestion !== null,
     lastImpulseAt: ctx.lastQuestionAt,
     now,

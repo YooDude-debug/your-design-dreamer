@@ -410,7 +410,8 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
     speaking,
     listening,
     pending: sendMutation.isPending || curiosityMutation.isPending,
-    enabled: Boolean(snapshot),
+    // Autonome eigene Fragen nur im ORB-Core-Chat (Server prüft zusätzlich).
+    enabled: Boolean(snapshot) && scope === "orb_core",
     onAsk: askProactively,
     // NUR Dry-Run (Experiment): bereits vorhandene Werte, nur protokolliert.
     dryRun: {

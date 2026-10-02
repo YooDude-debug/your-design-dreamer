@@ -88,7 +88,30 @@ export type AskedQuestion = {
   kind: KnowledgeGapKind | null;
   question: string;
   answered: boolean;
+  /** Zeitpunkt der Frage (ms); fehlt er, greift die Erinnerungssperre nicht. */
+  askedAt?: number | null;
 };
+
+/**
+ * Sperre auf Erinnerungsebene: Zu einer Erinnerung, zu der ORB in diesem
+ * Zeitraum bereits selbst gefragt hat, fragt ORB nicht erneut – unabhängig von
+ * Wortlaut, Ähnlichkeit und beantwortetem Status.
+ */
+export const QUESTION_MEMORY_LOCK_MS = 7 * 24 * 60 * 60_000;
+
+/** Kennungen der Erinnerungen, zu denen innerhalb der Sperre gefragt wurde. */
+export function recentlyAskedMemoryIds(
+  asked: { memoryIds: readonly string[]; askedAt: number | null }[],
+  now: number,
+): Set<string> {
+  const ids = new Set<string>();
+  for (const a of asked) {
+    if (a.askedAt === null || !Number.isFinite(a.askedAt)) continue;
+    if (now - a.askedAt >= QUESTION_MEMORY_LOCK_MS) continue;
+    for (const id of a.memoryIds) if (id) ids.add(id);
+  }
+  return ids;
+}
 
 export type KnowledgeGap = {
   /** Stabiler Schlüssel aus Knoten und Lückenart. */
@@ -190,6 +213,14 @@ export function deriveKnowledgeGaps(input: GapInput & { curiosity: number }): Kn
     const interestWeight = interest ? interest.weight * interest.confidence : 0;
 
     const askedForNode = input.asked.filter((a) => a.nodeId === m.id);
+    // Erinnerungssperre: innerhalb von 7 Tagen keine erneute eigene Frage.
+    if (
+      askedForNode.some(
+        (a) => typeof a.askedAt === "number" && input.now - a.askedAt < QUESTION_MEMORY_LOCK_MS,
+      )
+    ) {
+      continue;
+    }
     const relevance = clamp01(
       recencyFactor(m.lastAccessedAt, input.now) *
         (0.5 + 0.5 * clamp01(interestWeight)) *
