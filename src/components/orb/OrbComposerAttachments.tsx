@@ -182,54 +182,58 @@ export function OrbComposerAttachments({ attachments, onChange, disabled, onActi
             data-testid="orb-attach-options"
             role="menu"
           >
-            <p className="px-1.5 pb-1.5 text-[10px] leading-snug text-muted-foreground" data-testid="orb-attach-limits">
-              Nur Bilder: PNG, JPEG, WEBP, GIF · max. {ORB_IMAGE_MAX_COUNT} × {Math.round(ORB_IMAGE_MAX_BYTES / (1024 * 1024))} MB
+            <p
+              className="px-1.5 pb-1.5 text-[10px] leading-snug text-muted-foreground"
+              data-testid="orb-attach-limits"
+            >
+              Nur Bilder: PNG, JPEG, WEBP, GIF · max. {ORB_IMAGE_MAX_COUNT} ×{" "}
+              {Math.round(ORB_IMAGE_MAX_BYTES / (1024 * 1024))} MB
             </p>
             <div className="flex flex-col gap-1">
-            {supportsCamera && (
+              {supportsCamera && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  role="menuitem"
+                  className="h-8 justify-start"
+                  data-testid="orb-attach-camera"
+                  onClick={() => {
+                    setOpen(false);
+                    cameraRef.current?.click();
+                  }}
+                >
+                  <Camera className="mr-1 size-3.5" /> Kamera
+                </Button>
+              )}
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
                 role="menuitem"
                 className="h-8 justify-start"
-                data-testid="orb-attach-camera"
+                data-testid="orb-attach-gallery"
                 onClick={() => {
-                setOpen(false);
-                cameraRef.current?.click();
-              }}
+                  setOpen(false);
+                  galleryRef.current?.click();
+                }}
               >
-                <Camera className="mr-1 size-3.5" /> Kamera
+                <Images className="mr-1 size-3.5" /> Galerie
               </Button>
-            )}
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              role="menuitem"
-              className="h-8 justify-start"
-              data-testid="orb-attach-gallery"
-              onClick={() => {
-                setOpen(false);
-                galleryRef.current?.click();
-              }}
-            >
-              <Images className="mr-1 size-3.5" /> Galerie
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              role="menuitem"
-              className="h-8 justify-start"
-              data-testid="orb-attach-file"
-              onClick={() => {
-                setOpen(false);
-                fileRef.current?.click();
-              }}
-            >
-              <Paperclip className="mr-1 size-3.5" /> Datei
-            </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                role="menuitem"
+                className="h-8 justify-start"
+                data-testid="orb-attach-file"
+                onClick={() => {
+                  setOpen(false);
+                  fileRef.current?.click();
+                }}
+              >
+                <Paperclip className="mr-1 size-3.5" /> Datei
+              </Button>
             </div>
           </div>
         )}

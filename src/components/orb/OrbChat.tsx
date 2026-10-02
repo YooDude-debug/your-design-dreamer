@@ -482,16 +482,14 @@ export function OrbChat({
                         onLiveComplete={handleLiveComplete}
                       />
                     ) : null}
-                    {m.role === "orb" &&
-                      m.completion &&
-                      m.completion.status !== "complete" && (
-                        <IncompleteNotice
-                          completion={m.completion}
-                          busy={continuingId === m.id || m.completion.status === "continuing"}
-                          disabled={continuingId !== null || pending || !onContinue}
-                          onContinue={() => onContinue?.(m.id)}
-                        />
-                      )}
+                    {m.role === "orb" && m.completion && m.completion.status !== "complete" && (
+                      <IncompleteNotice
+                        completion={m.completion}
+                        busy={continuingId === m.id || m.completion.status === "continuing"}
+                        disabled={continuingId !== null || pending || !onContinue}
+                        onContinue={() => onContinue?.(m.id)}
+                      />
+                    )}
                     {m.role === "orb" ? null : (
                       <>
                         {imagesByMessage.has(m.id) && (

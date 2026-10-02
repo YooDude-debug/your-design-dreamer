@@ -11,7 +11,9 @@ import {
 } from "@/orb-core/long-form";
 
 const generateReply = vi.fn();
-vi.mock("@/orb-core/llm/select.server", () => ({ generateReply: (...a: unknown[]) => generateReply(...a) }));
+vi.mock("@/orb-core/llm/select.server", () => ({
+  generateReply: (...a: unknown[]) => generateReply(...a),
+}));
 vi.mock("@/orb-core/observability.server", () => ({
   logModelCall: () => undefined,
   nextModelRequest: () => ({ id: "x" }),
@@ -75,39 +77,58 @@ describe("B2 Provider erkennt Abbruch", () => {
   });
 
   it("vollständig ⇒ incomplete null", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () =>
-      sse([
-        { type: "response.output_text.delta", delta: "Hallo" },
-        { type: "response.completed", response: { output_text: "Hallo" } },
-      ]),
-    ));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        sse([
+          { type: "response.output_text.delta", delta: "Hallo" },
+          { type: "response.completed", response: { output_text: "Hallo" } },
+        ]),
+      ),
+    );
     const { speakViaLovableGateway } = await import("@/orb-core/llm/provider.server");
     const r = await speakViaLovableGateway("s", "t");
     expect(r).toMatchObject({ status: "ok", reply: "Hallo", incomplete: null });
   });
 
   it("response.incomplete ⇒ Text bleibt, Grund gesetzt", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () =>
-      sse([
-        { type: "response.output_text.delta", delta: "Teil eins " },
-        { type: "response.output_text.delta", delta: "und zwei" },
-        { type: "response.incomplete", response: { incomplete_details: { reason: "max_output_tokens" } } },
-      ]),
-    ));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        sse([
+          { type: "response.output_text.delta", delta: "Teil eins " },
+          { type: "response.output_text.delta", delta: "und zwei" },
+          {
+            type: "response.incomplete",
+            response: { incomplete_details: { reason: "max_output_tokens" } },
+          },
+        ]),
+      ),
+    );
     const { speakViaLovableGateway } = await import("@/orb-core/llm/provider.server");
     const r = await speakViaLovableGateway("s", "t");
-    expect(r).toMatchObject({ status: "ok", reply: "Teil eins und zwei", incomplete: "max_output_tokens" });
+    expect(r).toMatchObject({
+      status: "ok",
+      reply: "Teil eins und zwei",
+      incomplete: "max_output_tokens",
+    });
   });
 
   it("Strom endet ohne Abschluss ⇒ stream_ended", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => sse([{ type: "response.output_text.delta", delta: "Abgebr" }])));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => sse([{ type: "response.output_text.delta", delta: "Abgebr" }])),
+    );
     const { speakViaLovableGateway } = await import("@/orb-core/llm/provider.server");
     const r = await speakViaLovableGateway("s", "t");
     expect(r).toMatchObject({ status: "ok", reply: "Abgebr", incomplete: "stream_ended" });
   });
 
   it("Fehler ohne Text ⇒ unavailable wie bisher", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => sse([{ type: "response.failed" }])));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => sse([{ type: "response.failed" }])),
+    );
     const { speakViaLovableGateway } = await import("@/orb-core/llm/provider.server");
     const r = await speakViaLovableGateway("s", "t");
     expect(r.status).toBe("unavailable");
@@ -117,7 +138,10 @@ describe("B2 Provider erkennt Abbruch", () => {
 /* -------------------------------------------------------- B2 Zusammenführen */
 describe("B2 mergeContinuation – nur der fehlende Teil", () => {
   it("hängt reinen Rest an", () => {
-    const r = mergeContinuation("Der Wasserkreislauf beginnt mit der Verdun", "stung über dem Meer.");
+    const r = mergeContinuation(
+      "Der Wasserkreislauf beginnt mit der Verdun",
+      "stung über dem Meer.",
+    );
     expect(r.merged).toBe("Der Wasserkreislauf beginnt mit der Verdunstung über dem Meer.");
     expect(r.overlapRemoved).toBe(0);
   });
@@ -142,15 +166,25 @@ describe("B2 mergeContinuation – nur der fehlende Teil", () => {
     expect(continuationBase("Satz zu Ende.")).toBe("Satz zu Ende.");
   });
   it("readCompletion", () => {
-    expect(readCompletion({ completion: { status: "incomplete", reason: "max_output_tokens", continuations: 1 } }))
-      .toEqual({ status: "incomplete", reason: "max_output_tokens", continuations: 1 });
+    expect(
+      readCompletion({
+        completion: { status: "incomplete", reason: "max_output_tokens", continuations: 1 },
+      }),
+    ).toEqual({ status: "incomplete", reason: "max_output_tokens", continuations: 1 });
     expect(readCompletion({})).toBeNull();
     expect(readCompletion({ completion: { status: "x" } })).toBeNull();
   });
 });
 
 /* ----------------------------------------- B2 continueReply (In-Memory-DB) */
-type Row = { id: string; user_id: string; role: string; body: string; created_at: string; state_snapshot: Record<string, unknown> };
+type Row = {
+  id: string;
+  user_id: string;
+  role: string;
+  body: string;
+  created_at: string;
+  state_snapshot: Record<string, unknown>;
+};
 
 function fakeDb(rows: Row[]) {
   const get = (r: Row, col: string) => {
@@ -173,18 +207,44 @@ function fakeDb(rows: Row[]) {
           for (const r of hit) Object.assign(r, structuredClone(patch));
           return { data: wantRows ? hit.map((r) => ({ id: r.id })) : null, error: null };
         }
-        hit = hit.sort((a, b) => (desc ? b.created_at.localeCompare(a.created_at) : 0)).slice(0, lim);
+        hit = hit
+          .sort((a, b) => (desc ? b.created_at.localeCompare(a.created_at) : 0))
+          .slice(0, lim);
         return { data: hit.map((r) => structuredClone(r)), error: null };
       };
       const q: Record<string, unknown> = {
-        select() { if (mode === "update") wantRows = true; return q; },
-        update(v: Partial<Row>) { mode = "update"; patch = v; return q; },
-        eq(c: string, v: unknown) { filters.push((r) => get(r, c) === v); return q; },
-        lt(c: string, v: string) { filters.push((r) => String(get(r, c)) < v); return q; },
-        order(c: string, o: { ascending: boolean }) { if (c === "created_at") desc = !o.ascending; return q; },
-        limit(n: number) { lim = n; return q; },
-        maybeSingle() { const r = run(); return Promise.resolve({ data: (r.data as Row[])[0] ?? null, error: null }); },
-        then(res: (v: unknown) => unknown, rej: (e: unknown) => unknown) { return Promise.resolve(run()).then(res, rej); },
+        select() {
+          if (mode === "update") wantRows = true;
+          return q;
+        },
+        update(v: Partial<Row>) {
+          mode = "update";
+          patch = v;
+          return q;
+        },
+        eq(c: string, v: unknown) {
+          filters.push((r) => get(r, c) === v);
+          return q;
+        },
+        lt(c: string, v: string) {
+          filters.push((r) => String(get(r, c)) < v);
+          return q;
+        },
+        order(c: string, o: { ascending: boolean }) {
+          if (c === "created_at") desc = !o.ascending;
+          return q;
+        },
+        limit(n: number) {
+          lim = n;
+          return q;
+        },
+        maybeSingle() {
+          const r = run();
+          return Promise.resolve({ data: (r.data as Row[])[0] ?? null, error: null });
+        },
+        then(res: (v: unknown) => unknown, rej: (e: unknown) => unknown) {
+          return Promise.resolve(run()).then(res, rej);
+        },
       };
       return q;
     },
@@ -195,13 +255,31 @@ const U = "00000000-0000-0000-0000-000000000001";
 const M = "00000000-0000-0000-0000-0000000000aa";
 function seed(): Row[] {
   return [
-    { id: "u1", user_id: U, role: "user", body: "Schreib einen ausführlichen Text", created_at: "2026-01-01T00:00:00.000Z", state_snapshot: {} },
-    { id: M, user_id: U, role: "orb", body: "Der Anfang des Textes endet mitten im", created_at: "2026-01-01T00:00:00.001Z",
-      state_snapshot: { build_id: "b", completion: { status: "incomplete", reason: "max_output_tokens", continuations: 0 } } },
+    {
+      id: "u1",
+      user_id: U,
+      role: "user",
+      body: "Schreib einen ausführlichen Text",
+      created_at: "2026-01-01T00:00:00.000Z",
+      state_snapshot: {},
+    },
+    {
+      id: M,
+      user_id: U,
+      role: "orb",
+      body: "Der Anfang des Textes endet mitten im",
+      created_at: "2026-01-01T00:00:00.001Z",
+      state_snapshot: {
+        build_id: "b",
+        completion: { status: "incomplete", reason: "max_output_tokens", continuations: 0 },
+      },
+    },
   ];
 }
 const okReply = (reply: string, incomplete: string | null = null) => ({
-  reply, status: "ok", meta: { provider: "local", fallbackUsed: false, reason: null, incomplete },
+  reply,
+  status: "ok",
+  meta: { provider: "local", fallbackUsed: false, reason: null, incomplete },
 });
 
 describe("B2 continueReply", () => {
@@ -223,7 +301,12 @@ describe("B2 continueReply", () => {
   it("Doppelklick: zweiter Aufruf ohne Modellaufruf abgelehnt", async () => {
     const rows = seed();
     let release: (v: unknown) => void = () => undefined;
-    generateReply.mockImplementationOnce(() => new Promise((res) => { release = res; }));
+    generateReply.mockImplementationOnce(
+      () =>
+        new Promise((res) => {
+          release = res;
+        }),
+    );
     const { continueReply } = await import("@/orb-core/continuation.server");
     const db = fakeDb(rows) as never;
     const first = continueReply(db, U, M);
@@ -243,12 +326,19 @@ describe("B2 continueReply", () => {
     generateReply.mockResolvedValueOnce(okReply(" weiter", "max_output_tokens"));
     const { continueReply } = await import("@/orb-core/continuation.server");
     const r = await continueReply(fakeDb(rows) as never, U, M);
-    expect(r).toMatchObject({ status: "ok", completion: { status: "incomplete", continuations: 1 } });
+    expect(r).toMatchObject({
+      status: "ok",
+      completion: { status: "incomplete", continuations: 1 },
+    });
   });
 
   it("Fehler ⇒ Text unverändert, Sperre gelöst, keine Wiederholung", async () => {
     const rows = seed();
-    generateReply.mockResolvedValueOnce({ reply: "", status: "unavailable", meta: { provider: "local", fallbackUsed: false, reason: null } });
+    generateReply.mockResolvedValueOnce({
+      reply: "",
+      status: "unavailable",
+      meta: { provider: "local", fallbackUsed: false, reason: null },
+    });
     const { continueReply } = await import("@/orb-core/continuation.server");
     const r = await continueReply(fakeDb(rows) as never, U, M);
     expect(r).toMatchObject({ status: "error", reason: "unavailable" });
@@ -261,15 +351,24 @@ describe("B2 continueReply", () => {
     const rows = seed();
     (rows[1]!.state_snapshot["completion"] as { continuations: number }).continuations = 3;
     const { continueReply } = await import("@/orb-core/continuation.server");
-    expect(await continueReply(fakeDb(rows) as never, U, M)).toEqual({ status: "rejected", reason: "limit_reached" });
+    expect(await continueReply(fakeDb(rows) as never, U, M)).toEqual({
+      status: "rejected",
+      reason: "limit_reached",
+    });
     expect(generateReply).not.toHaveBeenCalled();
   });
 
   it("fremde Nachricht / Benutzernachricht ⇒ not_found", async () => {
     const rows = seed();
     const { continueReply } = await import("@/orb-core/continuation.server");
-    expect(await continueReply(fakeDb(rows) as never, "other", M)).toEqual({ status: "rejected", reason: "not_found" });
-    expect(await continueReply(fakeDb(rows) as never, U, "u1")).toEqual({ status: "rejected", reason: "not_found" });
+    expect(await continueReply(fakeDb(rows) as never, "other", M)).toEqual({
+      status: "rejected",
+      reason: "not_found",
+    });
+    expect(await continueReply(fakeDb(rows) as never, U, "u1")).toEqual({
+      status: "rejected",
+      reason: "not_found",
+    });
     expect(generateReply).not.toHaveBeenCalled();
   });
 });

@@ -59,7 +59,8 @@ export function readCompletion(snapshot: unknown): ReplyCompletion | null {
   const c = (snapshot as { completion?: unknown }).completion;
   if (!c || typeof c !== "object") return null;
   const v = c as { status?: unknown; reason?: unknown; continuations?: unknown };
-  if (v.status !== "incomplete" && v.status !== "continuing" && v.status !== "complete") return null;
+  if (v.status !== "incomplete" && v.status !== "continuing" && v.status !== "complete")
+    return null;
   return {
     status: v.status,
     reason: typeof v.reason === "string" ? v.reason : null,
@@ -102,7 +103,9 @@ export function buildContinuationInput(originalRequest: string, existing: string
     originalRequest,
     "ANFRAGE>>>",
     "",
-    tail.length < existing.length ? "Ende des bisherigen Textes (Anfang gekürzt):" : "Bisheriger Text:",
+    tail.length < existing.length
+      ? "Ende des bisherigen Textes (Anfang gekürzt):"
+      : "Bisheriger Text:",
     "<<<BISHER",
     tail,
     "BISHER>>>",
@@ -153,7 +156,10 @@ export function mergeContinuation(
   const removed = next.length - added.length;
   // Abstand zwischen Teilen erhalten, wenn das Modell ihn nicht mitliefert.
   const needsSpace =
-    added.length > 0 && !/\s$/.test(existing) && !/^\s/.test(added) && /^[A-Za-zÄÖÜäöüß0-9„"(-]/.test(added)
+    added.length > 0 &&
+    !/\s$/.test(existing) &&
+    !/^\s/.test(added) &&
+    /^[A-Za-zÄÖÜäöüß0-9„"(-]/.test(added)
       ? /[.!?:;,]$/.test(existing)
       : false;
   const merged = existing + (needsSpace ? " " : "") + added;

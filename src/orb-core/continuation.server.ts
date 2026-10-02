@@ -25,7 +25,13 @@ import type { scopedDb } from "@/orb-core/scope";
 type DB = ReturnType<typeof scopedDb>;
 
 export type ContinueResult =
-  | { status: "ok"; messageId: string; body: string; completion: ReplyCompletion; addedChars: number }
+  | {
+      status: "ok";
+      messageId: string;
+      body: string;
+      completion: ReplyCompletion;
+      addedChars: number;
+    }
   | { status: "rejected"; reason: "not_found" | "not_incomplete" | "limit_reached" | "busy" }
   | { status: "error"; reason: "quota" | "unavailable"; completion: ReplyCompletion };
 
@@ -44,9 +50,13 @@ export async function continueReply(
   if (!row || row.role !== "orb") return { status: "rejected", reason: "not_found" };
   const completion = readCompletion(row.state_snapshot);
   if (!completion || completion.status !== "incomplete") {
-    return { status: "rejected", reason: completion?.status === "continuing" ? "busy" : "not_incomplete" };
+    return {
+      status: "rejected",
+      reason: completion?.status === "continuing" ? "busy" : "not_incomplete",
+    };
   }
-  if (completion.continuations >= MAX_CONTINUATIONS) return { status: "rejected", reason: "limit_reached" };
+  if (completion.continuations >= MAX_CONTINUATIONS)
+    return { status: "rejected", reason: "limit_reached" };
 
   const baseSnapshot = (row.state_snapshot ?? {}) as Record<string, Json>;
   const withCompletion = (c: ReplyCompletion) =>
