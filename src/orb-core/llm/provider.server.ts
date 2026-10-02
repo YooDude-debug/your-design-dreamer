@@ -13,6 +13,11 @@ import {
   unattributedContext,
   type OrbEventContext,
 } from "@/orb-core/observability.server";
+import {
+  ORB_IMAGE_MAX_COUNT,
+  toImageDataUrl,
+  type OrbImageAttachment,
+} from "@/lib/orb-attachments";
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1";
 /** Codeanalyse (P22) – unverändert. */
@@ -49,9 +54,13 @@ export async function speakViaLovableGateway(
   text: string,
   /** P3 Observability: Ereigniskontext; fehlt er, gilt der Aufruf als nicht zugeordnet. */
   obs?: OrbEventContext,
-): Promise<{ reply: string; status: OrbLlmStatus }> {
+  /** Bereits serverseitig geprüfte Bilder (flüchtig; nie geloggt, nie gespeichert). */
+  images: OrbImageAttachment[] = [],
+): Promise<{ reply: string; status: OrbLlmStatus; imagesSent: number }> {
+  // Nur gesendet, was die Modellschicht tatsächlich erhält (Obergrenze bleibt 3).
+  const sentImages = images.slice(0, ORB_IMAGE_MAX_COUNT);
   const key = process.env["LOVABLE_API_KEY"];
-  if (!key) return { reply: "", status: "unavailable" };
+  if (!key) return { reply: "", status: "unavailable", imagesSent: 0 };
 
   // Nur Messbarkeit: Kennungen, Zeitmessung, Laufkennung des Gateways.
   const ctx = obs ?? unattributedContext();
@@ -92,7 +101,19 @@ export async function speakViaLovableGateway(
       body: JSON.stringify({
         model: CHAT_MODEL,
         instructions: system,
-        input: [{ role: "user", content: [{ type: "input_text", text }] }],
+        input: [
+          {
+            role: "user",
+            content: [
+              { type: "input_text", text },
+              // Responses-API-Bildblock: image_url ist ein einfacher String (Data-URL).
+              ...sentImages.map((image) => ({
+                type: "input_image",
+                image_url: toImageDataUrl(image),
+              })),
+            ],
+          },
+        ],
         stream: true,
         store: false,
         reasoning: { effort: "low", summary: "auto" },
@@ -108,7 +129,7 @@ export async function speakViaLovableGateway(
         replyChars: 0,
         gatewayRunId: runId,
       });
-      return { reply: "", status: "quota" };
+      return { reply: "", status: "quota", imagesSent: 0 };
     }
     if (!res.ok || !res.body) {
       report({
@@ -118,7 +139,7 @@ export async function speakViaLovableGateway(
         replyChars: 0,
         gatewayRunId: runId,
       });
-      return { reply: "", status: "unavailable" };
+      return { reply: "", status: "unavailable", imagesSent: 0 };
     }
 
     const reader = res.body.getReader();
@@ -159,10 +180,13 @@ export async function speakViaLovableGateway(
       replyChars: clean.length,
       gatewayRunId: runId,
     });
-    return clean ? { reply: clean, status: "ok" } : { reply: "", status: "unavailable" };
+    // Erst eine erfolgreiche Antwort belegt, dass der Modellaufruf die Bilder erhielt.
+    return clean
+      ? { reply: clean, status: "ok", imagesSent: sentImages.length }
+      : { reply: "", status: "unavailable", imagesSent: 0 };
   } catch {
     report({ success: false, httpStatus: null, failureKind: "exception", replyChars: 0 });
-    return { reply: "", status: "unavailable" };
+    return { reply: "", status: "unavailable", imagesSent: 0 };
   }
 }
 

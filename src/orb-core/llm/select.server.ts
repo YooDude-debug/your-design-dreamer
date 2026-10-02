@@ -6,8 +6,9 @@
  *  - Kein direkter OpenAI-Aufruf, kein Fallback, keine Wiederholung.
  *  - Codeanalyse (P22) unverändert; bei Fehler → derselbe Gateway-Aufruf.
  *
- * Bildanhänge: die Gateway-Sprachschicht ist textbasiert (bestehendes
- * Verhalten); der Bildkontext wird ausdrücklich als nicht verarbeitet gemeldet.
+ * Bildanhänge: geprüfte Bilder gehen als input_image-Blöcke an denselben
+ * Gateway-Aufruf (Modell mit Bild-Eingabe). Scheitert der Aufruf, wird der
+ * Bildkontext ausdrücklich als nicht verarbeitet gemeldet.
  */
 
 import type { OrbImageAttachment } from "@/lib/orb-attachments";
@@ -62,7 +63,12 @@ export async function generateReply(input: {
 
   // E-DECISION Option B: normaler Chat nutzt ausschliesslich das Gateway.
   // Kein direkter OpenAI-Versuch mehr (22/22 × HTTP 429), keine Fallback-Kette.
-  const local = await speakViaLovableGateway(input.system, input.text, input.obs);
+  const local = await speakViaLovableGateway(
+    input.system,
+    input.text,
+    input.obs,
+    input.images ?? [],
+  );
   return {
     reply: local.reply,
     status: local.status,
@@ -70,8 +76,9 @@ export async function generateReply(input: {
       provider: "local",
       fallbackUsed: false,
       reason: null,
-      imagesSent: 0,
-      imageContextProcessed: false,
+      // Tatsächlicher Zustand: nur bei erfolgreicher Antwort auf einen Aufruf mit Bildern.
+      imagesSent: local.imagesSent,
+      imageContextProcessed: local.status === "ok" && local.imagesSent > 0,
     },
   };
 }
