@@ -21,6 +21,66 @@ import { toast } from "sonner";
 type Message = { id: string; role: "user" | "orb"; body: string; decision: string | null };
 
 const CHAT_BOTTOM_THRESHOLD = 80;
+
+/**
+ * Vom Nutzer gesendete Bilder – nur für die laufende Sitzung im Speicher
+ * des Browsers (Data-URLs). Nie gespeichert, nie Teil des Nachrichtentexts.
+ */
+export type SentImageGroup = {
+  key: string;
+  images: string[];
+  /** Nachrichten-IDs, die beim Absenden bereits existierten. */
+  knownIds: string[];
+  status: "sending" | "sent" | "failed";
+  sawPending: boolean;
+  messageId: string | null;
+};
+
+/** Ordnet jede offene Bildgruppe der ersten neuen eigenen Nachricht zu. */
+// eslint-disable-next-line react-refresh/only-export-components
+export function bindSentImages(
+  groups: SentImageGroup[],
+  messages: { id: string; role: string }[],
+  pending: boolean,
+): SentImageGroup[] {
+  let changed = false;
+  const bound = new Set(groups.map((g) => g.messageId).filter(Boolean));
+  const next = groups.map((g) => {
+    if (g.status !== "sending") return g;
+    const known = new Set(g.knownIds);
+    const hit = messages.find((m) => m.role === "user" && !known.has(m.id) && !bound.has(m.id));
+    if (hit) {
+      bound.add(hit.id);
+      changed = true;
+      return { ...g, status: "sent" as const, messageId: hit.id };
+    }
+    if (pending && !g.sawPending) {
+      changed = true;
+      return { ...g, sawPending: true };
+    }
+    if (!pending && g.sawPending) {
+      changed = true;
+      return { ...g, status: "failed" as const };
+    }
+    return g;
+  });
+  return changed ? next : groups;
+}
+
+function SentImageThumbs({ images }: { images: string[] }) {
+  return (
+    <div className="mb-1.5 flex flex-wrap justify-end gap-1.5" data-testid="orb-sent-images">
+      {images.map((src, i) => (
+        <img
+          key={i}
+          src={src}
+          alt={`Gesendetes Bild ${i + 1}`}
+          className="size-20 rounded-md border border-primary-foreground/20 object-cover"
+        />
+      ))}
+    </div>
+  );
+}
 const LIVE_TEXT_INTERVAL_MS = 42;
 
 /** Wort-/Whitespace-Blöcke, deren Verkettung den gelieferten Text exakt erhält. */
@@ -157,6 +217,15 @@ export function OrbChat({
   const [text, setText] = useState("");
   // Bildanhänge der aktuellen Nachricht – flüchtig, nur Anfragekontext.
   const [attachments, setAttachments] = useState<OrbAttachment[]>([]);
+  // Bereits gesendete Bilder: nur diese Sitzung, nach Neuladen nicht mehr da.
+  const [sentImages, setSentImages] = useState<SentImageGroup[]>([]);
+  useEffect(() => {
+    setSentImages((prev) => bindSentImages(prev, messages, pending));
+  }, [messages, pending]);
+  const imagesByMessage = new Map(
+    sentImages.filter((g) => g.messageId).map((g) => [g.messageId as string, g.images]),
+  );
+  const openImageGroups = sentImages.filter((g) => g.status !== "sent");
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
   // Scrollbereich des Verlaufs – nur DIESER darf automatisch bewegt werden.
@@ -272,6 +341,19 @@ export function OrbChat({
     }
     onActivity?.();
     onTypingChange?.(false);
+    if (attachments.length > 0) {
+      setSentImages((prev) => [
+        ...prev,
+        {
+          key: `${Date.now()}-${prev.length}`,
+          images: attachments.map((a) => `data:${a.mimeType};base64,${a.dataBase64}`),
+          knownIds: messages.map((m) => m.id),
+          status: "sending",
+          sawPending: false,
+          messageId: null,
+        },
+      ]);
+    }
     onSend(
       value,
       attachments.map((a) => ({ mimeType: a.mimeType, dataBase64: a.dataBase64 })),
@@ -343,7 +425,12 @@ export function OrbChat({
                       onLiveComplete={handleLiveComplete}
                     />
                   ) : (
-                    <p className="whitespace-pre-wrap text-sm leading-relaxed">{m.body}</p>
+                    <>
+                      {imagesByMessage.has(m.id) && (
+                        <SentImageThumbs images={imagesByMessage.get(m.id) ?? []} />
+                      )}
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed">{m.body}</p>
+                    </>
                   )}
                 </div>
               </div>
