@@ -161,6 +161,7 @@ import {
   type SpeakPromptMetrics,
 } from "@/orb-core/llm/prompt-metrics";
 import { generateReply } from "@/orb-core/llm/select.server";
+import { extractVisualMarker } from "@/orb-core/visual/intent";
 import type { CodeToolRuntime } from "@/orb-core/llm/code-tool.server";
 import {
   logEventSummary,
@@ -631,6 +632,11 @@ export type OrbTurn = {
   aiStatus: "ok" | "quota" | "unavailable";
   /** Diagnose: welche Sprachschicht hat formuliert (OpenAI-Experiment/Fallback). */
   llm: OrbLlmMeta;
+  /**
+   * P2: rohe Bild-Markierung aus der Antwort (bereits aus `reply` entfernt,
+   * nie gespeichert). Prüfung und Signatur erfolgen im Chat-Endpunkt.
+   */
+  visualMarker: string | null;
 
   perf: OrbPerf;
   /** P0 Messbarkeit: nur Zahlen, nur Laufzeit (nicht gespeichert). */
@@ -683,6 +689,8 @@ export async function speak(input: {
   obs?: OrbEventContext;
   /** P22: nur für ausdrückliche, admingeprüfte Codeanalyse-Anforderungen. */
   codeTool?: CodeToolRuntime | null;
+  /** P2: Bild-Markierung erlauben (nur Benutzerantworten). */
+  visualHint?: boolean;
 }): Promise<{
   reply: string;
   status: "ok" | "quota" | "unavailable";
@@ -1452,6 +1460,7 @@ export async function processInput(
         images,
         mode: conversationPlan.mode,
         modeReason: conversationPlan.reason,
+        visualHint: true,
       });
     }
   } else {
@@ -1496,11 +1505,14 @@ export async function processInput(
       mode: conversationPlan.mode,
       modeReason: conversationPlan.reason,
       ownQuestion,
+      visualHint: true,
     });
   }
   const aiMs = Date.now() - aiStart;
+  // P2: Bild-Markierung vor Speicherung/Anzeige entfernen (nie in Memory/Nachrichten).
+  const visualSplit = extractVisualMarker(spoken.status === "ok" ? spoken.reply : "");
   const spokenReply =
-    spoken.status === "ok" ? stripFakePauseClaim(spoken.reply) : FALLBACK[spoken.status];
+    spoken.status === "ok" ? stripFakePauseClaim(visualSplit.text) : FALLBACK[spoken.status];
   // Bildkontext vorhanden, aber nicht ausgewertet → ausdrücklich benennen.
   const baseReply =
     images.length > 0 && !spoken.meta.imageContextProcessed
