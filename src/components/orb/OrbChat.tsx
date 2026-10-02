@@ -6,7 +6,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { SendHorizontal } from "lucide-react";
+import { ChevronDown, SendHorizontal } from "lucide-react";
 
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import {
@@ -17,7 +17,13 @@ import { OrbVisualMessage, type OrbVisualItem } from "@/components/orb/OrbVisual
 import { Button } from "@/components/ui/button";
 import { isTouchDevice } from "@/lib/mobile-keyboard";
 import { ORB_MESSAGE_MAX_CHARS, ORB_MESSAGE_TOO_LONG } from "@/lib/orb-attachments";
-import { MAX_CONTINUATIONS, incompleteReasonLabel } from "@/orb-core/long-form";
+import {
+  MAX_CONTINUATIONS,
+  countWords,
+  incompleteReasonLabel,
+  isLongResponse,
+  longResponsePreview,
+} from "@/orb-core/long-form";
 import { toast } from "sonner";
 
 type Message = {
@@ -217,6 +223,64 @@ function OrbMessageBody({
     </p>
   );
 }
+
+/**
+ * Aufklappbarer Container für lange Antworten (> LONG_RESPONSE_WORD_THRESHOLD Wörter).
+ * Der Text bleibt immer gemountet (nur verborgen), damit Live-Anzeige und
+ * Fortsetzungen denselben Container aktualisieren.
+ */
+function LongResponseContainer({
+  id,
+  body,
+  children,
+}: {
+  id: string;
+  body: string;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const words = countWords(body);
+  const regionId = `long-response-${id}`;
+  return (
+    <div className="mt-1 w-full max-w-[42rem] rounded-lg border border-border bg-card/60">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={regionId}
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full flex-col gap-1 rounded-lg px-3 py-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <span className="flex w-full items-center justify-between gap-2 text-xs font-semibold text-foreground">
+          <span>
+            Ausführliche Antwort · {words.toLocaleString("de-DE")} Wörter
+          </span>
+          <ChevronDown
+            aria-hidden
+            className={`h-4 w-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        </span>
+        {!open && (
+          <span className="line-clamp-2 text-xs text-muted-foreground">
+            {longResponsePreview(body)}
+          </span>
+        )}
+        <span className="text-[11px] font-medium text-primary">
+          {open ? "Text ausblenden ↑" : "Text anzeigen ↓"}
+        </span>
+      </button>
+      <div
+        id={regionId}
+        role="region"
+        aria-label="Ausführliche Antwort"
+        hidden={!open}
+        className="max-h-[60vh] overflow-y-auto overscroll-contain border-t border-border px-3 py-2"
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
 
 function IncompleteNotice({
   completion,
@@ -474,13 +538,25 @@ export function OrbChat({
                       </span>
                     )}
                     {m.role === "orb" ? (
-                      <OrbMessageBody
-                        body={m.body}
-                        animate={animate}
-                        onLiveStart={handleLiveStart}
-                        onLiveProgress={handleLiveProgress}
-                        onLiveComplete={handleLiveComplete}
-                      />
+                      isLongResponse(m.body) ? (
+                        <LongResponseContainer id={m.id} body={m.body}>
+                          <OrbMessageBody
+                            body={m.body}
+                            animate={animate}
+                            onLiveStart={handleLiveStart}
+                            onLiveProgress={handleLiveProgress}
+                            onLiveComplete={handleLiveComplete}
+                          />
+                        </LongResponseContainer>
+                      ) : (
+                        <OrbMessageBody
+                          body={m.body}
+                          animate={animate}
+                          onLiveStart={handleLiveStart}
+                          onLiveProgress={handleLiveProgress}
+                          onLiveComplete={handleLiveComplete}
+                        />
+                      )
                     ) : null}
                     {m.role === "orb" && m.completion && m.completion.status !== "complete" && (
                       <IncompleteNotice
