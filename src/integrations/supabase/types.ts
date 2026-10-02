@@ -4061,6 +4061,51 @@ export type Database = {
         }
         Relationships: []
       }
+      orb_memory_images: {
+        Row: {
+          analysis_run_id: string | null
+          basis: string
+          created_at: string
+          image_id: string
+          memory_id: string
+          scope: Database["public"]["Enums"]["orb_scope"]
+          user_id: string
+        }
+        Insert: {
+          analysis_run_id?: string | null
+          basis: string
+          created_at?: string
+          image_id: string
+          memory_id: string
+          scope: Database["public"]["Enums"]["orb_scope"]
+          user_id: string
+        }
+        Update: {
+          analysis_run_id?: string | null
+          basis?: string
+          created_at?: string
+          image_id?: string
+          memory_id?: string
+          scope?: Database["public"]["Enums"]["orb_scope"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orb_memory_images_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "orb_visual_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orb_memory_images_memory_id_fkey"
+            columns: ["memory_id"]
+            isOneToOne: false
+            referencedRelation: "orb_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orb_message_telemetry: {
         Row: {
           byte_count: number
@@ -4572,6 +4617,51 @@ export type Database = {
           title?: string
           topic?: string | null
           unknown?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      orb_visual_assets: {
+        Row: {
+          created_at: string
+          file_size: number
+          id: string
+          mime_type: string
+          origin_status: string
+          scope: Database["public"]["Enums"]["orb_scope"]
+          sha256: string
+          source_message_id: string | null
+          source_type: string
+          storage_path: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_size: number
+          id?: string
+          mime_type: string
+          origin_status?: string
+          scope: Database["public"]["Enums"]["orb_scope"]
+          sha256: string
+          source_message_id?: string | null
+          source_type: string
+          storage_path: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_size?: number
+          id?: string
+          mime_type?: string
+          origin_status?: string
+          scope?: Database["public"]["Enums"]["orb_scope"]
+          sha256?: string
+          source_message_id?: string | null
+          source_type?: string
+          storage_path?: string
           updated_at?: string
           user_id?: string
         }
