@@ -64,9 +64,7 @@ export function extractVisualMarker(reply: string): { text: string; raw: string 
   return { text, raw };
 }
 
-export type VisualIntentCheck =
-  | { ok: true; intent: VisualIntent }
-  | { ok: false; reason: string };
+export type VisualIntentCheck = { ok: true; intent: VisualIntent } | { ok: false; reason: string };
 
 /**
  * Serverseitige Prüfung. Der Modus „explicit" gilt nur, wenn der Benutzertext
@@ -114,7 +112,9 @@ export function validateVisualIntent(
 export function checkVisualLimit(
   rows: { intent_kind: string; prompt_hash: string; status: string }[],
   intent: { kind: VisualKind; promptHash: string },
-): { allowed: true } | { allowed: false; reason: "daily_limit" | "autonomous_limit" | "already_shown" } {
+):
+  | { allowed: true }
+  | { allowed: false; reason: "daily_limit" | "autonomous_limit" | "already_shown" } {
   if (rows.some((r) => r.prompt_hash === intent.promptHash && r.status === "ok"))
     return { allowed: false, reason: "already_shown" };
   if (rows.length >= VISUAL_DAILY_LIMIT) return { allowed: false, reason: "daily_limit" };
@@ -173,7 +173,11 @@ export function validateGeneratedImage(
         ? "image/webp"
         : null;
   if (!mimeType) return { ok: false, reason: "unknown_signature" };
-  if (typeof format === "string" && format && !mimeType.endsWith(format === "jpg" ? "jpeg" : format))
+  if (
+    typeof format === "string" &&
+    format &&
+    !mimeType.endsWith(format === "jpg" ? "jpeg" : format)
+  )
     return { ok: false, reason: "format_mismatch" };
   return { ok: true, mimeType, dataBase64: b64 };
 }

@@ -99,7 +99,10 @@ export const sendOrbInput = createServerFn({ method: "POST" })
         const token = signVisualIntent(check.intent, context.userId, data.scope);
         if (token) visual = { token, kind: check.intent.kind };
       } else {
-        console.info("[orb.visual]", JSON.stringify({ scope: data.scope, status: "intent_rejected", reason: check.reason }));
+        console.info(
+          "[orb.visual]",
+          JSON.stringify({ scope: data.scope, status: "intent_rejected", reason: check.reason }),
+        );
       }
     }
     return { ...turn, visual };

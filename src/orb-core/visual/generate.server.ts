@@ -34,7 +34,9 @@ function tokenKey(): Buffer | null {
 }
 
 export function promptHash(prompt: string): string {
-  return createHash("sha256").update(prompt.trim().toLowerCase().replace(/\s+/g, " ")).digest("hex");
+  return createHash("sha256")
+    .update(prompt.trim().toLowerCase().replace(/\s+/g, " "))
+    .digest("hex");
 }
 
 export function signVisualIntent(
@@ -95,7 +97,11 @@ const MESSAGES: Record<string, string> = {
   unavailable: "Bildgenerierung ist gerade nicht verfügbar.",
 };
 
-const blocked = (reason: string, kind: "blocked" | "error" = "blocked", id: string | null = null): VisualResult => ({
+const blocked = (
+  reason: string,
+  kind: "blocked" | "error" = "blocked",
+  id: string | null = null,
+): VisualResult => ({
   status: kind,
   reason,
   message: MESSAGES[reason] ?? MESSAGES["provider_error"]!,
@@ -221,7 +227,11 @@ export async function generateVisual(
       return blocked("quota", "error", id);
     }
     if (!res.ok) {
-      await finish({ status: "provider_error", http_status: res.status, failure_reason: "http_error" });
+      await finish({
+        status: "provider_error",
+        http_status: res.status,
+        failure_reason: "http_error",
+      });
       return blocked("provider_error", "error", id);
     }
     const ev = await readImageStream(res);
