@@ -17,7 +17,6 @@ import type {
 import type { OrbAutonomyAttempt } from "@/orb-core/autonomy";
 import { finalAutonomyGate } from "@/orb-core/autonomy";
 import {
-  CURIOSITY_SCOPE,
   decideCuriosity,
   isDuplicateQuestion,
   type KnowledgeGap,
