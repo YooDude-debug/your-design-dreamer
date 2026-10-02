@@ -252,7 +252,7 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
       // P2: gültiger, signierter Visual-Intent ⇒ Bild als eigene ORB-Nachricht.
       if (turn.visual) {
         const token = turn.visual.token;
-        const key = `visual-${Date.now()}`;
+        const key = `visual-${scope}-${Date.now()}`;
         const lastOrb = [...turn.snapshot.messages].reverse().find((m) => m.role === "orb");
         setVisuals((prev) => [
           ...prev,
