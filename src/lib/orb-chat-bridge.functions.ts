@@ -16,6 +16,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { ORB_MESSAGE_MAX_CHARS } from "@/lib/orb-attachments";
 import {
   DIAGNOSTIC_SCOPES,
   type BridgeConfidence,
