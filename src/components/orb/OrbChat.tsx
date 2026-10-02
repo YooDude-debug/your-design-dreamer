@@ -389,7 +389,7 @@ export function OrbChat({
         onScroll={(event) => {
           autoFollowRef.current = isNearChatBottom(event.currentTarget);
         }}
-        className={`h-[20rem] overflow-y-auto p-3 sm:h-[24rem] sm:p-4 ${glass ? "bg-background/20" : "bg-background/50"}`}
+        className={`h-[20rem] overflow-y-auto p-3 sm:h-[24rem] sm:p-4 lg:h-[max(12rem,calc(100dvh-30rem))] ${glass ? "bg-background/20" : "bg-background/50"}`}
       >
         <div className="flex flex-col gap-3">
           {messages.length === 0 && (
@@ -470,7 +470,7 @@ export function OrbChat({
         </div>
       </div>
 
-      <div className="border-t border-border p-2.5 sm:p-3">
+      <div className="border-t border-border p-2.5 sm:p-3 lg:p-2">
         <div
           className={`rounded-lg border border-border ${glass ? "bg-background/85 backdrop-blur-md" : "bg-background"}`}
         >
@@ -491,7 +491,7 @@ export function OrbChat({
             aria-describedby="orb-char-count"
             aria-invalid={tooLong || undefined}
             placeholder="Nachricht schreiben …"
-            className="block min-h-14 w-full resize-none bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground"
+            className="block min-h-14 w-full resize-none bg-transparent px-3 py-2.5 lg:min-h-10 lg:py-2 text-sm outline-none placeholder:text-muted-foreground"
           />
           <div className="flex min-h-11 items-center justify-between gap-2 border-t border-border px-2 py-1.5">
             <OrbComposerAttachments
