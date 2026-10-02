@@ -12,6 +12,7 @@
  */
 
 import { clamp01 } from "@/orb-core/core";
+import { compareIds } from "@/orb-core/decision-trace";
 import type { DetectedGap, GapType } from "@/orb-core/gaps";
 import { similarity } from "@/orb-core/memory";
 import { PROACTIVE_COOLDOWN_MS, curiosityBand } from "@/orb-core/presence";
