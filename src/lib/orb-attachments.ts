@@ -133,3 +133,13 @@ export function validateImageAttachments(
 export function toImageDataUrl(image: OrbImageAttachment): string {
   return `data:${image.mimeType};base64,${image.dataBase64}`;
 }
+
+/**
+ * Gemeinsame Obergrenze der AKTUELLEN Nutzernachricht im ORB-Chat –
+ * gezählt in JavaScript-Zeichen (UTF-16-Einheiten, wie `String.length`;
+ * ein Emoji zählt meist 2). Gilt identisch in Eingabefeld, Submit,
+ * Zod-Prüfung, Engine-Eingang und Diagnose-Brücke. Nie still kürzen.
+ */
+export const ORB_MESSAGE_MAX_CHARS = 20_000;
+
+export const ORB_MESSAGE_TOO_LONG = `Die Nachricht ist zu lang (höchstens ${ORB_MESSAGE_MAX_CHARS.toLocaleString("de-DE")} Zeichen).`;

@@ -155,11 +155,11 @@ describe("ORB Multimodal Composer – Server- und Core-Grenze", () => {
   it("verspricht bei fehlender Bildschicht keine Bildanalyse", () => {
     expect(engine).toContain("IMAGE_NOT_PROCESSED_HINT");
     expect(engine).toContain("!spoken.meta.imageContextProcessed");
-    expect(select).toContain("imagesSent: 0");
+    expect(select).toContain("imagesSent: local.imagesSent");
   });
 
   it("behält den vollständigen Fallback auf die bestehende Sprachschicht", () => {
-    expect(select).toContain("speakViaLovableGateway(input.system, input.text, input.obs)");
+    expect(select).toMatch(/speakViaLovableGateway\(\s*input\.system,\s*input\.text,\s*input\.obs,\s*input\.images/);
     expect(select).toContain('provider: "local"');
   });
 

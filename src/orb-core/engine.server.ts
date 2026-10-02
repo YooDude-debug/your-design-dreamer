@@ -26,6 +26,7 @@ import {
 import { AUTONOMY_MIN_ENERGY } from "@/orb-core/autonomy";
 import type { Database } from "@/integrations/supabase/types";
 import type { OrbImageAttachment } from "@/lib/orb-attachments";
+import { ORB_MESSAGE_MAX_CHARS, ORB_MESSAGE_TOO_LONG } from "@/lib/orb-attachments";
 
 import {
   currentWeight,
@@ -171,7 +172,10 @@ import { scopeOf } from "@/orb-core/scope";
 
 export type DB = SupabaseClient<Database>;
 
-/** Obergrenze der Eingabe (Kostenschutz). */
+/**
+ * Obergrenze für Lernerfahrungen und gespeicherte Antwort-Spuren
+ * (Kostenschutz). Die aktuelle Chat-Nachricht nutzt ORB_MESSAGE_MAX_CHARS.
+ */
 export const MAX_INPUT_CHARS = 1000;
 /** Wie viele Erinnerungen höchstens in den KI-Kontext gelangen. */
 const RECALL_LIMIT = 6;
@@ -1024,8 +1028,10 @@ export async function processInput(
   const q = new QueryCounter();
   const source: OrbInfoSource = options.source ?? "user_stated";
 
-  const text = rawText.trim().slice(0, MAX_INPUT_CHARS);
+  // Aktuelle Nutzernachricht: gemeinsame Grenze, nie still kürzen.
+  const text = rawText.trim();
   if (!text) throw new Error("empty input");
+  if (text.length > ORB_MESSAGE_MAX_CHARS) throw new Error(ORB_MESSAGE_TOO_LONG);
 
   const stateRow = await ensureState(db, userId, q);
   // P5-H: ausdrückliche Reply-Referenz prüfen (id + user_id + role='orb').

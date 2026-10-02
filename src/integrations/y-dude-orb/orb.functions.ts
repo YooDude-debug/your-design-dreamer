@@ -14,6 +14,8 @@ import {
   ORB_IMAGE_MAX_BYTES,
   ORB_IMAGE_MAX_COUNT,
   ORB_IMAGE_MIME_TYPES,
+  ORB_MESSAGE_MAX_CHARS,
+  ORB_MESSAGE_TOO_LONG,
   validateImageAttachments,
 } from "@/lib/orb-attachments";
 import { orbChatScopeSchema } from "@/orb-sdk";
@@ -50,7 +52,7 @@ export const sendOrbInput = createServerFn({ method: "POST" })
     z
       .object({
         scope: orbChatScopeSchema,
-        text: z.string().max(1000),
+        text: z.string().max(ORB_MESSAGE_MAX_CHARS, ORB_MESSAGE_TOO_LONG),
         viaVoice: z.boolean().optional(),
         replyToOrbMessageId: z.string().uuid().optional(),
         images: z

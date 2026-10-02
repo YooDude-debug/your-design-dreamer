@@ -106,7 +106,7 @@ describe("orb llm provider – Auswahl", () => {
     expect(result.meta.fallbackUsed).toBe(false);
   });
 
-  it("Option B: Bilder – bestehendes Verhalten (nicht gesendet, als nicht verarbeitet gemeldet)", async () => {
+  it("P0: Bilder gehen an den aktiven Gateway-Aufruf und gelten nur bei Erfolg als verarbeitet", async () => {
     vi.stubEnv("OPENAI_API_KEY", "sk-test");
     const f = vi.fn(async () => sseResponse("ok"));
     vi.stubGlobal("fetch", f);
@@ -118,8 +118,8 @@ describe("orb llm provider – Auswahl", () => {
     });
 
     expect(f).toHaveBeenCalledTimes(1);
-    expect(result.meta.imagesSent).toBe(0);
-    expect(result.meta.imageContextProcessed).toBe(false);
+    expect(result.meta.imagesSent).toBe(1);
+    expect(result.meta.imageContextProcessed).toBe(true);
   });
 
   it("select.server importiert den direkten OpenAI-Pfad nicht mehr", () => {

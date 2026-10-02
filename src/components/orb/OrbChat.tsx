@@ -15,6 +15,8 @@ import {
 } from "@/components/orb/OrbComposerAttachments";
 import { Button } from "@/components/ui/button";
 import { isTouchDevice } from "@/lib/mobile-keyboard";
+import { ORB_MESSAGE_MAX_CHARS, ORB_MESSAGE_TOO_LONG } from "@/lib/orb-attachments";
+import { toast } from "sonner";
 
 type Message = { id: string; role: "user" | "orb"; body: string; decision: string | null };
 
@@ -254,15 +256,24 @@ export function OrbChat({
     };
   }, []);
 
+  // UTF-16-Zählung wie String.length – identisch zur Server-Prüfung.
+  const charCount = text.trim().length;
+  const tooLong = charCount > ORB_MESSAGE_MAX_CHARS;
+
   const submit = () => {
     const value = text.trim();
     if (pending) return;
     // Text, Bild oder beides gemeinsam.
     if (!value && attachments.length === 0) return;
+    // Nie still kürzen: zu lange Nachricht bleibt im Feld, Hinweis erklärt warum.
+    if (value.length > ORB_MESSAGE_MAX_CHARS) {
+      toast.error(ORB_MESSAGE_TOO_LONG);
+      return;
+    }
     onActivity?.();
     onTypingChange?.(false);
     onSend(
-      value.slice(0, 1000),
+      value,
       attachments.map((a) => ({ mimeType: a.mimeType, dataBase64: a.dataBase64 })),
     );
     setText("");
@@ -365,7 +376,8 @@ export function OrbChat({
               }
             }}
             rows={2}
-            maxLength={1000}
+            aria-describedby="orb-char-count"
+            aria-invalid={tooLong || undefined}
             placeholder="Nachricht schreiben …"
             className="block min-h-14 w-full resize-none bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground"
           />
@@ -377,11 +389,22 @@ export function OrbChat({
               onActivity={onActivity}
             />
             <div className="min-w-0 flex-1">{voiceControls}</div>
+            <span
+              id="orb-char-count"
+              data-testid="orb-char-count"
+              aria-live="polite"
+              className={`shrink-0 text-[11px] tabular-nums ${tooLong ? "font-medium text-destructive" : "text-muted-foreground"}`}
+              title={tooLong ? ORB_MESSAGE_TOO_LONG : undefined}
+            >
+              {charCount.toLocaleString("de-DE")} / {ORB_MESSAGE_MAX_CHARS.toLocaleString("de-DE")}
+            </span>
             <Button
               type="button"
               size="icon"
               onClick={submit}
-              disabled={pending || (text.trim().length === 0 && attachments.length === 0)}
+              disabled={
+                pending || tooLong || (text.trim().length === 0 && attachments.length === 0)
+              }
               aria-label="Nachricht senden"
               className="size-9 rounded-full bg-brand text-primary-foreground hover:bg-brand/90"
             >
