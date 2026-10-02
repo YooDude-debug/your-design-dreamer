@@ -59,12 +59,7 @@ import {
 import { orbChatRequestDiagnostic, type ChatBridgeView } from "@/lib/orb-chat-bridge.functions";
 import { detectDeveloperDiagnosticIntent } from "@/orb-dev/chat-bridge";
 import { adminCheckAccess } from "@/lib/admin.functions";
-import {
-  ORB_SCOPE_LABEL,
-  RETRIEVAL_CHANNEL,
-  isOrbChatScope,
-  type OrbChatScope,
-} from "@/orb-sdk";
+import { ORB_SCOPE_LABEL, RETRIEVAL_CHANNEL, isOrbChatScope, type OrbChatScope } from "@/orb-sdk";
 import { COGNITIVE_CHANNEL, toCognitiveView } from "@/lib/orb-knowledge-graph/cognitive-layers";
 
 /** Bestehender Knowledge Globe – nur als visuelle Hintergrundebene, erst im Browser geladen. */
@@ -127,7 +122,6 @@ function OrbScopePage() {
   if (!isOrbChatScope(scope)) return <OrbErrorState />;
   return <OrbCorePage key={scope} scope={scope} />;
 }
-
 
 function OrbCorePage({ scope }: { scope: OrbChatScope }) {
   const router = useRouter();
@@ -729,7 +723,6 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
 
       {snapshot && (
         <div className="space-y-4">
-
           <div className="relative isolate">
             {isAdmin && globeOn && (
               <div
