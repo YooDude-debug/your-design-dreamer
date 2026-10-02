@@ -17,9 +17,17 @@ import { OrbVisualMessage, type OrbVisualItem } from "@/components/orb/OrbVisual
 import { Button } from "@/components/ui/button";
 import { isTouchDevice } from "@/lib/mobile-keyboard";
 import { ORB_MESSAGE_MAX_CHARS, ORB_MESSAGE_TOO_LONG } from "@/lib/orb-attachments";
+import { MAX_CONTINUATIONS, incompleteReasonLabel } from "@/orb-core/long-form";
 import { toast } from "sonner";
 
-type Message = { id: string; role: "user" | "orb"; body: string; decision: string | null };
+type Message = {
+  id: string;
+  role: "user" | "orb";
+  body: string;
+  decision: string | null;
+  /** B2: Kennzeichnung einer abgebrochenen Antwort (nur Status/Grund). */
+  completion?: { status: string; reason: string | null; continuations: number } | null;
+};
 
 const CHAT_BOTTOM_THRESHOLD = 80;
 
@@ -134,6 +142,10 @@ type Props = {
   onActivity?: () => void;
   /** Bestehende Sprachsteuerung innerhalb derselben Eingabezone. */
   voiceControls?: ReactNode;
+  /** B2: Fortsetzung NUR auf ausdrücklichen Klick. */
+  onContinue?: (messageId: string) => void;
+  /** Nachricht, deren Fortsetzung gerade läuft (Knopf gesperrt). */
+  continuingId?: string | null;
 };
 
 function OrbMessageBody({
@@ -206,6 +218,45 @@ function OrbMessageBody({
   );
 }
 
+function IncompleteNotice({
+  completion,
+  busy,
+  disabled,
+  onContinue,
+}: {
+  completion: { status: string; reason: string | null; continuations: number };
+  busy: boolean;
+  disabled: boolean;
+  onContinue: () => void;
+}) {
+  const limit = completion.continuations >= MAX_CONTINUATIONS;
+  return (
+    <div
+      role="status"
+      data-testid="orb-incomplete-notice"
+      className="mt-2 flex flex-wrap items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-2.5 py-1.5 text-[11px] text-foreground"
+    >
+      <span className="min-w-0 flex-1">
+        <strong>Antwort unvollständig</strong> – {incompleteReasonLabel(completion.reason)}.
+        {limit ? " Höchstzahl an Fortsetzungen erreicht." : ""}
+      </span>
+      {!limit && (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="h-7 shrink-0 px-2 text-[11px]"
+          data-testid="orb-continue"
+          disabled={disabled || busy}
+          onClick={onContinue}
+        >
+          {busy ? "Wird fortgesetzt …" : "Fortsetzen"}
+        </Button>
+      )}
+    </div>
+  );
+}
+
 export function OrbChat({
   messages,
   pending,
@@ -216,6 +267,8 @@ export function OrbChat({
   headerActions,
   glass = false,
   visuals = [],
+  onContinue,
+  continuingId = null,
 }: Props & { glass?: boolean; visuals?: OrbVisualItem[]; headerActions?: ReactNode }) {
   const [text, setText] = useState("");
   // Bildanhänge der aktuellen Nachricht – flüchtig, nur Anfragekontext.
@@ -428,7 +481,18 @@ export function OrbChat({
                         onLiveProgress={handleLiveProgress}
                         onLiveComplete={handleLiveComplete}
                       />
-                    ) : (
+                    ) : null}
+                    {m.role === "orb" &&
+                      m.completion &&
+                      m.completion.status !== "complete" && (
+                        <IncompleteNotice
+                          completion={m.completion}
+                          busy={continuingId === m.id || m.completion.status === "continuing"}
+                          disabled={continuingId !== null || pending || !onContinue}
+                          onContinue={() => onContinue?.(m.id)}
+                        />
+                      )}
+                    {m.role === "orb" ? null : (
                       <>
                         {imagesByMessage.has(m.id) && (
                           <SentImageThumbs images={imagesByMessage.get(m.id) ?? []} />
