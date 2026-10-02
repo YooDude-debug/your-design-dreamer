@@ -10,18 +10,32 @@ export type OrbVisualItem = {
   key: string;
   /** ORB-Nachricht, nach der das Bild erscheint. */
   afterMessageId: string | null;
-  kind: "explicit" | "autonomous";
+  /** `memory` = gespeichertes Bild einer abgerufenen Erinnerung (Visual Memory). */
+  kind: "explicit" | "autonomous" | "memory";
   status: "loading" | "ok" | "error";
   src?: string;
   message?: string;
+  /** Nur bei `memory`: Herkunft des gespeicherten Bildes. */
+  origin?: "user_upload" | "orb_generated" | "unknown";
+  createdAt?: string;
 };
+
+const ORIGIN_LABEL = {
+  user_upload: "von dir hochgeladen",
+  orb_generated: "von ORB erzeugt",
+  unknown: "Herkunft unbekannt",
+} as const;
 
 export function OrbVisualMessage({ item }: { item: OrbVisualItem }) {
   return (
     <div className="flex justify-start" data-testid="orb-visual" data-status={item.status}>
       <div className="max-w-[92%] px-1 py-1 text-foreground">
         <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Bild
+          {item.kind === "memory"
+            ? `Bild aus Erinnerung · ${ORIGIN_LABEL[item.origin ?? "unknown"]}${
+                item.createdAt ? ` · ${new Date(item.createdAt).toLocaleDateString()}` : ""
+              }`
+            : "Bild"}
         </span>
         {item.status === "loading" && (
           <div
@@ -34,7 +48,7 @@ export function OrbVisualMessage({ item }: { item: OrbVisualItem }) {
         {item.status === "ok" && item.src && (
           <img
             src={item.src}
-            alt="Von ORB erstelltes Bild"
+            alt={item.kind === "memory" ? "Gespeichertes Bild einer Erinnerung" : "Von ORB erstelltes Bild"}
             className="mt-1 w-full max-w-sm rounded-lg border border-border"
           />
         )}

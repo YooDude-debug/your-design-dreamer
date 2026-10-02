@@ -25,6 +25,11 @@ import {
 import type { OrbTemporalScope } from "@/orb-core/analysis/schema";
 import { isConceptRow, validateConcepts } from "@/orb-core/analysis/concepts";
 import {
+  validateImageLinks,
+  type StoredCandidate,
+  type TranscriptImage,
+} from "@/orb-core/visual/assets";
+import {
   EMPTY_CONCEPT_REPORT,
   persistConcepts,
   type ConceptReport,
@@ -152,7 +157,7 @@ export async function analyzeAndPersist(db: DB, userId: string): Promise<Analysi
     q.tick(
       db
         .from("orb_messages")
-        .select("role, body, created_at")
+        .select("id, role, body, created_at")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(ANALYSIS_TRANSCRIPT_MESSAGES),
@@ -185,8 +190,25 @@ export async function analyzeAndPersist(db: DB, userId: string): Promise<Analysi
     temporalScope: n.temporal_scope as OrbTemporalScope,
   }));
 
+  // Visual Memory: nur gespeicherte Upload-Bilder genau dieser Nachrichten.
+  // Ohne Bilder bleibt das Transkript byte-identisch zum bisherigen Format.
+  let transcriptImages: TranscriptImage[] = [];
+  try {
+    const { loadTranscriptImages } = await import("@/orb-core/visual/assets.server");
+    transcriptImages = await loadTranscriptImages(db, userId, history);
+  } catch {
+    transcriptImages = [];
+  }
+  const labelsByMessage = new Map<string, string[]>();
+  for (const img of transcriptImages) {
+    labelsByMessage.set(img.messageId, [...(labelsByMessage.get(img.messageId) ?? []), img.label]);
+  }
   const transcript = history
-    .map((m) => `${m.role === "user" ? "Benutzer" : "ORB"}: ${m.body.slice(0, 400)}`)
+    .map((m) => {
+      const labels = m.role === "user" ? labelsByMessage.get(m.id) : undefined;
+      const mark = labels ? ` [Bilder: ${labels.join(", ")}]` : "";
+      return `${m.role === "user" ? "Benutzer" : "ORB"}${mark}: ${m.body.slice(0, 400)}`;
+    })
     .join("\n");
   const signals = userSignalsFrom(history.filter((m) => m.role === "user").map((m) => m.body));
 
@@ -195,6 +217,9 @@ export async function analyzeAndPersist(db: DB, userId: string): Promise<Analysi
     transcript,
     knownMemories: existing.map((e) => e.content),
     allowedNodeIds: existing.map((e) => e.id),
+    ...(transcriptImages.length > 0
+      ? { imageLabels: transcriptImages.map((i) => i.label) }
+      : {}),
   });
   const analysisMs = Date.now() - aiStart;
   const analysisRun = {
@@ -230,6 +255,7 @@ export async function analyzeAndPersist(db: DB, userId: string): Promise<Analysi
 
   const now = Date.now();
   const storedMemories: { id: string; text: string }[] = [];
+  const storedByKey: StoredCandidate[] = [];
   const nowIso = new Date(now).toISOString();
 
   for (const v of validated) {
@@ -285,6 +311,7 @@ export async function analyzeAndPersist(db: DB, userId: string): Promise<Analysi
         nodeId,
       });
       if (nodeId) {
+        storedByKey.push({ key: v.candidate.key, nodeId });
         storedMemories.push({
           id: nodeId,
           text: `${v.candidate.value} ${v.candidate.sourceReference}`,
@@ -293,6 +320,26 @@ export async function analyzeAndPersist(db: DB, userId: string): Promise<Analysi
     } catch {
       // Ein einzelner Kandidat darf den Rest der Analyse nicht verhindern.
       report.candidatesRejected += 1;
+    }
+  }
+
+  // Visual Memory: ausdrückliche image_links derselben Auswertung, geprüft
+  // gegen Bildnachricht + tatsächlich gespeicherte Kandidaten.
+  if (transcriptImages.length > 0) {
+    try {
+      const check = validateImageLinks(analysis.imageLinksRaw, transcriptImages, storedByKey);
+      const { linkMemoryImage } = await import("@/orb-core/visual/assets.server");
+      for (const link of check.accepted) {
+        await linkMemoryImage(db, {
+          userId,
+          memoryId: link.nodeId,
+          assetId: link.assetId,
+          basis: "analysis_image_ref",
+          analysisRunId: analysisRun.analysisRunId,
+        });
+      }
+    } catch {
+      // Bildzuordnung ist ergänzend: ein Fehler lässt Bilder unzugeordnet.
     }
   }
 

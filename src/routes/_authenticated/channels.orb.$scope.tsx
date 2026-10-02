@@ -249,6 +249,30 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
       if (isAdmin) broadcastCognitive(turn.cognitive);
       if (turn.aiStatus === "quota") toast.error("Die Sprachschicht ist derzeit nicht verfügbar.");
 
+      // Visual Memory: nur tatsächlich verknüpfte, gespeicherte Bilder der
+      // abgerufenen Erinnerungen (max. 3 je Antwort, je Sitzung einmal).
+      const memoryImgs = (turn.memoryImages ?? []).flatMap((m) => m.images).slice(0, 3);
+      if (memoryImgs.length > 0) {
+        const lastOrb = [...turn.snapshot.messages].reverse().find((m) => m.role === "orb");
+        setVisuals((prev) => {
+          const shown = new Set(prev.map((v) => v.key));
+          const add = memoryImgs
+            .filter((img) => img.url && !shown.has(`visual-${scope}-mem-${img.id}`))
+            .map(
+              (img): OrbVisualItem => ({
+                key: `visual-${scope}-mem-${img.id}`,
+                afterMessageId: lastOrb?.id ?? null,
+                kind: "memory",
+                status: "ok",
+                src: img.url!,
+                origin: img.sourceType,
+                createdAt: img.createdAt,
+              }),
+            );
+          return add.length > 0 ? [...prev, ...add] : prev;
+        });
+      }
+
       // P2: gültiger, signierter Visual-Intent ⇒ Bild als eigene ORB-Nachricht.
       if (turn.visual) {
         const token = turn.visual.token;

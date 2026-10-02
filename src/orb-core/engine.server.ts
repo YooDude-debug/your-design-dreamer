@@ -637,6 +637,8 @@ export type OrbTurn = {
    * nie gespeichert). Prüfung und Signatur erfolgen im Chat-Endpunkt.
    */
   visualMarker: string | null;
+  /** Visual Memory: Kennung der gespeicherten Nutzernachricht dieser Runde. */
+  userMessageId?: string;
 
   perf: OrbPerf;
   /** P0 Messbarkeit: nur Zahlen, nur Laufzeit (nicht gespeichert). */
@@ -1977,6 +1979,7 @@ export async function processInput(
   return {
     reply,
     visualMarker: visualSplit.raw,
+    userMessageId,
     decision,
     decisionReason: reason,
     importance,

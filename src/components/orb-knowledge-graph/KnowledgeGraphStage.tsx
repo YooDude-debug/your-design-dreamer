@@ -6,6 +6,7 @@
  * (diffGraphs). Alles andere wird ausdrücklich als "nicht verfügbar" gezeigt.
  */
 
+import { OrbMemoryImages } from "@/components/orb-knowledge-graph/OrbMemoryImages";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -615,6 +616,7 @@ export default function KnowledgeGraphStage() {
               }
             />
           </dl>
+          <OrbMemoryImages key={node.id} memoryId={node.id} />
           <h3 className="mb-1 mt-3 font-bold">Verbindungen ({nodeEdges.length})</h3>
           <ul className="space-y-1">
             {nodeEdges.slice(0, 20).map((e) => {

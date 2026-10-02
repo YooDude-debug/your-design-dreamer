@@ -89,6 +89,15 @@ async function listUserObjects(userId: string): Promise<string[]> {
       if (item.name) out.push(`${userId}/${folder}/${item.name}`);
     }
   }
+  // ORB Visual Memory: <user>/orb/<scope>/<sha256>.<ext>
+  for (const scope of ["normal", "orb_core", "y_dude", "unassigned"]) {
+    const { data } = await supabaseAdmin.storage
+      .from(BUCKET)
+      .list(`${userId}/orb/${scope}`, { limit: 1000 });
+    for (const item of data ?? []) {
+      if (item.name) out.push(`${userId}/orb/${scope}/${item.name}`);
+    }
+  }
   return out;
 }
 

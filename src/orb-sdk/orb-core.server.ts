@@ -86,7 +86,80 @@ export function createOrbCore(session: OrbSession) {
     async generateVisual(token: string) {
       const { generateVisual } = await import("@/orb-core/visual/generate.server");
       // Eigene Protokolltabelle ausserhalb der ORB-Bereichstabellen; Bereich steht im Token.
-      return generateVisual(rawDb, { userId, scope, token });
+      const result = await generateVisual(rawDb, { userId, scope, token });
+      // Visual Memory: erzeugte Bilder als `orb_generated` ablegen (unverknüpft).
+      if (result.status === "ok") {
+        try {
+          const { storeImageAsset } = await import("@/orb-core/visual/assets.server");
+          const stored = await storeImageAsset(db, {
+            userId,
+            scope,
+            mimeType: result.mimeType as OrbImageAttachment["mimeType"],
+            dataBase64: result.dataBase64,
+            sourceType: "orb_generated",
+            sourceMessageId: null,
+          });
+          return { ...result, assetId: stored.ok ? stored.assetId : null };
+        } catch {
+          return { ...result, assetId: null };
+        }
+      }
+      return result;
+    },
+    /** Visual Memory: Upload-Bilder einer Nachricht speichern (nie verknüpft). */
+    async storeMessageImages(images: OrbImageAttachment[], messageId: string | null) {
+      const { storeImageAsset } = await import("@/orb-core/visual/assets.server");
+      const out: { status: "stored" | "failed"; assetId: string | null }[] = [];
+      for (const img of images) {
+        try {
+          const r = await storeImageAsset(db, {
+            userId,
+            scope,
+            mimeType: img.mimeType,
+            dataBase64: img.dataBase64,
+            sourceType: "user_upload",
+            sourceMessageId: messageId,
+          });
+          out.push(r.ok ? { status: "stored", assetId: r.assetId } : { status: "failed", assetId: null });
+        } catch {
+          out.push({ status: "failed", assetId: null });
+        }
+      }
+      return out;
+    },
+    /** Visual Memory: tatsächlich verknüpfte Bilder abgerufener Erinnerungen. */
+    async imagesForMemories(memoryIds: string[]) {
+      try {
+        const { imagesForRecalledMemories } = await import("@/orb-core/visual/assets.server");
+        return await imagesForRecalledMemories(db, userId, memoryIds);
+      } catch {
+        return [];
+      }
+    },
+    /** Visual Memory: Bilder einer Erinnerung (Detailansicht). */
+    async listMemoryImages(memoryId: string) {
+      const v = await import("@/orb-core/visual/assets.server");
+      return v.listMemoryImages(db, userId, memoryId);
+    },
+    /** Visual Memory: nicht zugeordnete Bilder dieses Bereichs. */
+    async listUnassignedImages() {
+      const v = await import("@/orb-core/visual/assets.server");
+      return v.listUnassignedImages(db, userId);
+    },
+    /** Visual Memory: manuelle Zuordnung. */
+    async linkMemoryImage(memoryId: string, assetId: string) {
+      const v = await import("@/orb-core/visual/assets.server");
+      return v.linkMemoryImage(db, { userId, memoryId, assetId, basis: "manual" });
+    },
+    /** Visual Memory: Zuordnung aufheben. */
+    async unlinkMemoryImage(memoryId: string, assetId: string) {
+      const v = await import("@/orb-core/visual/assets.server");
+      return v.unlinkMemoryImage(db, { userId, memoryId, assetId });
+    },
+    /** Visual Memory: Bild samt Verknüpfungen löschen. */
+    async deleteVisualAsset(assetId: string) {
+      const v = await import("@/orb-core/visual/assets.server");
+      return v.deleteVisualAsset(db, userId, assetId);
     },
     /** Ausdrückliches Lernereignis mit hoher Wichtigkeit. */
     async learn(lesson: string) {

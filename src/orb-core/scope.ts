@@ -32,6 +32,9 @@ export const ORB_SCOPED_TABLES: ReadonlySet<string> = new Set([
   "orb_questions",
   "orb_interests",
   "orb_candidates",
+  // Visual Memory: Bildressourcen und Erinnerungs-Bild-Verknüpfungen.
+  "orb_visual_assets",
+  "orb_memory_images",
 ]);
 
 const DATA_SCOPES: readonly string[] = [...ORB_CHAT_SCOPES, "unassigned"];

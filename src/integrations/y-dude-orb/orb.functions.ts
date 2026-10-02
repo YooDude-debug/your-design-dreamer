@@ -89,10 +89,16 @@ export const sendOrbInput = createServerFn({ method: "POST" })
       images: checked.images,
       replyToOrbMessageId: data.replyToOrbMessageId,
     });
+    // Visual Memory: Bilder NACH gespeicherter Nachricht dauerhaft ablegen
+    // (Quelle = diese Nachricht). Fehler blockieren die Antwort nie; das Bild
+    // bleibt dann schlicht ungespeichert. Zuordnung zu Erinnerungen erfolgt
+    // erst durch eine ausdrückliche Referenz (Analyse oder manuell).
+    const storedImages = await core.storeMessageImages(checked.images, turn.userMessageId ?? null);
+    const memoryImages = await core.imagesForMemories(turn.recalled.map((r) => r.id));
     // P2: Visual-Intent serverseitig prüfen und signieren. Ohne gültigen
     // Intent entsteht kein Bildaufruf; die Textantwort bleibt unberührt.
     const visual = visualMarker ? await core.prepareVisual(visualMarker, text) : null;
-    return { ...turn, visual };
+    return { ...turn, visual, storedImages, memoryImages };
   });
 
 /**
