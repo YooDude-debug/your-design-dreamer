@@ -8,7 +8,7 @@
  * mehr dauerhaft im Seitenfluss sichtbar. Inhalt des Textes unverändert.
  */
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Info } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
@@ -17,7 +17,7 @@ export const ORB_EXPERIMENT_NOTICE_TEXT =
   "Entwicklung verändern. Für bestimmte Funktionen können Inhalte an externe KI-Dienste " +
   "übertragen und dort verarbeitet werden.";
 
-export function OrbExperimentNotice() {
+export function OrbExperimentNotice({ children }: { children?: ReactNode }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -45,6 +45,7 @@ export function OrbExperimentNotice() {
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" aria-hidden="true" />
           <span>{ORB_EXPERIMENT_NOTICE_TEXT}</span>
         </div>
+        {children}
       </PopoverContent>
     </Popover>
   );

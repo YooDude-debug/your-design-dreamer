@@ -213,9 +213,10 @@ export function OrbChat({
   onTypingChange,
   onActivity,
   voiceControls,
+  headerActions,
   glass = false,
   visuals = [],
-}: Props & { glass?: boolean; visuals?: OrbVisualItem[] }) {
+}: Props & { glass?: boolean; visuals?: OrbVisualItem[]; headerActions?: ReactNode }) {
   const [text, setText] = useState("");
   // Bildanhänge der aktuellen Nachricht – flüchtig, nur Anfragekontext.
   const [attachments, setAttachments] = useState<OrbAttachment[]>([]);
@@ -373,12 +374,14 @@ export function OrbChat({
           : "overflow-hidden rounded-lg border border-border bg-surface/70 shadow-subtle"
       }
     >
-      <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-        <div>
+      <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-2.5">
+        <div className="min-w-0">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-brand">Gespräch</p>
           <h2 className="text-sm font-bold text-foreground">Mit ORB sprechen</h2>
         </div>
-        <span className="text-[10px] text-muted-foreground">Text oder Stimme</span>
+        {headerActions ?? (
+          <span className="text-[10px] text-muted-foreground">Text oder Stimme</span>
+        )}
       </div>
 
       <div

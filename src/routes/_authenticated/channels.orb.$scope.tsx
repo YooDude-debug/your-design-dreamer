@@ -129,28 +129,6 @@ function OrbScopePage() {
   return <OrbCorePage key={scope} scope={scope} />;
 }
 
-/** Drei feste Bereiche als Navigation. */
-function OrbScopeNav({ current }: { current: OrbChatScope }) {
-  return (
-    <nav aria-label="ORB-Bereich" className="mb-3 flex gap-1.5">
-      {ORB_CHAT_SCOPES.map((s) => (
-        <Link
-          key={s}
-          to="/channels/orb/$scope"
-          params={{ scope: s }}
-          aria-current={s === current ? "page" : undefined}
-          className={
-            s === current
-              ? "rounded-full border border-brand bg-brand/15 px-3 py-1 text-xs font-semibold text-brand"
-              : "rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:text-foreground"
-          }
-        >
-          {ORB_SCOPE_LABEL[s]}
-        </Link>
-      ))}
-    </nav>
-  );
-}
 
 function OrbCorePage({ scope }: { scope: OrbChatScope }) {
   const router = useRouter();
@@ -722,11 +700,19 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
           <span className="rounded-full border border-brand/35 bg-brand/10 px-2 py-1 text-[10px] font-semibold uppercase text-brand">
             Experiment
           </span>
-          <OrbExperimentNotice />
+          <OrbExperimentNotice>
+            {isAdmin && (
+              <Link
+                to="/orb/knowledge-graph"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-border bg-background/80 px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-brand hover:text-brand"
+              >
+                <Network className="size-3.5" aria-hidden />
+                Wissensgraph
+              </Link>
+            )}
+          </OrbExperimentNotice>
         </span>
       </header>
-
-      <OrbScopeNav current={scope} />
 
       {snapshotQuery.isPending && (
         <p className="flex items-center gap-2 py-10 text-sm text-muted-foreground">
@@ -744,40 +730,6 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
 
       {snapshot && (
         <div className="space-y-4">
-          <section className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-2 rounded-full border border-border bg-background/80 px-3 py-1.5">
-              <span
-                className={`size-2 rounded-full ${listening || speaking ? "bg-brand animate-pulse" : "bg-brand"}`}
-                aria-hidden="true"
-              />
-              <span className="text-xs font-semibold text-foreground">{orbActivity}</span>
-            </div>
-            {isAdmin && (
-              <Link
-                to="/orb/knowledge-graph"
-                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/80 px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-brand hover:text-brand"
-              >
-                <Network className="size-3.5" aria-hidden />
-                Wissensgraph
-              </Link>
-            )}
-            {isAdmin && (
-              <button
-                type="button"
-                role="switch"
-                aria-checked={globeOn}
-                onClick={() => setGlobeOn((v) => !v)}
-                className="ml-auto inline-flex items-center gap-2 rounded-full border border-border bg-background/80 py-1 pl-3 pr-1 text-xs font-semibold text-foreground"
-              >
-                Knowledge Globe
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${globeOn ? "bg-brand text-primary-foreground" : "bg-muted text-muted-foreground"}`}
-                >
-                  {globeOn ? "ON" : "OFF"}
-                </span>
-              </button>
-            )}
-          </section>
 
           <div className="relative isolate">
             {isAdmin && globeOn && (
@@ -822,6 +774,24 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
 
               <OrbChat
                 glass={isAdmin && globeOn}
+                headerActions={
+                  isAdmin ? (
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={globeOn}
+                      onClick={() => setGlobeOn((v) => !v)}
+                      className="inline-flex shrink-0 items-center gap-2 rounded-full border border-border bg-background/80 py-1 pl-3 pr-1 text-xs font-semibold text-foreground"
+                    >
+                      Knowledge Globe
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${globeOn ? "bg-brand text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+                      >
+                        {globeOn ? "ON" : "OFF"}
+                      </span>
+                    </button>
+                  ) : undefined
+                }
                 messages={snapshot.messages}
                 visuals={visuals.filter(
                   (v) =>
