@@ -9,3 +9,8 @@
 - [x] Phase 8 Tests + Regression
 - [x] Phase 9 Forensik: DB-Isolation live, Browser drei Kanäle
 - [ ] Deployment: wartet auf ausdrückliche Freigabe
+
+# Roadmap – ORB Visual Memory
+- [x] Assets, Verknüpfung, Abruf, Graph-Detail, Löschen, Kontolöschung, Tests, Audit
+- [ ] Echter Ende-zu-Ende-Lauf im Chat (wartet auf Ihren Test bzw. Freigabe)
+- [ ] Veröffentlichung: wartet auf ausdrückliche Freigabe
