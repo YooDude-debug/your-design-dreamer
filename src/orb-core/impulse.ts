@@ -12,6 +12,7 @@
  */
 
 import { clamp01 } from "@/orb-core/core";
+import { compareIds } from "@/orb-core/decision-trace";
 import type { DetectedGap, GapType } from "@/orb-core/gaps";
 import { similarity } from "@/orb-core/memory";
 import { PROACTIVE_COOLDOWN_MS, curiosityBand } from "@/orb-core/presence";
@@ -207,7 +208,9 @@ export function decideImpulse(input: ImpulseDecisionInput): ImpulseDecision {
 
   candidates.sort((a, b) => {
     const byPriority = PRIORITY_ORDER.indexOf(a.priority) - PRIORITY_ORDER.indexOf(b.priority);
-    return byPriority !== 0 ? byPriority : b.score - a.score;
+    if (byPriority !== 0) return byPriority;
+    // Gleichstand: feste Reihenfolge über die Lücken-ID (keine fachliche Gewichtung).
+    return b.score - a.score || compareIds(a.gap.id, b.gap.id);
   });
 
   const rememberPreference =

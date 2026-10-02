@@ -16,13 +16,10 @@ import type {
 } from "@/orb-core/engine.server";
 import type { OrbAutonomyAttempt } from "@/orb-core/autonomy";
 import { finalAutonomyGate } from "@/orb-core/autonomy";
-import {
-  CURIOSITY_SCOPE,
-  decideCuriosity,
-  isDuplicateQuestion,
-  type KnowledgeGap,
-} from "@/orb-core/curiosity";
-import { IMPULSE_SCOPE, type decideImpulse } from "@/orb-core/impulse";
+import { decideCuriosity, isDuplicateQuestion, type KnowledgeGap } from "@/orb-core/curiosity";
+import type { decideImpulse } from "@/orb-core/impulse";
+import { orbBuildId, scopeCheckOf } from "@/orb-core/decision-trace";
+import { scopeOf } from "@/orb-core/scope";
 import { PROACTIVE_SCOPE } from "@/orb-core/presence";
 import { topicsOf } from "@/orb-core/memory";
 import { logEventSummary, type OrbEventContext } from "@/orb-core/observability.server";
@@ -177,8 +174,14 @@ export async function tryExtendedInitiative(input: {
         ...ctx.state,
         proactive: true,
         explicit: input.explicit,
-        scope: PROACTIVE_SCOPE,
-        curiosity_scope: CURIOSITY_SCOPE,
+        // Deklarierte Beschriftung (kein Prüfergebnis); Prüfung: `scope_check`.
+        declared_scope: PROACTIVE_SCOPE,
+        build_id: orbBuildId(),
+        scope_check: scopeCheckOf({
+          declaredAllowed: "orb_core",
+          runtimeScope: scopeOf(db),
+          explicit: input.explicit,
+        }),
         topic: gap.topic,
         gap_kind: gapKind,
         knowledge_gap: gap.gap,
@@ -187,7 +190,6 @@ export async function tryExtendedInitiative(input: {
         initiative_type: type,
         initiative_provenance: provenance,
         impulse: null,
-        impulse_scope: IMPULSE_SCOPE,
       },
       created_at: new Date(now).toISOString(),
     }),

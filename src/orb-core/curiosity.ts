@@ -17,6 +17,7 @@
  */
 
 import { clamp01 } from "@/orb-core/core";
+import { compareIds } from "@/orb-core/decision-trace";
 import { contentTokens, recencyFactor, similarity, type InterestRow } from "@/orb-core/memory";
 import {
   PROACTIVE_COOLDOWN_MS,
@@ -265,7 +266,8 @@ export function deriveKnowledgeGaps(input: GapInput & { curiosity: number }): Kn
     }
   }
 
-  return gaps.sort((a, b) => b.score - a.score);
+  // Gleichstand: feste Reihenfolge über die Knoten-ID (keine fachliche Gewichtung).
+  return gaps.sort((a, b) => b.score - a.score || compareIds(a.nodeId, b.nodeId));
 }
 
 /* -------------------------------------------------------------- Entscheidung */

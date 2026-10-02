@@ -128,6 +128,13 @@ export type GapDetectionInput = {
   connections: GapConnection[];
   /** Themen der letzten Nachrichten (laufendes Gespräch). */
   conversationTopics?: string[];
+  /**
+   * Gezielt nachgeladene Verbindungsreferenzen der geladenen Knoten (auch zu
+   * Knoten ausserhalb des Ladefensters). `undefined`: nicht nachgeladen
+   * (bisheriges Verhalten). `null`: Abfrage fehlgeschlagen – Verknüpfung
+   * unbekannt, daher keine „unverknüpft"-Lücke.
+   */
+  linkedNodeIds?: Set<string> | null;
   now: number;
 };
 
@@ -184,6 +191,12 @@ export function detectGaps(input: GapDetectionInput): DetectedGap[] {
       .map((id) => byId.get(id))
       .filter((n): n is GapNode => Boolean(n));
     const linkedText = linked.map((n) => n.content).join(" ");
+    // „Unverknüpft" nur, wenn auch die gezielte Nachladung keine Verbindung kennt.
+    const unlinked =
+      linked.length === 0 &&
+      (input.linkedNodeIds === undefined
+        ? true
+        : input.linkedNodeIds !== null && !input.linkedNodeIds.has(node.id));
     const isProject = PROJECT_RE.test(node.content) || node.category === "project";
     const isGoal = GOAL_RE.test(node.content) || node.category === "goal";
 
@@ -198,7 +211,7 @@ export function detectGaps(input: GapDetectionInput): DetectedGap[] {
     }
 
     // Ziel ohne erkennbaren Umsetzungsbezug.
-    if (isGoal && !isProject && linked.length === 0) {
+    if (isGoal && !isProject && unlinked) {
       add(
         node,
         "incomplete_goal",
@@ -248,7 +261,7 @@ export function detectGaps(input: GapDetectionInput): DetectedGap[] {
     }
 
     // Wichtige Angabe, die im Wissen allein steht.
-    if (linked.length === 0 && node.importance >= 0.6 && !isProject && !isGoal) {
+    if (unlinked && node.importance >= 0.6 && !isProject && !isGoal) {
       add(
         node,
         "missing_information",

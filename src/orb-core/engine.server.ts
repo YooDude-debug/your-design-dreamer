@@ -16,6 +16,14 @@
 import { isConceptRow } from "@/orb-core/analysis/concepts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { internalError } from "@/orb-core/internal-error";
+import {
+  buildAutonomyTrace,
+  compareIds,
+  orbBuildId,
+  scopeCheckOf,
+  type LinkLookupStatus,
+} from "@/orb-core/decision-trace";
+import { AUTONOMY_MIN_ENERGY } from "@/orb-core/autonomy";
 import type { Database } from "@/integrations/supabase/types";
 import type { OrbImageAttachment } from "@/lib/orb-attachments";
 
@@ -101,7 +109,7 @@ import {
 } from "@/orb-core/curiosity";
 import { finalAutonomyGate, type OrbAutonomyAttempt } from "@/orb-core/autonomy";
 import { detectGaps, type DetectedGap, type GapNode, type TemporalScope } from "@/orb-core/gaps";
-import { IMPULSE_SCOPE, decideImpulse, type ImpulseCandidate } from "@/orb-core/impulse";
+import { IMPULSE_MIN_SCORE, decideImpulse, type ImpulseCandidate } from "@/orb-core/impulse";
 import {
   GUARDRAIL_SCOPE,
   decideGuardrail,
@@ -402,6 +410,7 @@ export async function getSnapshot(
       .eq("user_id", userId)
       .order("importance", { ascending: false })
       .order("last_accessed_at", { ascending: false })
+      .order("id", { ascending: true })
       .limit(GRAPH_LIMIT),
     db
       .from("orb_connections")
@@ -409,6 +418,7 @@ export async function getSnapshot(
       .eq("user_id", userId)
       .order("weight", { ascending: false })
       .order("last_activated_at", { ascending: false })
+      .order("id", { ascending: true })
       .limit(GRAPH_LIMIT),
     db
       .from("orb_messages")
@@ -421,6 +431,7 @@ export async function getSnapshot(
       .select("*")
       .eq("user_id", userId)
       .order("weight", { ascending: false })
+      .order("id", { ascending: true })
       .limit(20),
     db
       .from("orb_suggestions")
@@ -447,6 +458,7 @@ export async function getSnapshot(
       .select("*")
       .eq("user_id", userId)
       .order("last_activation_at", { ascending: false })
+      .order("id", { ascending: true })
       .limit(12),
     db.from("orb_style").select("*").eq("user_id", userId).maybeSingle(),
   ]);
@@ -762,6 +774,7 @@ async function retrieveCandidates(
           .eq("user_id", userId)
           .eq("topic", topic)
           .order("importance", { ascending: false })
+          .order("id", { ascending: true })
           .limit(CANDIDATE_LIMIT),
       ),
     );
@@ -783,6 +796,7 @@ async function retrieveCandidates(
           .eq("user_id", userId)
           .or(domainFilter)
           .order("importance", { ascending: false })
+          .order("id", { ascending: true })
           .limit(CANDIDATE_LIMIT),
       ),
     );
@@ -795,6 +809,7 @@ async function retrieveCandidates(
         .select("*")
         .eq("user_id", userId)
         .order("last_accessed_at", { ascending: false })
+        .order("id", { ascending: true })
         .limit(CANDIDATE_LIMIT / 2),
     ),
   );
@@ -808,6 +823,7 @@ async function retrieveCandidates(
           .eq("user_id", userId)
           .or(filter)
           .order("importance", { ascending: false })
+          .order("id", { ascending: true })
           .limit(CANDIDATE_LIMIT),
       ),
     );
@@ -1045,6 +1061,7 @@ export async function processInput(
         .eq("user_id", userId)
         .or(`source_node_id.in.(${ids.join(",")}),target_node_id.in.(${ids.join(",")})`)
         .order("weight", { ascending: false })
+        .order("id", { ascending: true })
         .limit(CANDIDATE_LIMIT * 3),
     );
     if (connRes.error) throw internalError(connRes.error);
@@ -1155,6 +1172,7 @@ export async function processInput(
       .select("*")
       .eq("user_id", userId)
       .order("weight", { ascending: false })
+      .order("id", { ascending: true })
       .limit(8),
   );
   if (interestRes.error) throw internalError(interestRes.error);
@@ -1177,7 +1195,7 @@ export async function processInput(
       thread: t,
       relevance: threadRelevance(t, { text, conversationTopics, interests, now }),
     }))
-    .sort((a, b) => b.relevance - a.relevance);
+    .sort((a, b) => b.relevance - a.relevance || compareIds(a.thread.id, b.thread.id));
 
   // Ein alter Faden wird nur erwähnt, wenn er wirklich relevant ist.
   const resumeCandidate = openThreads[0] ?? null;
@@ -1887,6 +1905,8 @@ export async function processInput(
           ...updated,
           importance,
           recalled: recalled.length,
+          // Causal Trace: Kennung der tatsächlich laufenden Build-Version.
+          build_id: orbBuildId(),
           // P5-C: nur technische IDs der tatsächlich model-visible Memories.
           [TURN_VISIBLE_IDS_KEY]: turnMemoryIds,
           // Offener Prozesshinweis: nur Diagnose und Wiedererkennung der
@@ -2323,6 +2343,8 @@ const QUESTION_HISTORY_LIMIT = 30;
 export const AUTONOMOUS_QUESTION_SCOPE = "orb_core" as const;
 /** Obergrenze der Sperr-Abfrage (7 Tage); liegt weit über dem beobachteten Aufkommen. */
 const QUESTION_LOCK_LIMIT = 500;
+/** Obergrenze der gezielten Verbindungs-Nachladung für die Lückenerkennung. */
+const LINK_LOOKUP_LIMIT = 200;
 /** Nach dieser Zeit gilt eine offene Frage als nicht mehr beantwortbar. */
 const ANSWER_WINDOW_MS = 30 * 60_000;
 
@@ -2351,6 +2373,8 @@ export type CuriosityContext = {
   connectionsLoaded: number;
   retrievalMs: number;
   relevanceMs: number;
+  /** Ergebnis der gezielten Verbindungs-Nachladung (P5). */
+  linkLookup: LinkLookupStatus;
 };
 
 /**
@@ -2401,6 +2425,7 @@ async function loadCuriosityContext(
         .not("topic", "is", null)
         .order("importance", { ascending: false })
         .order("last_accessed_at", { ascending: false })
+        .order("id", { ascending: true })
         .limit(12),
     ),
     preloaded
@@ -2412,6 +2437,7 @@ async function loadCuriosityContext(
               .select("*")
               .eq("user_id", userId)
               .order("weight", { ascending: false })
+              .order("id", { ascending: true })
               .limit(8),
           )
           .then((res) => {
@@ -2439,6 +2465,7 @@ async function loadCuriosityContext(
         .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
+        .order("id", { ascending: true })
         .limit(QUESTION_HISTORY_LIMIT),
     ),
     // Verbindungen für die Lückensuche im Spiderweb – begrenzt, nur lesend.
@@ -2448,6 +2475,7 @@ async function loadCuriosityContext(
         .select("source_node_id, target_node_id, weight")
         .eq("user_id", userId)
         .order("weight", { ascending: false })
+        .order("id", { ascending: true })
         .limit(60),
     ),
     // Erinnerungssperre: alle eigenen Fragen der letzten 7 Tage (nur Bezug +
@@ -2460,6 +2488,7 @@ async function loadCuriosityContext(
         .eq("user_id", userId)
         .gte("asked_at", new Date(now - QUESTION_MEMORY_LOCK_MS).toISOString())
         .order("asked_at", { ascending: false })
+        .order("id", { ascending: true })
         .limit(QUESTION_LOCK_LIMIT),
     ),
   ]);
@@ -2467,6 +2496,41 @@ async function loadCuriosityContext(
   if (questionRes.error) throw internalError(questionRes.error);
   if (connRes.error) throw internalError(connRes.error);
   if (lockRes.error) throw internalError(lockRes.error);
+
+  // P5: Verbindungen der geladenen Knoten gezielt nachladen – auch zu Knoten
+  // ausserhalb des 12er-Fensters (z. B. Antworten auf eigene Fragen). Begrenzt,
+  // nur Referenzen, bereichsgebunden über den Datenzugang. Schlägt die Abfrage
+  // fehl, gilt die Verknüpfung als unbekannt (nicht als „unverknüpft").
+  const loadedIds = nodeRes.data.map((n) => n.id);
+  let linkedNodeIds: Set<string> | null = new Set();
+  let linkLookup: LinkLookupStatus = "ok";
+  if (loadedIds.length > 0) {
+    const list = loadedIds.join(",");
+    const linkRes = await q.tick(
+      db
+        .from("orb_connections")
+        .select("source_node_id, target_node_id")
+        .eq("user_id", userId)
+        .gt("weight", 0)
+        .or(`source_node_id.in.(${list}),target_node_id.in.(${list})`)
+        .order("weight", { ascending: false })
+        .order("id", { ascending: true })
+        .limit(LINK_LOOKUP_LIMIT),
+    );
+    if (linkRes.error || !linkRes.data) {
+      linkedNodeIds = null;
+      linkLookup = "failed";
+    } else {
+      const loaded = new Set(loadedIds);
+      const found = new Set<string>();
+      for (const c of linkRes.data) {
+        if (c.source_node_id === c.target_node_id) continue;
+        if (loaded.has(c.source_node_id)) found.add(c.source_node_id);
+        if (loaded.has(c.target_node_id)) found.add(c.target_node_id);
+      }
+      linkedNodeIds = found;
+    }
+  }
   const retrievalMs = Date.now() - retrievalStart;
 
   const lockRows = (lockRes.data ?? []) as {
@@ -2534,7 +2598,9 @@ async function loadCuriosityContext(
     interests: mapInterests(interestRows),
     now,
   });
-  const mergedGaps = [...gaps, ...threadGaps].sort((a, b) => b.score - a.score).slice(0, 12);
+  const mergedGaps = [...gaps, ...threadGaps]
+    .sort((a, b) => b.score - a.score || compareIds(a.nodeId, b.nodeId))
+    .slice(0, 12);
 
   // Proactive Intent: Lücken im Spiderweb (Beziehungen, Widersprüche, offene
   // Entscheidungen). Rein rechnend aus den bereits geladenen Zeilen.
@@ -2565,6 +2631,7 @@ async function loadCuriosityContext(
       weight: c.weight,
     })),
     conversationTopics,
+    linkedNodeIds,
     now,
   });
   const relevanceMs = Date.now() - relevanceStart;
@@ -2598,6 +2665,7 @@ async function loadCuriosityContext(
     threadViews,
     nodesLoaded: nodeRes.data.length,
     connectionsLoaded: connRes.data.length,
+    linkLookup,
     retrievalMs,
     relevanceMs,
   };
@@ -2763,9 +2831,23 @@ export async function askProactively(
   // Autonome eigene Fragen ausschliesslich im ORB-Core-Chat. Andere Bereiche
   // (normal, y_dude, unassigned) bleiben ohne Laden, Modellaufruf oder Eintrag
   // still. Ausdrückliche Aufforderungen (explicit) sind keine autonomen Fragen.
-  if (options.explicit !== true && scopeOf(db) !== AUTONOMOUS_QUESTION_SCOPE) {
+  const scopeCheck = scopeCheckOf({
+    declaredAllowed: AUTONOMOUS_QUESTION_SCOPE,
+    runtimeScope: scopeOf(db),
+    explicit: options.explicit === true,
+  });
+  if (scopeCheck.result === "blocked") {
     const reason = "Eigene Fragen stellt ORB nur im ORB-Core-Chat.";
-    console.info("[orb.autonomy]", JSON.stringify({ userId, result: "silent", gate: "scope" }));
+    console.info(
+      "[orb.autonomy]",
+      JSON.stringify({
+        userId,
+        result: "silent",
+        gate: "scope",
+        build_id: orbBuildId(),
+        scope_check: scopeCheck,
+      }),
+    );
     return {
       asked: false,
       action: "DO_NOTHING",
@@ -2817,6 +2899,42 @@ export async function askProactively(
     impulse: impulseDecision,
   });
 
+  /** Causal Trace: nur bereits berechnete Werte, ändert keine Entscheidung. */
+  const traceOf = (blockedReason: string | null, gate: string | null) =>
+    buildAutonomyTrace({
+      buildId: orbBuildId(),
+      scopeCheck,
+      gate,
+      openQuestion: ctx.openQuestion !== null,
+      thresholds: {
+        min_energy: AUTONOMY_MIN_ENERGY,
+        impulse_min_score: IMPULSE_MIN_SCORE,
+        question_memory_lock_ms: QUESTION_MEMORY_LOCK_MS,
+      },
+      energy: ctx.state.energy,
+      curiosityAction: decision.action,
+      impulseAction: impulseDecision.action,
+      curiosityCandidates: ctx.gaps.map((g) => ({ memoryId: g.nodeId, score: g.score })),
+      impulseCandidates: impulseDecision.candidates.map((c) => ({
+        memoryId: c.gap.relatedNodes[0] ?? null,
+        score: c.score,
+      })),
+      selected: gateDecision.allowed
+        ? {
+            source: gateDecision.source,
+            memory_id: impulse
+              ? (impulse.gap.relatedNodes[0] ?? null)
+              : (decision.gap?.nodeId ?? null),
+            score: impulse ? impulse.score : decision.score,
+          }
+        : null,
+      impulse: impulse
+        ? { type: impulse.gap.type, priority: impulse.priority, form: impulse.gap.form }
+        : null,
+      blockedReason,
+      linkLookup: ctx.linkLookup,
+    });
+
   /** Ein Versuchsnachweis je Serveraufruf – zurückgegeben und einmal geloggt. */
   const attemptOf = (
     over: Partial<OrbAutonomyAttempt> & Pick<OrbAutonomyAttempt, "result" | "gate" | "reason">,
@@ -2842,7 +2960,10 @@ export async function askProactively(
       ...over,
     });
     // Genau eine Zeile je tatsächlichem Versuch – kein Takt-Logging.
-    console.info("[orb.autonomy]", JSON.stringify({ userId, ...attempt }));
+    console.info(
+      "[orb.autonomy]",
+      JSON.stringify({ userId, ...attempt, trace: traceOf(reason, attempt.gate) }),
+    );
     // P3 Observability: Abschlusszeile auch ohne gestellte Frage.
     logEventSummary({
       ctx: obs,
@@ -2948,8 +3069,12 @@ export async function askProactively(
         ...ctx.state,
         proactive: true,
         explicit: options.explicit === true,
-        scope: PROACTIVE_SCOPE,
-        curiosity_scope: CURIOSITY_SCOPE,
+        // Deklarierte Beschriftung (kein Prüfergebnis); die tatsächliche
+        // serverseitige Prüfung steht in `scope_check`.
+        declared_scope: PROACTIVE_SCOPE,
+        build_id: orbBuildId(),
+        scope_check: scopeCheck,
+        decision_trace: traceOf(null, gateDecision.gate),
         topic: gap.topic,
         gap_kind: gap.kind,
         knowledge_gap: gap.gap,
@@ -2958,7 +3083,6 @@ export async function askProactively(
         impulse: impulse
           ? { type: impulse.gap.type, priority: impulse.priority, form: impulse.gap.form }
           : null,
-        impulse_scope: IMPULSE_SCOPE,
       },
       created_at: new Date(now).toISOString(),
     }),

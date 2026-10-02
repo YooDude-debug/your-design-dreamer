@@ -7,12 +7,17 @@
 import path from "node:path";
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { loadEnv } from "vite";
-import { orbCodeSnapshotPlugin } from "./vite-plugins/orb-code-snapshot";
+import { buildOrbCodeSnapshot, orbCodeSnapshotPlugin } from "./vite-plugins/orb-code-snapshot";
 
 // Load all env vars (no prefix) into process.env for server-side code only.
 // Never expose these to the client bundle.
 const serverEnv = loadEnv(process.env.NODE_ENV ?? "development", process.cwd(), "");
 Object.assign(process.env, serverEnv);
+
+// Causal Trace: Build-Kennung = Inhalts-Hash der beim Build gelesenen Quellen
+// (src/, tests/, docs/). Automatisch je Build, keine manuelle Versionsnummer,
+// keine Secrets (Inhalte werden vor dem Hashen maskiert).
+const orbBuildId = `src-${buildOrbCodeSnapshot(process.cwd()).meta.sha256.slice(0, 16)}`;
 
 export default defineConfig({
   tanstackStart: {
@@ -21,6 +26,7 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
+    define: { __ORB_BUILD_ID__: JSON.stringify(orbBuildId) },
     // P25: serverseitiger, nicht öffentlicher Read-only-Lesebestand für orb.code_analysis.
     plugins: [orbCodeSnapshotPlugin()],
     resolve: {
