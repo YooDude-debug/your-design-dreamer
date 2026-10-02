@@ -801,8 +801,9 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
                 messages={snapshot.messages}
                 visuals={visuals.filter(
                   (v) =>
-                    v.afterMessageId === null ||
-                    snapshot.messages.some((m) => m.id === v.afterMessageId),
+                    v.key.startsWith(`visual-${scope}-`) &&
+                    (v.afterMessageId === null ||
+                      snapshot.messages.some((m) => m.id === v.afterMessageId)),
                 )}
                 pending={sendMutation.isPending || curiosityMutation.isPending}
                 onSend={(text, images) => {
