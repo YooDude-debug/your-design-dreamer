@@ -163,11 +163,7 @@ async function upsertRelation(
     const current = asObj(existing.data.metadata);
     // Fremde Verbindung (z. B. aus Erfahrung) wird nicht umgedeutet.
     if (current["kind"] !== CONCEPT_RELATION_KIND) return;
-    const merged = mergeRelationMetadata(
-      current,
-      { ...rel, fromKey: "", toKey: "" },
-      ev,
-    );
+    const merged = mergeRelationMetadata(current, { ...rel, fromKey: "", toKey: "" }, ev);
     const res = await q.tick(
       db
         .from("orb_connections")

@@ -25,15 +25,19 @@ function fakeDb() {
     const filters: ((r: Row) => boolean)[] = [];
     let mode: "select" | "update" | "insert" = "select";
     let patch: Row | null = null;
-    let inserted: Row[] = [];
+    const inserted: Row[] = [];
     let error: { code: string; message: string } | null = null;
     const rows = () => tables[table]!.filter((r) => filters.every((f) => f(r)));
     const api: Record<string, unknown> = {
       select: () => api,
       eq: (c: string, v: unknown) => (filters.push((r) => r[c] === v), api),
       or: (expr: string) => {
-        const parts = [...expr.matchAll(/and\(source_node_id\.eq\.([^,]+),target_node_id\.eq\.([^)]+)\)/g)];
-        filters.push((r) => parts.some((p) => r["source_node_id"] === p[1] && r["target_node_id"] === p[2]));
+        const parts = [
+          ...expr.matchAll(/and\(source_node_id\.eq\.([^,]+),target_node_id\.eq\.([^)]+)\)/g),
+        ];
+        filters.push((r) =>
+          parts.some((p) => r["source_node_id"] === p[1] && r["target_node_id"] === p[2]),
+        );
         return api;
       },
       order: () => api,
@@ -45,7 +49,10 @@ function fakeDb() {
             table === "orb_nodes" &&
             row["norm_key"] &&
             tables.orb_nodes!.some(
-              (r) => r["user_id"] === row["user_id"] && r["scope"] === row["scope"] && r["norm_key"] === row["norm_key"],
+              (r) =>
+                r["user_id"] === row["user_id"] &&
+                r["scope"] === row["scope"] &&
+                r["norm_key"] === row["norm_key"],
             )
           ) {
             error = { code: "23505", message: "dup" };
@@ -54,7 +61,9 @@ function fakeDb() {
           if (
             table === "orb_connections" &&
             tables.orb_connections!.some(
-              (r) => r["source_node_id"] === row["source_node_id"] && r["target_node_id"] === row["target_node_id"],
+              (r) =>
+                r["source_node_id"] === row["source_node_id"] &&
+                r["target_node_id"] === row["target_node_id"],
             )
           ) {
             error = { code: "23505", message: "dup" };
@@ -96,7 +105,12 @@ function fakeDb() {
 const USER = "11111111-1111-4111-8111-111111111111";
 const NOW = "2026-10-02T04:00:00.000Z";
 
-async function run(db: DB, userTexts: string[], raw: unknown, memories: { id: string; text: string }[] = []) {
+async function run(
+  db: DB,
+  userTexts: string[],
+  raw: unknown,
+  memories: { id: string; text: string }[] = [],
+) {
   const check = validateConcepts(raw, userTexts);
   const report = await persistConcepts(
     db,
@@ -107,7 +121,8 @@ async function run(db: DB, userTexts: string[], raw: unknown, memories: { id: st
   return { check, report };
 }
 
-const CRYPTO_TEXT = "Ich überlege, eine Kryptowährung zu entwickeln, die anders funktioniert als Bitcoin.";
+const CRYPTO_TEXT =
+  "Ich überlege, eine Kryptowährung zu entwickeln, die anders funktioniert als Bitcoin.";
 const CRYPTO_RAW = {
   concepts: [
     { label: "Kryptowährung", evidence_quote: "eine Kryptowährung zu entwickeln", confidence: 0.9 },
@@ -166,7 +181,16 @@ describe("Begriffe – Validierung", () => {
 
   it("Beleg aus ORB-Antworten zählt nicht – nur Benutzertext", () => {
     const { concepts } = validateConcepts(
-      { concepts: [{ label: "Konsensmechanismus", evidence_quote: "der Konsensmechanismus", confidence: 0.9 }], relations: [] },
+      {
+        concepts: [
+          {
+            label: "Konsensmechanismus",
+            evidence_quote: "der Konsensmechanismus",
+            confidence: 0.9,
+          },
+        ],
+        relations: [],
+      },
       [CRYPTO_TEXT], // ORB-Zeile mit „Konsensmechanismus“ ist bewusst NICHT übergeben
     );
     expect(concepts).toEqual([]);
@@ -239,7 +263,14 @@ describe("Begriffe – Speicherung im Graph", () => {
         { label: "Fahrrad", evidence_quote: "Mein Fahrrad ist kaputt", confidence: 0.9 },
       ],
       relations: [
-        { from: "Lasagne", to: "Fahrrad", relation: "related_to", basis: "inferred", evidence_quote: "Ich koche gern Lasagne", confidence: 0.9 },
+        {
+          from: "Lasagne",
+          to: "Fahrrad",
+          relation: "related_to",
+          basis: "inferred",
+          evidence_quote: "Ich koche gern Lasagne",
+          confidence: 0.9,
+        },
       ],
     });
     expect(conceptNodes(tables.orb_nodes!)).toHaveLength(2);
@@ -274,7 +305,14 @@ describe("Begriffe – Speicherung im Graph", () => {
         { label: "Bitcoin", evidence_quote: "Teil von Bitcoin", confidence: 0.9 },
       ],
       relations: [
-        { from: "Kryptowährung", to: "Bitcoin", relation: "part_of", basis: "explicit", evidence_quote: text2, confidence: 0.9 },
+        {
+          from: "Kryptowährung",
+          to: "Bitcoin",
+          relation: "part_of",
+          basis: "explicit",
+          evidence_quote: text2,
+          confidence: 0.9,
+        },
       ],
     });
     expect(report.relationConflicts).toBe(1);
@@ -288,7 +326,12 @@ describe("Begriffe – Speicherung im Graph", () => {
     const { db, tables } = fakeDb();
     await run(scopedDb(db, "normal"), [CRYPTO_TEXT], CRYPTO_RAW);
     const core = scopedDb(db, "orb_core");
-    const seen = await core.from("orb_nodes").select("id").eq("user_id", USER).eq("norm_key", conceptKey("Bitcoin")).maybeSingle();
+    const seen = await core
+      .from("orb_nodes")
+      .select("id")
+      .eq("user_id", USER)
+      .eq("norm_key", conceptKey("Bitcoin"))
+      .maybeSingle();
     expect(seen.data).toBeNull();
     const { report } = await run(core, [CRYPTO_TEXT], CRYPTO_RAW);
     expect(report.conceptsCreated).toBe(2);
@@ -314,14 +357,30 @@ describe("Begriffe – Speicherung im Graph", () => {
     await run(scopedDb(db, "normal"), [CRYPTO_TEXT], CRYPTO_RAW);
     const legacy = tables.orb_nodes!.find((n) => n["id"] === "legacy")!;
     expect(legacy["activation_count"]).toBe(0);
-    expect(tables.orb_connections!.some((c) => c["source_node_id"] === "legacy" || c["target_node_id"] === "legacy")).toBe(false);
+    expect(
+      tables.orb_connections!.some(
+        (c) => c["source_node_id"] === "legacy" || c["target_node_id"] === "legacy",
+      ),
+    ).toBe(false);
   });
 
   it("Erinnerung → Begriff nur, wenn der Begriff im Erinnerungstext vorkommt", async () => {
     const { db, tables } = fakeDb();
     const sdb = scopedDb(db, "normal");
-    const memA = (await sdb.from("orb_nodes").insert({ user_id: USER, content: "m1", norm_key: "m1" }).select("id").single()).data as Row;
-    const memB = (await sdb.from("orb_nodes").insert({ user_id: USER, content: "m2", norm_key: "m2" }).select("id").single()).data as Row;
+    const memA = (
+      await sdb
+        .from("orb_nodes")
+        .insert({ user_id: USER, content: "m1", norm_key: "m1" })
+        .select("id")
+        .single()
+    ).data as Row;
+    const memB = (
+      await sdb
+        .from("orb_nodes")
+        .insert({ user_id: USER, content: "m2", norm_key: "m2" })
+        .select("id")
+        .single()
+    ).data as Row;
     const { report } = await run(sdb, [CRYPTO_TEXT], CRYPTO_RAW, [
       { id: memA["id"] as string, text: "Mario möchte eine eigene Kryptowährung entwickeln." },
       { id: memB["id"] as string, text: "Mario mag Lasagne." },
@@ -344,18 +403,43 @@ describe("Begriffe – Speicherung im Graph", () => {
         { label: "Energieverbrauch", evidence_quote: "hohem Energieverbrauch", confidence: 0.9 },
       ],
       relations: [
-        { from: "Bitcoin", to: "Blockchain", relation: "uses", basis: "explicit", evidence_quote: "Bitcoin nutzt eine Blockchain", confidence: 0.9 },
-        { from: "Blockchain", to: "Energieverbrauch", relation: "related_to", basis: "inferred", evidence_quote: "Blockchain mit hohem Energieverbrauch", confidence: 0.7 },
+        {
+          from: "Bitcoin",
+          to: "Blockchain",
+          relation: "uses",
+          basis: "explicit",
+          evidence_quote: "Bitcoin nutzt eine Blockchain",
+          confidence: 0.9,
+        },
+        {
+          from: "Blockchain",
+          to: "Energieverbrauch",
+          relation: "related_to",
+          basis: "inferred",
+          evidence_quote: "Blockchain mit hohem Energieverbrauch",
+          confidence: 0.7,
+        },
       ],
     });
     const t3 = "Für meine Kryptowährung will ich einen sparsamen Konsensmechanismus.";
     await run(sdb, [t3], {
       concepts: [
         { label: "Kryptowährung", evidence_quote: "meine Kryptowährung", confidence: 0.9 },
-        { label: "Konsensmechanismus", evidence_quote: "sparsamen Konsensmechanismus", confidence: 0.9 },
+        {
+          label: "Konsensmechanismus",
+          evidence_quote: "sparsamen Konsensmechanismus",
+          confidence: 0.9,
+        },
       ],
       relations: [
-        { from: "Kryptowährung", to: "Konsensmechanismus", relation: "uses", basis: "explicit", evidence_quote: t3, confidence: 0.9 },
+        {
+          from: "Kryptowährung",
+          to: "Konsensmechanismus",
+          relation: "uses",
+          basis: "explicit",
+          evidence_quote: t3,
+          confidence: 0.9,
+        },
       ],
     });
     const nodes = conceptNodes(tables.orb_nodes!);
@@ -370,7 +454,8 @@ describe("Begriffe – Speicherung im Graph", () => {
     }
     const seen = new Set<string>([nodes[0]!["id"] as string]);
     const stack = [...seen];
-    while (stack.length) for (const n of adj.get(stack.pop()!) ?? []) if (!seen.has(n)) (seen.add(n), stack.push(n));
+    while (stack.length)
+      for (const n of adj.get(stack.pop()!) ?? []) if (!seen.has(n)) (seen.add(n), stack.push(n));
     expect(seen.size).toBe(5);
   });
 });

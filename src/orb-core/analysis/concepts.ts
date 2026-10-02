@@ -179,7 +179,9 @@ export function labelGroundedInQuote(label: string, quote: string): boolean {
   const qTokens = new Set(contentTokens(quote));
   const lTokens = contentTokens(label);
   if (lTokens.length === 0) return false;
-  return lTokens.some((t) => qTokens.has(t) || [...qTokens].some((q) => q.startsWith(t) || t.startsWith(q)));
+  return lTokens.some(
+    (t) => qTokens.has(t) || [...qTokens].some((q) => q.startsWith(t) || t.startsWith(q)),
+  );
 }
 
 function listOf(raw: unknown, field: string): unknown[] {
@@ -303,10 +305,7 @@ export function conceptMentionedIn(label: string, text: string): boolean {
 export type EvidenceEntry = { quote: string; at: string; run: string };
 
 /** Belegstelle anfügen (ohne Doppelte, begrenzt). */
-export function appendEvidence(
-  existing: unknown,
-  entry: EvidenceEntry,
-): EvidenceEntry[] {
+export function appendEvidence(existing: unknown, entry: EvidenceEntry): EvidenceEntry[] {
   const list = Array.isArray(existing)
     ? (existing.filter(
         (e) => e && typeof e === "object" && typeof (e as EvidenceEntry).quote === "string",
