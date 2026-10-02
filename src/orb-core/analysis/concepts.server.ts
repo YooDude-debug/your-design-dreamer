@@ -10,6 +10,7 @@
  * Inhalt, Evidenzstatus und Beziehungstyp bleiben unverändert.
  */
 
+import type { Json } from "@/integrations/supabase/types";
 import { internalError } from "@/orb-core/internal-error";
 import type { DB, QueryCounter } from "@/orb-core/engine.server";
 import {
@@ -170,7 +171,7 @@ async function upsertRelation(
     const res = await q.tick(
       db
         .from("orb_connections")
-        .update({ metadata: merged.metadata, last_activated_at: ev.at })
+        .update({ metadata: merged.metadata as Json, last_activated_at: ev.at })
         .eq("id", existing.data.id)
         .eq("user_id", userId),
     );
