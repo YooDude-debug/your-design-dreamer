@@ -265,7 +265,8 @@ export function deriveKnowledgeGaps(input: GapInput & { curiosity: number }): Kn
     }
   }
 
-  return gaps.sort((a, b) => b.score - a.score);
+  // Gleichstand: feste Reihenfolge über die Knoten-ID (keine fachliche Gewichtung).
+  return gaps.sort((a, b) => b.score - a.score || compareIds(a.nodeId, b.nodeId));
 }
 
 /* -------------------------------------------------------------- Entscheidung */

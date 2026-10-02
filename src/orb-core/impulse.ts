@@ -207,7 +207,9 @@ export function decideImpulse(input: ImpulseDecisionInput): ImpulseDecision {
 
   candidates.sort((a, b) => {
     const byPriority = PRIORITY_ORDER.indexOf(a.priority) - PRIORITY_ORDER.indexOf(b.priority);
-    return byPriority !== 0 ? byPriority : b.score - a.score;
+    if (byPriority !== 0) return byPriority;
+    // Gleichstand: feste Reihenfolge über die Lücken-ID (keine fachliche Gewichtung).
+    return b.score - a.score || compareIds(a.gap.id, b.gap.id);
   });
 
   const rememberPreference =

@@ -1187,7 +1187,7 @@ export async function processInput(
       thread: t,
       relevance: threadRelevance(t, { text, conversationTopics, interests, now }),
     }))
-    .sort((a, b) => b.relevance - a.relevance);
+    .sort((a, b) => b.relevance - a.relevance || compareIds(a.thread.id, b.thread.id));
 
   // Ein alter Faden wird nur erwähnt, wenn er wirklich relevant ist.
   const resumeCandidate = openThreads[0] ?? null;
@@ -2549,7 +2549,9 @@ async function loadCuriosityContext(
     interests: mapInterests(interestRows),
     now,
   });
-  const mergedGaps = [...gaps, ...threadGaps].sort((a, b) => b.score - a.score).slice(0, 12);
+  const mergedGaps = [...gaps, ...threadGaps]
+    .sort((a, b) => b.score - a.score || compareIds(a.nodeId, b.nodeId))
+    .slice(0, 12);
 
   // Proactive Intent: Lücken im Spiderweb (Beziehungen, Widersprüche, offene
   // Entscheidungen). Rein rechnend aus den bereits geladenen Zeilen.
