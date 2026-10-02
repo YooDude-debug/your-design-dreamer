@@ -372,3 +372,17 @@ describe("B2 continueReply", () => {
     expect(generateReply).not.toHaveBeenCalled();
   });
 });
+
+import { countWords, isLongResponse, longResponsePreview } from "@/orb-core/long-form";
+describe("Long-Response-Container Schwelle", () => {
+  const words = (n: number) => Array.from({ length: n }, (_, i) => `wort${i}`).join(" ");
+  it("150 Wörter normal, 151 Container, 1500 Container", () => {
+    expect(isLongResponse(words(150))).toBe(false);
+    expect(isLongResponse(words(151))).toBe(true);
+    expect(countWords(words(1500))).toBe(1500);
+  });
+  it("Absätze/Überschriften zählen Wörter, nicht Zeichen", () => {
+    expect(countWords("## Titel\n\n- eins\n- zwei — drei")).toBe(4);
+    expect(longResponsePreview("## Titel\n**fett** text", 2)).toBe("Titel fett …");
+  });
+});
