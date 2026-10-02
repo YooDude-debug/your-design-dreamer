@@ -1976,6 +1976,7 @@ export async function processInput(
 
   return {
     reply,
+    visualMarker: visualSplit.raw,
     decision,
     decisionReason: reason,
     importance,
