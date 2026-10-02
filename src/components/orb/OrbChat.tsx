@@ -13,6 +13,7 @@ import {
   OrbComposerAttachments,
   type OrbAttachment,
 } from "@/components/orb/OrbComposerAttachments";
+import { OrbVisualMessage, type OrbVisualItem } from "@/components/orb/OrbVisualMessage";
 import { Button } from "@/components/ui/button";
 import { isTouchDevice } from "@/lib/mobile-keyboard";
 import { ORB_MESSAGE_MAX_CHARS, ORB_MESSAGE_TOO_LONG } from "@/lib/orb-attachments";
@@ -213,7 +214,8 @@ export function OrbChat({
   onActivity,
   voiceControls,
   glass = false,
-}: Props & { glass?: boolean }) {
+  visuals = [],
+}: Props & { glass?: boolean; visuals?: OrbVisualItem[] }) {
   const [text, setText] = useState("");
   // Bildanhänge der aktuellen Nachricht – flüchtig, nur Anfragekontext.
   const [attachments, setAttachments] = useState<OrbAttachment[]>([]);
@@ -399,43 +401,51 @@ export function OrbChat({
             const animate =
               m.role === "orb" && pendingCycleRef.current && !knownMessageIdsRef.current.has(m.id);
 
+            const visualsHere = visuals.filter((v) => v.afterMessageId === m.id);
             return (
-              <div
-                key={m.id}
-                className={m.role === "user" ? "flex justify-end" : "flex justify-start"}
-              >
-                <div
-                  className={
-                    m.role === "user"
-                      ? "max-w-[85%] rounded-lg bg-primary px-3 py-2 text-primary-foreground"
-                      : "max-w-[92%] px-1 py-1 text-foreground"
-                  }
-                >
-                  {m.role === "orb" && m.decision && (
-                    <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                      {DECISION_LABEL[m.decision] ?? m.decision}
-                    </span>
-                  )}
-                  {m.role === "orb" ? (
-                    <OrbMessageBody
-                      body={m.body}
-                      animate={animate}
-                      onLiveStart={handleLiveStart}
-                      onLiveProgress={handleLiveProgress}
-                      onLiveComplete={handleLiveComplete}
-                    />
-                  ) : (
-                    <>
-                      {imagesByMessage.has(m.id) && (
-                        <SentImageThumbs images={imagesByMessage.get(m.id) ?? []} />
-                      )}
-                      <p className="whitespace-pre-wrap text-sm leading-relaxed">{m.body}</p>
-                    </>
-                  )}
+              <div key={m.id} className="flex flex-col gap-3">
+                <div className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
+                  <div
+                    className={
+                      m.role === "user"
+                        ? "max-w-[85%] rounded-lg bg-primary px-3 py-2 text-primary-foreground"
+                        : "max-w-[92%] px-1 py-1 text-foreground"
+                    }
+                  >
+                    {m.role === "orb" && m.decision && (
+                      <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                        {DECISION_LABEL[m.decision] ?? m.decision}
+                      </span>
+                    )}
+                    {m.role === "orb" ? (
+                      <OrbMessageBody
+                        body={m.body}
+                        animate={animate}
+                        onLiveStart={handleLiveStart}
+                        onLiveProgress={handleLiveProgress}
+                        onLiveComplete={handleLiveComplete}
+                      />
+                    ) : (
+                      <>
+                        {imagesByMessage.has(m.id) && (
+                          <SentImageThumbs images={imagesByMessage.get(m.id) ?? []} />
+                        )}
+                        <p className="whitespace-pre-wrap text-sm leading-relaxed">{m.body}</p>
+                      </>
+                    )}
+                  </div>
                 </div>
+                {visualsHere.map((v) => (
+                  <OrbVisualMessage key={v.key} item={v} />
+                ))}
               </div>
             );
           })}
+          {visuals
+            .filter((v) => !messages.some((m) => m.id === v.afterMessageId))
+            .map((v) => (
+              <OrbVisualMessage key={v.key} item={v} />
+            ))}
           {openImageGroups.map((g) => (
             <div key={g.key} className="flex justify-end" data-testid="orb-sent-images-open">
               <div className="max-w-[85%] rounded-lg bg-primary px-3 py-2 text-primary-foreground">

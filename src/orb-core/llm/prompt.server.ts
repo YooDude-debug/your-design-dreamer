@@ -11,6 +11,7 @@ import type { Contradiction, MemoryCertainty } from "@/orb-core/continuity";
 import { MODE_HINT, type ConversationMode } from "@/orb-core/conversation";
 import { HONEST_PRESENCE_EXPLANATION } from "@/orb-core/presence";
 import type { OrbInterest } from "@/orb-core/engine.server";
+import { VISUAL_PROMPT_HINT } from "@/orb-core/visual/intent";
 
 /** Entscheidungshinweise – identisch zur bisherigen Sprachschicht. */
 export const DECISION_HINT: Record<string, string> = {
@@ -42,6 +43,8 @@ export type SpeakPromptInput = {
    * gespeicherte Wissenslücke, damit ORB den Bezug ehrlich erklären kann.
    */
   ownQuestion?: { question: string; gap: string | null } | null;
+  /** P2: Bild-Markierung erlaubt (nur normale Benutzerantworten). Fehlt ⇒ Prompt unverändert. */
+  visualHint?: boolean;
 };
 
 /**
@@ -75,6 +78,7 @@ const SECTION_ORDER: SpeakPromptSection[] = [
   "contradictions",
   "history",
   "other",
+  "rules",
   "rules",
   "rules",
   "rules",
@@ -187,6 +191,7 @@ function speakParts(input: SpeakPromptInput): string[] {
     "Behaupte niemals, echtes Bewusstsein oder echte Gefühle zu haben.",
     "Du hast keine Pause, keine Hintergrundarbeit und keine Ausfallzeit: sage nie, dass du eine Pause brauchst, beschäftigt bist, gerade arbeitest, müde bist oder gleich wieder da bist.",
     `Fragt der Benutzer nach deinem Zustand, einer Pause oder ob etwas kaputt ist, erkläre die technische Wahrheit: ${HONEST_PRESENCE_EXPLANATION}`,
+    input.visualHint ? VISUAL_PROMPT_HINT : "",
   ];
 }
 

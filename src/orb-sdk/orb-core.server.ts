@@ -64,6 +64,30 @@ export function createOrbCore(session: OrbSession) {
         replyToOrbMessageId: opts?.replyToOrbMessageId,
       });
     },
+    /** P2: Bild-Markierung prüfen und als Visual-Intent signieren (null = kein Bild). */
+    async prepareVisual(
+      marker: string,
+      userText: string,
+    ): Promise<{ token: string; kind: "explicit" | "autonomous" } | null> {
+      const { validateVisualIntent } = await import("@/orb-core/visual/intent");
+      const check = validateVisualIntent(marker, { userText, scope });
+      if (!check.ok) {
+        console.info(
+          "[orb.visual]",
+          JSON.stringify({ scope, status: "intent_rejected", reason: check.reason }),
+        );
+        return null;
+      }
+      const { signVisualIntent } = await import("@/orb-core/visual/generate.server");
+      const token = signVisualIntent(check.intent, userId, scope);
+      return token ? { token, kind: check.intent.kind } : null;
+    },
+    /** P2: Bild zu einem signierten Intent erzeugen (Limit, Wiederholung, Spur). */
+    async generateVisual(token: string) {
+      const { generateVisual } = await import("@/orb-core/visual/generate.server");
+      // Eigene Protokolltabelle ausserhalb der ORB-Bereichstabellen; Bereich steht im Token.
+      return generateVisual(rawDb, { userId, scope, token });
+    },
     /** Ausdrückliches Lernereignis mit hoher Wichtigkeit. */
     async learn(lesson: string) {
       const core = await import("@/orb-core/engine.server");

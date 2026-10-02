@@ -79,15 +79,39 @@ export const sendOrbInput = createServerFn({ method: "POST" })
     if (!text) throw new Error("empty input");
 
     const { createOrbCore } = await import("@/orb-sdk/orb-core.server");
-    return createOrbCore({
+    const core = createOrbCore({
       data: context.supabase,
       userId: context.userId,
       scope: data.scope,
-    }).processInput(text, {
+    });
+    const { visualMarker, ...turn } = await core.processInput(text, {
       source: "user_stated",
       images: checked.images,
       replyToOrbMessageId: data.replyToOrbMessageId,
     });
+    // P2: Visual-Intent serverseitig prüfen und signieren. Ohne gültigen
+    // Intent entsteht kein Bildaufruf; die Textantwort bleibt unberührt.
+    const visual = visualMarker ? await core.prepareVisual(visualMarker, text) : null;
+    return { ...turn, visual };
+  });
+
+/**
+ * P2: ein Bild zu einem zuvor signierten Visual-Intent erzeugen. Prüft
+ * Signatur (Benutzer + Bereich + Ablauf), 24-h-Limit und Wiederholung.
+ * Das Bild wird nur zurückgegeben – nie gespeichert, nie in Memory.
+ */
+export const generateOrbVisual = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ scope: orbChatScopeSchema, token: z.string().min(20).max(6000) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { createOrbCore } = await import("@/orb-sdk/orb-core.server");
+    return createOrbCore({
+      data: context.supabase,
+      userId: context.userId,
+      scope: data.scope,
+    }).generateVisual(data.token);
   });
 
 /**

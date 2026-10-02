@@ -4577,6 +4577,63 @@ export type Database = {
         }
         Relationships: []
       }
+      orb_visual_generations: {
+        Row: {
+          build_id: string
+          catalog_cost: number | null
+          created_at: string
+          duration_ms: number | null
+          failure_reason: string | null
+          http_status: number | null
+          id: string
+          input_tokens: number | null
+          intent_category: string
+          intent_kind: string
+          model: string
+          output_tokens: number | null
+          prompt_hash: string
+          scope: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          build_id: string
+          catalog_cost?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          failure_reason?: string | null
+          http_status?: number | null
+          id?: string
+          input_tokens?: number | null
+          intent_category: string
+          intent_kind: string
+          model: string
+          output_tokens?: number | null
+          prompt_hash: string
+          scope: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          build_id?: string
+          catalog_cost?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          failure_reason?: string | null
+          http_status?: number | null
+          id?: string
+          input_tokens?: number | null
+          intent_category?: string
+          intent_kind?: string
+          model?: string
+          output_tokens?: number | null
+          prompt_hash?: string
+          scope?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       post_hashtags: {
         Row: {
           created_at: string

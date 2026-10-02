@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import { BackButton } from "@/components/ui/nav-buttons";
 import { goBackOr } from "@/lib/back-nav";
 import { OrbChat } from "@/components/orb/OrbChat";
+import type { OrbVisualItem } from "@/components/orb/OrbVisualMessage";
 import { OrbDevPanel } from "@/components/orb/OrbDevPanel";
 import { OrbErrorState } from "@/components/orb/OrbErrorState";
 import { OrbExperimentNotice } from "@/components/orb/OrbExperimentNotice";
@@ -51,6 +52,7 @@ import {
   requestOrbCuriosity,
   sendOrbFeedback,
   sendOrbInput,
+  generateOrbVisual,
   speakOrbReply,
   transcribeOrbAudio,
 } from "@/integrations/y-dude-orb/orb.functions";
@@ -155,6 +157,9 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
   const queryClient = useQueryClient();
   const loadSnapshot = useServerFn(getOrbSnapshot);
   const send = useServerFn(sendOrbInput);
+  const generateVisual = useServerFn(generateOrbVisual);
+  // P2: von ORB erzeugte Bilder – nur diese Sitzung, nie gespeichert.
+  const [visuals, setVisuals] = useState<OrbVisualItem[]>([]);
   const learn = useServerFn(recordOrbLearning);
   const feedback = useServerFn(sendOrbFeedback);
   // M4: bestehende Admin-Prüfung – nur Admins dürfen die Developer-Analyse auslösen.
@@ -243,6 +248,28 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
       }
       if (isAdmin) broadcastCognitive(turn.cognitive);
       if (turn.aiStatus === "quota") toast.error("Die Sprachschicht ist derzeit nicht verfügbar.");
+
+      // P2: gültiger, signierter Visual-Intent ⇒ Bild als eigene ORB-Nachricht.
+      if (turn.visual) {
+        const token = turn.visual.token;
+        const key = `visual-${scope}-${Date.now()}`;
+        const lastOrb = [...turn.snapshot.messages].reverse().find((m) => m.role === "orb");
+        setVisuals((prev) => [
+          ...prev,
+          { key, afterMessageId: lastOrb?.id ?? null, kind: turn.visual!.kind, status: "loading" },
+        ]);
+        const update = (patch: Partial<OrbVisualItem>) =>
+          setVisuals((prev) => prev.map((v) => (v.key === key ? { ...v, ...patch } : v)));
+        void generateVisual({ data: { scope, token } })
+          .then((res) => {
+            if (res.status === "ok")
+              update({ status: "ok", src: `data:${res.mimeType};base64,${res.dataBase64}` });
+            else update({ status: "error", message: res.message });
+          })
+          .catch(() =>
+            update({ status: "error", message: "Das Bild konnte nicht erstellt werden." }),
+          );
+      }
 
       // Stille Hintergrundauswertung des Gesprächs: keine sichtbare Reaktion,
       // kein Einfluss auf diese Antwort. Fehler bleiben ohne Folgen.
@@ -772,6 +799,12 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
               <OrbChat
                 glass={isAdmin && globeOn}
                 messages={snapshot.messages}
+                visuals={visuals.filter(
+                  (v) =>
+                    v.key.startsWith(`visual-${scope}-`) &&
+                    (v.afterMessageId === null ||
+                      snapshot.messages.some((m) => m.id === v.afterMessageId)),
+                )}
                 pending={sendMutation.isPending || curiosityMutation.isPending}
                 onSend={(text, images) => {
                   presence.noteActivity();
