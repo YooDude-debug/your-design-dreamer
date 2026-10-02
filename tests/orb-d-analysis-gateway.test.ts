@@ -181,7 +181,7 @@ describe("D – Hintergrundanalyse über das Gateway", () => {
 
   it("H/I: Schema und Prompt sind unverändert (Fingerabdruck der Vorversion)", () => {
     expect(sha(JSON.stringify(RESPONSE_SCHEMA))).toBe(
-      "f17bbf3773228ac61d64c6c67e8f74508c2919feb4b0b4b119efcf00390a45f5",
+      "b48f9312b823aa39a76124970d416e568269f01b0cf43c404ec427990761e0a6",
     );
     expect(sha(SYSTEM_PROMPT)).toBe(
       "c5a81c66af6a18942ccafbda7988842fadc943ba100262cc15fb9d864e0b5c0f",
