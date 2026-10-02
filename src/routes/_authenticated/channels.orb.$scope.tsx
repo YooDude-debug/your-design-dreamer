@@ -60,7 +60,6 @@ import { orbChatRequestDiagnostic, type ChatBridgeView } from "@/lib/orb-chat-br
 import { detectDeveloperDiagnosticIntent } from "@/orb-dev/chat-bridge";
 import { adminCheckAccess } from "@/lib/admin.functions";
 import {
-  ORB_CHAT_SCOPES,
   ORB_SCOPE_LABEL,
   RETRIEVAL_CHANNEL,
   isOrbChatScope,
