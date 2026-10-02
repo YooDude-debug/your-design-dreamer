@@ -136,6 +136,11 @@ describe("B2 mergeContinuation – nur der fehlende Teil", () => {
     const long = "x".repeat(CONTINUATION_TAIL_CHARS + 500);
     expect(buildContinuationInput("Anfrage", long)).toContain("Anfang gekürzt");
   });
+  it("continuationBase verwirft angeschnittenes Wort", async () => {
+    const { continuationBase } = await import("@/orb-core/long-form");
+    expect(continuationBase("Text endet mitten im Verd")).toBe("Text endet mitten im ");
+    expect(continuationBase("Satz zu Ende.")).toBe("Satz zu Ende.");
+  });
   it("readCompletion", () => {
     expect(readCompletion({ completion: { status: "incomplete", reason: "max_output_tokens", continuations: 1 } }))
       .toEqual({ status: "incomplete", reason: "max_output_tokens", continuations: 1 });
@@ -204,7 +209,7 @@ describe("B2 continueReply", () => {
 
   it("erzeugt genau einen Aufruf und hängt nur den Rest an", async () => {
     const rows = seed();
-    generateReply.mockResolvedValueOnce(okReply(" Satz und ist jetzt fertig."));
+    generateReply.mockResolvedValueOnce(okReply("im Satz und ist jetzt fertig."));
     const { continueReply } = await import("@/orb-core/continuation.server");
     const r = await continueReply(fakeDb(rows) as never, U, M);
     expect(generateReply).toHaveBeenCalledTimes(1);

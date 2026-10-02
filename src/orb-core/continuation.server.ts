@@ -14,6 +14,7 @@ import {
   MAX_CONTINUATIONS,
   buildContinuationInput,
   buildContinuationSystem,
+  continuationBase,
   mergeContinuation,
   readCompletion,
   type ReplyCompletion,
@@ -74,12 +75,14 @@ export async function continueReply(
     .limit(1);
   const originalRequest = prev.data?.[0]?.body ?? "";
 
+  // Abgeschnittenes letztes Wort verwerfen; das Modell schreibt es neu.
+  const base = continuationBase(row.body);
   let spoken: Awaited<ReturnType<typeof generateReply>>;
   try {
     // Genau ein Modellaufruf.
     spoken = await generateReply({
       system: buildContinuationSystem(),
-      text: buildContinuationInput(originalRequest, row.body),
+      text: buildContinuationInput(originalRequest, base),
     });
   } catch {
     spoken = {
@@ -105,7 +108,7 @@ export async function continueReply(
     };
   }
 
-  const { merged, added } = mergeContinuation(row.body, piece);
+  const { merged, added } = mergeContinuation(base, piece);
   const stillIncomplete = spoken.meta.incomplete ?? null;
   const next: ReplyCompletion = {
     status: stillIncomplete ? "incomplete" : "complete",
