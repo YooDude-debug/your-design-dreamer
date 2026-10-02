@@ -18,7 +18,7 @@ export function OrbTechnicalDeck({ items }: { items: OrbTechnicalItem[] }) {
   const active = items.find((item) => item.id === activeId);
 
   return (
-    <section aria-labelledby="orb-technical-title" className="space-y-3">
+    <section aria-labelledby="orb-technical-title" className="space-y-1.5">
       <div className="flex items-end justify-between gap-3 px-1">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-brand">
@@ -31,7 +31,7 @@ export function OrbTechnicalDeck({ items }: { items: OrbTechnicalItem[] }) {
         <span className="text-[11px] text-muted-foreground">Bei Bedarf öffnen</span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-1.5">
         {items.map((item) => {
           const Icon = item.icon;
           const selected = activeId === item.id;
@@ -44,22 +44,22 @@ export function OrbTechnicalDeck({ items }: { items: OrbTechnicalItem[] }) {
               aria-controls="orb-technical-content"
               onClick={() => setActiveId(selected ? null : item.id)}
               className={cn(
-                "h-auto min-h-20 items-start justify-start gap-3 rounded-lg border-border bg-surface-2/45 px-3 py-3 text-left shadow-none hover:border-brand/50 hover:bg-surface-2",
+                "h-auto min-h-0 items-center justify-start gap-2 rounded-lg border-border bg-surface-2/45 px-2.5 py-1.5 text-left shadow-none hover:border-brand/50 hover:bg-surface-2",
                 selected && "border-brand/70 bg-brand/10 text-foreground",
               )}
             >
-              <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-background text-brand">
-                <Icon className="size-4" aria-hidden="true" />
+              <span className="grid size-6 shrink-0 place-items-center rounded-full bg-background text-brand">
+                <Icon className="size-3.5" aria-hidden="true" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-xs font-bold">{item.label}</span>
-                <span className="mt-1 block truncate text-[10px] font-normal text-muted-foreground">
+                <span className="block text-xs font-bold leading-tight">{item.label}</span>
+                <span className="block truncate text-[10px] leading-tight font-normal text-muted-foreground">
                   {item.summary}
                 </span>
               </span>
               <ChevronDown
                 className={cn(
-                  "mt-1 size-3.5 text-muted-foreground transition-transform",
+                  "size-3.5 shrink-0 text-muted-foreground transition-transform",
                   selected && "rotate-180",
                 )}
                 aria-hidden="true"

@@ -674,7 +674,7 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
     : [];
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-3 pb-8 pt-3 sm:px-5 sm:pt-5">
+    <div className="mx-auto w-full max-w-3xl px-3 pb-8 pt-3 sm:px-5 sm:pt-5 lg:pb-3 lg:pt-3">
       <header className="mb-3 flex items-center gap-3 border-b border-border pb-3">
         <BackButton
           onClick={() => goBackOr(router, "/channels")}
@@ -722,7 +722,7 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
       )}
 
       {snapshot && (
-        <div className="space-y-4">
+        <div className="space-y-4 lg:space-y-2">
           <div className="relative isolate">
             {isAdmin && globeOn && (
               <div
