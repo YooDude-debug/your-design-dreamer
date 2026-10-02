@@ -17,6 +17,12 @@ import {
   sanitizeCandidates,
   type MemoryCandidate,
 } from "@/orb-core/analysis/schema";
+import {
+  CONCEPT_MAX_COUNT,
+  RELATION_BASES,
+  RELATION_MAX_COUNT,
+  RELATION_TYPES,
+} from "@/orb-core/analysis/concepts";
 
 /** D: derselbe Gateway-Endpunkt wie der normale ORB-Chat. */
 const GATEWAY_RESPONSES_URL = "https://ai.gateway.lovable.dev/v1/responses";
@@ -35,6 +41,11 @@ export type AnalysisResult = {
   httpStatus: number | null;
   /** D1: Anzahl Einträge im geparsten `candidates`-Array VOR dem Bereinigen. */
   preSanitizeCount: number;
+  /**
+   * Rohvorschläge für Begriffe/Beziehungen. Ungeprüft – entscheiden darf nur
+   * `validateConcepts` (gegen den Benutzertext). Leer bei jedem Fehler.
+   */
+  conceptsRaw: { concepts: unknown[]; relations: unknown[] };
 };
 
 const EMPTY = (
@@ -46,6 +57,7 @@ const EMPTY = (
   failure,
   httpStatus,
   preSanitizeCount: 0,
+  conceptsRaw: { concepts: [], relations: [] },
 });
 
 /** D1: Rohzahl der Kandidaten im geparsten Ergebnis, ohne Filterung. */
@@ -74,12 +86,15 @@ export const SYSTEM_PROMPT = [
   "relevance = Nutzen für zukünftige Gespräche. long_term_value = Wahrscheinlichkeit, dass es langfristig gilt. confidence = wie sicher die Aussage belegt ist (indirekt abgeleitet = niedrig).",
   "temporal_scope: persistent (dauerhaft), long_term (langfristig), temporary (vorübergehend), one_time (einmalig).",
   "Erfinde nichts. Ohne belastbare Information gib eine leere Liste zurück.",
+  "Zusätzlich: concepts = eigenständige Begriffe (Konzepte, Dinge, Technologien, Orte, Vorhaben), die der Benutzer selbst anspricht – kurze Bezeichnung, keine Sätze, keine Füllwörter. Es gibt keine vorgegebene Begriffsliste.",
+  "evidence_quote = wörtlicher Ausschnitt aus einer Benutzerzeile, in dem der Begriff vorkommt. Ohne wörtlichen Beleg keinen Begriff.",
+  "relations = Beziehungen zwischen zwei genannten Begriffen, nur wenn beide in derselben wörtlichen Benutzerstelle vorkommen. basis = explicit, wenn der Benutzer die Beziehung ausspricht, sonst inferred. Erfinde keine Beziehungen zur Verdichtung.",
 ].join(" ");
 
 export const RESPONSE_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["candidates"],
+  required: ["candidates", "concepts", "relations"],
   properties: {
     candidates: {
       type: "array",
@@ -110,6 +125,37 @@ export const RESPONSE_SCHEMA = {
           decay_rate: { type: "number" },
           source_reference: { type: "string" },
           action: { type: "string", enum: ["create_or_update", "reinforce", "forget"] },
+        },
+      },
+    },
+    concepts: {
+      type: "array",
+      maxItems: CONCEPT_MAX_COUNT,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["label", "evidence_quote", "confidence"],
+        properties: {
+          label: { type: "string" },
+          evidence_quote: { type: "string" },
+          confidence: { type: "number" },
+        },
+      },
+    },
+    relations: {
+      type: "array",
+      maxItems: RELATION_MAX_COUNT,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["from", "to", "relation", "basis", "evidence_quote", "confidence"],
+        properties: {
+          from: { type: "string" },
+          to: { type: "string" },
+          relation: { type: "string", enum: [...RELATION_TYPES] },
+          basis: { type: "string", enum: [...RELATION_BASES] },
+          evidence_quote: { type: "string" },
+          confidence: { type: "number" },
         },
       },
     },
@@ -223,7 +269,12 @@ export async function analyzeContextWindow(input: {
     }
     const preSanitizeCount = countRawCandidates(parsed);
     const candidates = sanitizeCandidates(parsed, input.allowedNodeIds ?? []);
-    return { candidates, usage, failure: null, httpStatus, preSanitizeCount };
+    const obj = (parsed ?? {}) as { concepts?: unknown; relations?: unknown };
+    const conceptsRaw = {
+      concepts: Array.isArray(obj.concepts) ? obj.concepts.slice(0, CONCEPT_MAX_COUNT * 2) : [],
+      relations: Array.isArray(obj.relations) ? obj.relations.slice(0, RELATION_MAX_COUNT * 2) : [],
+    };
+    return { candidates, usage, failure: null, httpStatus, preSanitizeCount, conceptsRaw };
   } catch (error) {
     const timeout = error instanceof Error && error.name === "TimeoutError";
     return EMPTY(timeout ? "timeout" : "http", httpStatus);
