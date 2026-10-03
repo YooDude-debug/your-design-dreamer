@@ -751,6 +751,12 @@ export async function speak(input: {
   imageState?: { attached: number; generationAvailable: boolean } | null;
   /** P6: aktive Erinnerungen, die ORB selbst abgeleitet hat. */
   inferredMemories?: readonly string[];
+  /** P7: Erinnerungen aus dem aktuellen Gesprächsfenster. */
+  conversationMemories?: readonly string[];
+  /** P7: mehrere offene ORB-Fragen bei Kurzantwort. */
+  ambiguousReplyTo?: readonly string[];
+  /** P7: Benutzereingabe für Zuordnungs-/Spekulationshinweise (nur Nutzerpfad). */
+  userText?: string | null;
 }): Promise<{
   reply: string;
   status: "ok" | "quota" | "unavailable";
