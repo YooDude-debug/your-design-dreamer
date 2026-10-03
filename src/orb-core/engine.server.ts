@@ -190,6 +190,7 @@ import {
 } from "@/orb-core/observability.server";
 import type { OrbLlmMeta } from "@/orb-core/llm/provider.server";
 import { scopeOf } from "@/orb-core/scope";
+import { logPassiveMemoryEvaluation } from "@/orb-core/memory-evaluation.server";
 import { ORB_CHAT_SCOPES } from "@/orb-core/scope-values";
 
 export type DB = SupabaseClient<Database>;
@@ -2120,6 +2121,21 @@ export async function processInput(
     outcome: decision,
     dbQueries: perf.dbQueries,
     totalMs: perf.totalMs,
+  });
+  // P14 S2: passive Bewertung NACH allen Entscheidungen und Schreibvorgängen.
+  // Nur Log (IDs/Zahlen/Status, keine Inhalte), keine Rückwirkung.
+  logPassiveMemoryEvaluation({
+    scope: scopeOf(db),
+    eventId: obs.eventId,
+    recalled: recalled.map((r) => ({
+      id: r.node.id,
+      relevance: r.score,
+      importance: r.node.importance,
+      content: r.node.content,
+    })),
+    modelVisibleIds: promptMemoryRefs(conversationPlan).map((r) => r.id),
+    replyText: reply,
+    userText: text,
   });
 
   return {
