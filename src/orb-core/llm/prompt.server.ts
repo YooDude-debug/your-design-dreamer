@@ -44,6 +44,8 @@ export type SpeakPromptInput = {
    * gespeicherte Wissenslücke, damit ORB den Bezug ehrlich erklären kann.
    */
   ownQuestion?: { question: string; gap: string | null } | null;
+  /** P0: die Eingabe ist eine Kurzantwort auf diese letzte ORB-Frage. Fehlt ⇒ Prompt unverändert. */
+  replyTo?: string | null;
   /** P2: Bild-Markierung erlaubt (nur normale Benutzerantworten). Fehlt ⇒ Prompt unverändert. */
   visualHint?: boolean;
   /** B1: ausdrücklich angeforderter längerer Text. Fehlt ⇒ Kurzregel unverändert. */
@@ -192,6 +194,7 @@ function speakParts(input: SpeakPromptInput): string[] {
         ? `Letzte Züge dieses Gesprächs (flüchtiger Kontext, keine dauerhafte Erinnerung): ${input.context}. Du darfst Angaben daraus verwenden, um die aktuelle Eingabe zu verstehen und Fragen dazu zu beantworten. Behaupte nicht, du hättest sie dauerhaft gespeichert, und sage nicht, dir sei etwas nicht genannt worden, wenn es im Kontext steht.`
         : "",
       ownQuestionHint(input.ownQuestion ?? null),
+      replyBindingHint(input.replyTo ?? null),
     ]
       .filter(Boolean)
       .join(" "),
@@ -207,6 +210,21 @@ function speakParts(input: SpeakPromptInput): string[] {
       .filter(Boolean)
       .join(" "),
   ];
+}
+
+/**
+ * P0/P3: Kurzantwort auf ORBs letzte Frage. Leer ohne Frage – Prompt bleibt
+ * byte-identisch. Bindet „Ja/Nein/Alle“ an genau diese Frage, verlangt
+ * Fortschritt statt Wiederholung und Vorsicht bei unbelegten Ursachen.
+ */
+export function replyBindingHint(question: string | null): string {
+  if (!question || !question.trim()) return "";
+  return [
+    `Die aktuelle Eingabe ist eine kurze Antwort auf deine letzte Frage: „${question.trim().slice(0, 300)}“.`,
+    "Deute sie genau als Antwort auf diese Frage (Zustimmung, Verneinung oder Auswahl) und knüpfe inhaltlich daran an – antworte nicht generisch und wechsle nicht das Thema.",
+    "Wiederhole keine bereits gemachten Vorschläge; gehe einen Schritt weiter, z. B. mit einer Priorisierung oder einem konkreten nächsten Schritt – ausser der Benutzer möchte erkennbar nur gehört werden.",
+    "Ist eine Ursache nicht belegt, nenne sie als Möglichkeit, nicht als Tatsache.",
+  ].join(" ");
 }
 
 /**
