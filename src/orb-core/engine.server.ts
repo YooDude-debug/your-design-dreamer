@@ -726,6 +726,10 @@ export async function speak(input: {
   codeTool?: CodeToolRuntime | null;
   /** P2: Bild-Markierung erlauben (nur Benutzerantworten). */
   visualHint?: boolean;
+  /** P5: Bildstatus dieser Anfrage (nur bei Bildbezug gesetzt). */
+  imageState?: { attached: number; generationAvailable: boolean } | null;
+  /** P6: aktive Erinnerungen, die ORB selbst abgeleitet hat. */
+  inferredMemories?: readonly string[];
 }): Promise<{
   reply: string;
   status: "ok" | "quota" | "unavailable";
@@ -1361,13 +1365,33 @@ export async function processInput(
     reliableRecalled.map((r) => ({ id: r.node.id, content: r.node.content, topic: r.node.topic })),
   );
   const directAnswerMemories = directAnswerItems.map((m) => m.content);
+  // P4: Abschlussaussagen ohne eigenen Bezug gehen nicht in den Prompt.
   const promptMemories = (plan: typeof conversationPlan): string[] =>
-    plan.mode === "DIRECT_ANSWER" ? directAnswerMemories : plan.relevantStrands;
+    (plan.mode === "DIRECT_ANSWER" ? directAnswerMemories : plan.relevantStrands).filter(
+      (c) => !isReferentlessClosure(c),
+    );
   /** P5-A: dieselbe endgültige Liste wie `promptMemories`, je Objekt mit ID. */
   const promptMemoryRefs = (
     plan: typeof conversationPlan,
   ): { id: string | null; content: string }[] =>
-    plan.mode === "DIRECT_ANSWER" ? directAnswerItems : plan.relevantStrandRefs;
+    (plan.mode === "DIRECT_ANSWER" ? directAnswerItems : plan.relevantStrandRefs).filter(
+      (r) => !isReferentlessClosure(r.content),
+    );
+  /** P6: Herkunft je Inhalt – eigene Ableitungen werden im Prompt gekennzeichnet. */
+  const inferredMemories = reliableRecalled
+    .filter((r) => r.node.source === "inferred")
+    .map((r) => r.node.content);
+  /**
+   * P5: Bildstatus nur bei Bildbezug (Anhang, Bildwort in der Eingabe oder
+   * Bild-Erinnerung im Abruf) – sonst bleibt der Prompt unverändert.
+   */
+  const IMAGE_REF_RE = /\b(bild\w*|foto\w*|selfie\w*|aussehen|aussehe|siehst|zeig\w*|bart|gesicht)\b/i;
+  const imageState =
+    images.length > 0 ||
+    IMAGE_REF_RE.test(text) ||
+    reliableRecalled.some((r) => /\b(bild\w*|foto\w*)\b/i.test(r.node.content))
+      ? { attached: images.length, generationAvailable: true }
+      : null;
   /**
    * B2: Widerspruchs-Referenzen für den Prompt. Sitzt NACH P2 V2 und nutzt
    * genau dieselbe endgültige Liste wie `promptMemoryRefs`. Es wird nichts neu
@@ -1514,6 +1538,8 @@ export async function processInput(
         mode: conversationPlan.mode,
         modeReason: conversationPlan.reason,
         visualHint: true,
+        imageState,
+        inferredMemories,
       });
     }
   } else {
@@ -1559,6 +1585,8 @@ export async function processInput(
       modeReason: conversationPlan.reason,
       ownQuestion,
       visualHint: true,
+      imageState,
+      inferredMemories,
     });
   }
   const aiMs = Date.now() - aiStart;
