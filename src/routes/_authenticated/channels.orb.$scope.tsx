@@ -728,6 +728,7 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
             {isAdmin && (
               <Link
                 to="/orb/knowledge-graph"
+                search={{ scope }}
                 className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-border bg-background/80 px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-brand hover:text-brand"
               >
                 <Network className="size-3.5" aria-hidden />
