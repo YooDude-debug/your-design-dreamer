@@ -80,8 +80,8 @@ describe("ORB Retrieval-Event", () => {
       "src/components/orb-knowledge-graph/KnowledgeGraphStage.tsx",
       "utf8",
     );
-    expect(stage.match(/pulseRetrieval\(/g)).toHaveLength(1);
-    const i = stage.indexOf("pulseRetrieval(");
+    expect(stage.match(/queueRetrieval\(/g)).toHaveLength(1);
+    const i = stage.indexOf("queueRetrieval(");
     expect(stage.slice(i - 400, i)).toContain("isRetrievalEvent(ev)");
   });
 

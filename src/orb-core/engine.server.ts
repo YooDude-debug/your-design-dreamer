@@ -64,7 +64,11 @@ import {
   type MemoryLevel,
   type OrbInfoSource,
 } from "@/orb-core/memory";
-import { buildRetrievalEvent, type OrbRetrievalEvent } from "@/orb-core/retrieval-event";
+import {
+  buildQuestionActivationEvent,
+  buildRetrievalEvent,
+  type OrbRetrievalEvent,
+} from "@/orb-core/retrieval-event";
 import {
   runCognitiveObservation,
   type OrbCognitiveObservation,
@@ -2445,6 +2449,8 @@ export type OrbProactiveResult = {
   attempt: OrbAutonomyAttempt | null;
   /** Flüchtige Cognitive Observation (nur Beobachtung, nie gespeichert, ohne Wirkung). */
   cognitive?: OrbCognitiveObservation;
+  /** Flüchtig: Quell-Memory der gestellten Frage (nur bei asked=true). */
+  activationEvent?: OrbRetrievalEvent | null;
 };
 
 /** Read-only Einblick für den Testbereich – schreibt nichts. */
@@ -3341,6 +3347,11 @@ export async function askProactively(
     snapshot: await getSnapshot(db, userId, perf),
     perf,
     attempt,
+    activationEvent: buildQuestionActivationEvent({
+      eventId: obs.eventId,
+      nowMs: Date.now(),
+      memoryId: gap.nodeId,
+    }),
     cognitive: runCognitiveObservation({
       path: "proactive_question",
       memoryIds: ctx.gaps.map((g) => g.nodeId),

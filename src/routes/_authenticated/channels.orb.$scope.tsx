@@ -457,6 +457,18 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
       // Beobachtung, beeinflusst keinen Takt und keine Entscheidung.
       silentStreakRef.current = result.asked ? 0 : silentStreakRef.current + 1;
       if (isAdmin && result.asked) broadcastCognitive(result.cognitive, userId, scope);
+      // Echte Aktivierung der Quell-Memory der autonomen Frage (nur Admins, nur Browser).
+      if (
+        isAdmin &&
+        userId &&
+        result.asked &&
+        result.activationEvent &&
+        typeof BroadcastChannel !== "undefined"
+      ) {
+        const ch = new BroadcastChannel(RETRIEVAL_CHANNEL);
+        ch.postMessage(wrapTabSignal(userId, scope, result.activationEvent));
+        ch.close();
+      }
       if (!result.asked || !result.question) return;
       if (result.snapshot) queryClient.setQueryData(["orb", "snapshot", scope], result.snapshot);
       setLastReply(result.question);
