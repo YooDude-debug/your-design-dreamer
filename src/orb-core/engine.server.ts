@@ -2492,6 +2492,9 @@ export type CuriosityContext = {
   detectedGaps: DetectedGap[];
   /** Erinnerungen mit eigener Frage innerhalb der 7-Tage-Sperre. */
   recentlyAskedMemoryIds: Set<string>;
+  recentlyAskedTopics: Set<string>;
+  /** Neueste Nachricht ist eine unbeantwortete ORB-Frage. */
+  openDialog: boolean;
   /** Letzte Nutzertexte – für Abbruch-/Freigabe-Erkennung. */
   recentUserTexts: string[];
   /** PoC 1: geladene `orb_messages` (neueste zuerst, max. 8). */
