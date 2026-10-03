@@ -269,7 +269,7 @@ export function ltMetrics(
     if (didReactivate) reactivated++;
     const lastState = trace.states[trace.states.length - 1]?.candidates.get(key);
     const restoreStep = lastState?.restoredStep ?? null;
-    if (restoreStep !== null && restoreStep > recallStart - 1) {
+    if (restoreStep !== null && restoreStep >= recallStart + 1) {
       restored++;
       for (let s = restoreStep - 1; s < trace.samples.length; s++) {
         const x = trace.samples[s]![i]!;
