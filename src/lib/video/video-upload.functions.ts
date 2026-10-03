@@ -93,7 +93,10 @@ export const registerVideoUpload = createServerFn({ method: "POST" })
 
     const check = await checkVideoFile({ read, size, mimeType });
 
-    const thumbnailPath = data.thumbnailPath ?? videoThumbPath(data.path);
+    // Das Thumbnail liegt immer neben dem eigenen Video. Ein abweichender,
+    // vom Client gesendeter Pfad wird ignoriert – sonst könnte die Aufräum-
+    // logik unten mit Admin-Rechten fremde Dateien löschen.
+    const thumbnailPath = videoThumbPath(data.path);
 
     if (!check.ok) {
       await supabaseAdmin.from("media_video_assets").upsert(
