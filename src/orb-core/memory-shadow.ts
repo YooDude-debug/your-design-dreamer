@@ -96,7 +96,10 @@ export function compareShadow(input: {
   const k = inScope.filter((e) => visible.has(e.id)).length;
 
   const scored = inScope.map((e) => ({ e, score: shadowScore(e) }));
-  const valid = scored.filter((s) => s.score !== null) as { e: (typeof inScope)[number]; score: number }[];
+  const valid = scored.filter((s) => s.score !== null) as {
+    e: (typeof inScope)[number];
+    score: number;
+  }[];
   const shadowOrder = [...valid].sort((a, b) =>
     b.score !== a.score ? b.score - a.score : byId(a.e, b.e),
   );
@@ -137,7 +140,9 @@ export function compareShadow(input: {
         if (tied.has(e.id)) cause = "rank_tie_break_by_id";
         else if (e.usage === "usage_candidate" && deviation !== "would_exclude")
           cause = "usage_candidate_bonus";
-        else if (deviation === "would_exclude" ? e.importance < e.relevance : e.importance > e.relevance)
+        else if (
+          deviation === "would_exclude" ? e.importance < e.relevance : e.importance > e.relevance
+        )
           cause = "importance_outweighs_relevance";
         else cause = "relevance_outweighs_importance";
       }
