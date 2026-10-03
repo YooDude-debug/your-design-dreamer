@@ -12,6 +12,8 @@ import { useLang } from "@/lib/lang-context";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import { getPublicSlangTag } from "@/lib/public-slangtag.functions";
 import { transcribeTestRecording } from "@/lib/public-transcribe.functions";
+import { Turnstile } from "@/components/Turnstile";
+import { useCaptchaGate } from "@/lib/use-captcha-gate";
 import { slangTagTheme } from "@/lib/slangtag-ui";
 import { pickTestImage, TESTER_IMAGES } from "@/lib/landing-test-images";
 
@@ -52,6 +54,8 @@ const TEXTS = {
     hearing: "Text wird erkannt …",
     nameLabel: "SlangTag-Text",
     sttFailed: "Text konnte nicht erkannt werden.",
+    verify: "Sicherheitsprüfung nicht bestätigt – bitte kurz bestätigen und erneut aufnehmen.",
+    busy: "Gerade zu viele Versuche – bitte in ein paar Minuten erneut probieren.",
     imageAlt: "Beispielbild des SlangTag-Testers mit platziertem SlangTag",
   },
   en: {
@@ -78,6 +82,8 @@ const TEXTS = {
     hearing: "Recognising text …",
     nameLabel: "SlangTag text",
     sttFailed: "Could not recognise the text.",
+    verify: "Security check not confirmed – please confirm it and record again.",
+    busy: "Too many attempts right now – please try again in a few minutes.",
     imageAlt: "Example image of the SlangTag tester with a placed SlangTag",
   },
   el: {
@@ -104,6 +110,8 @@ const TEXTS = {
     hearing: "Αναγνώριση κειμένου …",
     nameLabel: "Κείμενο SlangTag",
     sttFailed: "Δεν αναγνωρίστηκε κείμενο.",
+    verify: "Ο έλεγχος ασφαλείας δεν επιβεβαιώθηκε – επιβεβαίωσέ τον και ηχογράφησε ξανά.",
+    busy: "Πάρα πολλές προσπάθειες – δοκίμασε ξανά σε λίγα λεπτά.",
     imageAlt: "Δείγμα εικόνας του SlangTag tester με τοποθετημένο SlangTag",
   },
 } as const;
@@ -164,10 +172,10 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
   const [name, setName] = useState("");
   const [transcribing, setTranscribing] = useState(false);
   /**
-   * Der öffentliche Tester ist bewusst frei von Turnstile. Der Missbrauchs-
-   * schutz der Transkription passiert ausschließlich serverseitig (IP-Rate-
-   * Limit + harte Größenlimits). Turnstile schützt nur die Registrierung.
+   * Bot-Prüfung vor der kostenpflichtigen Transkription. Das Widget liefert
+   * nur ein Token; entscheidend ist allein die Prüfung auf dem Server.
    */
+  const captcha = useCaptchaGate();
   /** Zählt jede neue Aufnahme – erzwingt frische Vorschau (Audio + Text). */
   const [take, setTake] = useState(0);
   const lastAudio = useRef<string | null>(null);
@@ -195,27 +203,39 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
     setImage((current) => pickTestImage(current));
     setTranscribing(true);
     let active = true;
-    void transcribeTestRecording({ data: { audioDataUrl: recorded } })
-      .then((res) => {
+    void (async () => {
+      // Bot-Prüfung: Token wird serverseitig bei Cloudflare verifiziert und
+      // ist nur einmal gültig – danach wird das Widget zurückgesetzt.
+      const token = await captcha.waitForToken(8000);
+      try {
+        const res = await transcribeTestRecording({
+          data: { audioDataUrl: recorded, turnstileToken: token },
+        });
         if (!active) return;
+        if (!res.ok) {
+          setName(t.testName);
+          toast.error(res.reason === "rate_limited" ? t.busy : t.verify);
+          return;
+        }
         const text = res.text
           .replace(/\s+/g, " ")
           .replace(/[.,!?;:]+$/u, "")
           .trim();
         setName(text || t.testName);
-      })
-      .catch(() => {
+      } catch {
         if (!active) return;
         setName(t.testName);
         toast.error(t.sttFailed);
-      })
-      .finally(() => {
+      } finally {
+        captcha.reset();
         if (active) setTranscribing(false);
-      });
+      }
+    })();
     return () => {
       active = false;
     };
-  }, [recorded, t.testName, t.sttFailed]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- captcha-Funktionen sind stabil
+  }, [recorded, t.testName, t.sttFailed, t.verify, t.busy]);
 
   const theme = slangTagTheme(tag?.kind);
   const accent = theme.accent;
@@ -354,6 +374,12 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                       className="w-full bg-transparent text-sm font-semibold text-brand outline-none placeholder:font-normal placeholder:text-muted-foreground"
                     />
                   </div>
+                </div>
+              ) : null}
+
+              {!tag ? (
+                <div className="mt-1.5">
+                  <Turnstile onToken={captcha.setToken} handleRef={captcha.handleRef} />
                 </div>
               ) : null}
 
