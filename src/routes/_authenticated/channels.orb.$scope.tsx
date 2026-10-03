@@ -842,7 +842,9 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
                 onContinue={(id) => {
                   if (!continueMutation.isPending) continueMutation.mutate(id);
                 }}
-                continuingId={continueMutation.isPending ? (continueMutation.variables ?? null) : null}
+                continuingId={
+                  continueMutation.isPending ? (continueMutation.variables ?? null) : null
+                }
                 visuals={visuals.filter(
                   (v) =>
                     v.key.startsWith(`visual-${scope}-`) &&
