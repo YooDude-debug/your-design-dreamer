@@ -171,6 +171,7 @@ import {
 } from "@/orb-core/observability.server";
 import type { OrbLlmMeta } from "@/orb-core/llm/provider.server";
 import { scopeOf } from "@/orb-core/scope";
+import { ORB_CHAT_SCOPES } from "@/orb-core/scope-values";
 
 export type DB = SupabaseClient<Database>;
 
@@ -2892,7 +2893,7 @@ async function formulateQuestion(
 }
 
 /**
- * Eigene Frage aus dem Curiosity Core – ausschliesslich im ORB-Core-Chat.
+ * Eigene Frage aus dem Curiosity Core – in jedem Chat-Bereich des Benutzers.
  *
  * Aufruf erfolgt nur ereignisbasiert (Leerlauf-Beobachter im Browser oder
  * ausdrückliche Aufforderung). Der Server prüft Wissenslücke, Neugier,

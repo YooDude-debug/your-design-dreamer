@@ -65,21 +65,21 @@ describe("P1 Build-Kennung", () => {
 
 describe("P3 Bereichsprüfung", () => {
   it("enthält den tatsächlichen Laufzeit-Bereich", () => {
-    for (const s of ["normal", "y_dude", "unassigned", null]) {
-      const c = scopeCheckOf({ declaredAllowed: "orb_core", runtimeScope: s, explicit: false });
+    const allowedScopes = ["normal", "orb_core", "y_dude"] as const;
+    for (const s of ["unassigned", "fremd", null]) {
+      const c = scopeCheckOf({ allowedScopes, runtimeScope: s, explicit: false });
       expect(c).toEqual({
-        declared_allowed: "orb_core",
+        declared_allowed: "normal|orb_core|y_dude",
         requested: s,
         checked: s,
         result: "blocked",
       });
     }
+    for (const s of allowedScopes) {
+      expect(scopeCheckOf({ allowedScopes, runtimeScope: s, explicit: false }).result).toBe("pass");
+    }
     expect(
-      scopeCheckOf({ declaredAllowed: "orb_core", runtimeScope: "orb_core", explicit: false })
-        .result,
-    ).toBe("pass");
-    expect(
-      scopeCheckOf({ declaredAllowed: "orb_core", runtimeScope: "normal", explicit: true }).result,
+      scopeCheckOf({ allowedScopes, runtimeScope: "unassigned", explicit: true }).result,
     ).toBe("explicit_request");
   });
 
@@ -91,7 +91,7 @@ describe("P3 Bereichsprüfung", () => {
     }
   });
 
-  it.each(["normal", "y_dude", "unassigned"] as const)(
+  it.each(["unassigned"] as const)(
     "%s: keine autonome Frage, kein Datenbankzugriff",
     async (scope) => {
       const from = vi.fn(() => {
@@ -124,7 +124,7 @@ describe("P2 Entscheidungsdaten", () => {
     const trace = buildAutonomyTrace({
       buildId: "src-x",
       scopeCheck: scopeCheckOf({
-        declaredAllowed: "orb_core",
+        allowedScopes: ["orb_core"],
         runtimeScope: "orb_core",
         explicit: false,
       }),

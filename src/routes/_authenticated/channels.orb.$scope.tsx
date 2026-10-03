@@ -415,7 +415,7 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
   // ---------------------------------------------------------- Kernpräsenz ---
   // Der Leerlauf-Beobachter läuft clientseitig; erst wenn alle Bedingungen
   // erfüllt sind, entsteht genau eine Anfrage. Kein Polling, keine DB-Abfrage
-  // pro Takt. Der ORB spricht dabei ausschliesslich in diesem ORB-Core-Chat.
+  // pro Takt. Der ORB spricht dabei ausschliesslich in diesem Chat.
   const curiosityMutation = useMutation({
     mutationFn: () => curiosityFn({ data: { scope } }),
     onSuccess: (result) => {
