@@ -18,11 +18,23 @@ import {
 } from "@/orb-core/synaptic-lab/longterm";
 
 const snap: LabSnapshot = {
-  nodes: Array.from({ length: 30 }, (_, i) => ({ id: `n${String(i).padStart(2, "0")}`, group: i % 2 ? "a" : "b" })),
-  edges: Array.from({ length: 20 }, (_, i) => ({ source: `n${String(i).padStart(2, "0")}`, target: `n${String(i + 1).padStart(2, "0")}` })),
+  nodes: Array.from({ length: 30 }, (_, i) => ({
+    id: `n${String(i).padStart(2, "0")}`,
+    group: i % 2 ? "a" : "b",
+  })),
+  edges: Array.from({ length: 20 }, (_, i) => ({
+    source: `n${String(i).padStart(2, "0")}`,
+    target: `n${String(i + 1).padStart(2, "0")}`,
+  })),
 };
 const P: LabParams = { ...DEFAULT_LAB_PARAMS, decay: 0.08 };
-const LT: LongTermParams = { ...DEFAULT_LT_PARAMS, buildSteps: 10, restSteps: 12, recallSteps: 6, trackedCount: 9 };
+const LT: LongTermParams = {
+  ...DEFAULT_LT_PARAMS,
+  buildSteps: 10,
+  restSteps: 20,
+  recallSteps: 6,
+  trackedCount: 9,
+};
 const pool = buildPool(snap);
 const pm = new Map(pool.map((e) => [e.key, e]));
 
@@ -88,9 +100,14 @@ describe("P9 Langzeittest", () => {
   });
 
   it("9/10 kein Schreibweg, keine Übertragung, keine Signale", () => {
-    for (const f of ["src/orb-core/synaptic-lab/longterm.ts", "src/components/orb-synaptic-lab/LongTermLab.tsx"]) {
+    for (const f of [
+      "src/orb-core/synaptic-lab/longterm.ts",
+      "src/components/orb-synaptic-lab/LongTermLab.tsx",
+    ]) {
       const src = readFileSync(f, "utf8");
-      expect(src).not.toMatch(/\.(insert|update|upsert|delete)\(|supabase|localStorage|BroadcastChannel|createServerFn|fetch\(/);
+      expect(src).not.toMatch(
+        /\.(insert|update|upsert|delete)\(|supabase|localStorage|BroadcastChannel|createServerFn|fetch\(/,
+      );
     }
   });
 

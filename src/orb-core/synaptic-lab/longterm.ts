@@ -128,7 +128,11 @@ export function planLongTerm(pool: PoolEntry[], p: LabParams, lt: LongTermParams
   return { events, tracked, controls, intensity };
 }
 
-export type TrackedSample = { present: boolean; strength: number | null; lifecycle: Lifecycle | null };
+export type TrackedSample = {
+  present: boolean;
+  strength: number | null;
+  lifecycle: Lifecycle | null;
+};
 
 export type LtTrace = {
   model: LabModelId;
@@ -139,8 +143,13 @@ export type LtTrace = {
 
 function sampleOf(s: ModelState, key: string, p: LabParams): TrackedSample {
   const c = s.candidates.get(key);
-  if (!c || c.lifecycle === "removed") return { present: false, strength: null, lifecycle: c?.lifecycle ?? null };
-  return { present: true, strength: strengthAt(c, s.step, s.model, p.decay), lifecycle: c.lifecycle };
+  if (!c || c.lifecycle === "removed")
+    return { present: false, strength: null, lifecycle: c?.lifecycle ?? null };
+  return {
+    present: true,
+    strength: strengthAt(c, s.step, s.model, p.decay),
+    lifecycle: c.lifecycle,
+  };
 }
 
 export function traceModel(
@@ -267,5 +276,8 @@ export function compareSeeds(
   lt: LongTermParams,
   seeds: number[],
 ) {
-  return seeds.map((seed) => ({ seed, metrics: runLongTerm(snapshot, { ...p, seed }, lt).metrics }));
+  return seeds.map((seed) => ({
+    seed,
+    metrics: runLongTerm(snapshot, { ...p, seed }, lt).metrics,
+  }));
 }
