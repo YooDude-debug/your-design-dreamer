@@ -110,6 +110,9 @@ export const Route = createFileRoute("/_authenticated/channels/orb/$scope")({
   notFoundComponent: () => <OrbErrorState />,
 });
 
+/** Browser-Merker: nur das ausdrückliche Ausschalten des Globe (Standard EIN). */
+const GLOBE_DISABLED_KEY = "orb.knowledge-globe.disabled";
+
 const STATE_LABEL: Record<string, string> = {
   curiosity: "Neugier",
   joy: "Freude",
