@@ -13,8 +13,11 @@
  * Modell:  S(t) = S₀ · e^(−λ·Δt)      Verstärkung (nur C): S = min(S_max, S(t) + η·R)
  */
 
-export type LabModelId = "A" | "B" | "C";
-export const LAB_MODELS: readonly LabModelId[] = ["A", "B", "C"];
+/** A unbegrenzt · B Verfall · C Verfall+Verstärkung · D C + reversibles Pruning (P11). */
+export type LabModelId = "A" | "B" | "C" | "D";
+export const LAB_MODELS: readonly LabModelId[] = ["A", "B", "C", "D"];
+/** Modelle mit Verstärkung bei Abruf. */
+const REINFORCING: ReadonlySet<LabModelId> = new Set(["C", "D"]);
 
 export type LabParams = {
   seed: number;
@@ -30,6 +33,8 @@ export type LabParams = {
   pruneThreshold: number;
   /** Obergrenze experimenteller Kandidaten je Modell. */
   maxCandidates: number;
+  /** Nur Modell D: Schritte, die eine ruhende (dormant) Verbindung aufbewahrt wird, danach expired. */
+  dormantRetention: number;
 };
 
 export const LAB_LIMITS = {
@@ -39,6 +44,7 @@ export const LAB_LIMITS = {
   activationRate: [0, 30],
   pruneThreshold: [0.01, 0.9],
   maxCandidates: [1, 2000],
+  dormantRetention: [0, 400],
 } as const;
 
 export const DEFAULT_LAB_PARAMS: LabParams = {
@@ -49,6 +55,7 @@ export const DEFAULT_LAB_PARAMS: LabParams = {
   activationRate: 5,
   pruneThreshold: 0.1,
   maxCandidates: 300,
+  dormantRetention: 40,
 };
 
 export const S_MAX = 1;
@@ -65,7 +72,19 @@ export type LabEdge = { source: string; target: string };
 export type LabSnapshot = { nodes: LabNode[]; edges: LabEdge[] };
 
 export type HypothesisStatus = "hypothesis" | "confirmed" | "rejected" | "weakened";
-export type Lifecycle = "active" | "weak" | "inactive" | "reactivated" | "removed";
+export type Lifecycle =
+  | "active"
+  | "weak"
+  | "inactive"
+  | "reactivated"
+  | "removed"
+  | "dormant"
+  | "expired";
+
+/** Im Graphen aktiv (abrufbar). removed/dormant/expired sind es nicht. */
+export function isLive(c: { lifecycle: Lifecycle }): boolean {
+  return c.lifecycle !== "removed" && c.lifecycle !== "dormant" && c.lifecycle !== "expired";
+}
 
 export type LabCandidate = {
   key: string;
@@ -83,6 +102,11 @@ export type LabCandidate = {
   lifecycle: Lifecycle;
   belowSince: number | null;
   everReactivated: boolean;
+  /** Modell D: Schritt des Übergangs nach dormant (sonst null). */
+  dormantSince: number | null;
+  /** Modell D: Anzahl Rekonstruktionen aus dormant (kein automatischer Reaktivierungserfolg). */
+  restoredCount: number;
+  restoredStep: number | null;
 };
 
 export type LabEvents = { grow: string[]; activate: string[] };
@@ -227,7 +251,7 @@ export function stepModel(
 
   for (const key of ev.grow) {
     ops++;
-    const live = [...cands.values()].filter((c) => c.lifecycle !== "removed").length;
+    const live = [...cands.values()].filter(isLive).length;
     if (cands.has(key) || live >= p.maxCandidates) continue;
     const base = pool.get(key);
     if (!base) continue;
@@ -241,6 +265,9 @@ export function stepModel(
       lifecycle: "active",
       belowSince: null,
       everReactivated: false,
+      dormantSince: null,
+      restoredCount: 0,
+      restoredStep: null,
     });
     added++;
   }
@@ -249,12 +276,26 @@ export function stepModel(
     ops++;
     lookups++;
     const c = cands.get(key);
-    if (!c || c.lifecycle === "removed") continue;
+    if (!c) continue;
+    let restored = false;
+    if (prev.model === "D" && c.lifecycle === "dormant") {
+      // Rekonstruktion anhand der ursprünglichen Identität (gleicher Schlüssel/Metadaten),
+      // Start an der Pruning-Schwelle. Zählt NICHT als Treffer und nicht als Reaktivierung.
+      c.anchorStrength = p.pruneThreshold;
+      c.lastActivatedStep = step;
+      c.lifecycle = "inactive";
+      c.dormantSince = null;
+      c.belowSince = null;
+      c.restoredCount++;
+      c.restoredStep = step;
+      restored = true;
+    }
+    if (!isLive(c)) continue;
     const s = strengthAt(c, step, prev.model, p.decay);
-    if (s >= p.pruneThreshold) hits++;
+    if (!restored && s >= p.pruneThreshold) hits++;
     c.activationCount++;
-    if (prev.model === "C") {
-      const wasLow = c.lifecycle === "weak" || c.lifecycle === "inactive";
+    if (REINFORCING.has(prev.model)) {
+      const wasLow = !restored && (c.lifecycle === "weak" || c.lifecycle === "inactive");
       c.anchorStrength = Math.min(S_MAX, s + p.reinforcement * 1);
       c.lastActivatedStep = step;
       if (wasLow && c.anchorStrength >= WEAK_THRESHOLD) {
@@ -265,7 +306,13 @@ export function stepModel(
   }
 
   for (const c of cands.values()) {
-    if (c.lifecycle === "removed") continue;
+    if (c.lifecycle === "dormant") {
+      // Aufbewahrungsfrist: danach endgültig expired (nur noch Statistik, nicht rekonstruierbar).
+      if (step - c.dormantSince! >= p.dormantRetention) c.lifecycle = "expired";
+      ops++;
+      continue;
+    }
+    if (!isLive(c)) continue;
     const s = strengthAt(c, step, prev.model, p.decay);
     const lc = lifecycleFor(s, p);
     if (c.lifecycle === "reactivated" && lc === "active") {
@@ -278,7 +325,11 @@ export function stepModel(
       c.belowSince = c.belowSince ?? step;
       // Bestätigte Fakten werden durch Nichtbenutzung nicht falsch und nicht entfernt.
       if (c.status !== "confirmed" && step - c.belowSince >= REMOVE_AFTER_STEPS) {
-        c.lifecycle = "removed";
+        if (prev.model === "D") {
+          c.lifecycle = "dormant";
+          c.dormantSince = step;
+          if (p.dormantRetention === 0) c.lifecycle = "expired";
+        } else c.lifecycle = "removed";
       }
     } else {
       c.belowSince = null;
@@ -319,17 +370,26 @@ export type LabMetrics = {
   unconfirmed: number;
   rejected: number;
   removed: number;
+  dormant: number;
+  expired: number;
   storedRecords: number;
+  activeBytes: number;
+  dormantBytes: number;
+  tombstoneBytes: number;
   approxBytes: number;
   ops: number;
 };
 
 /** Grobe Speicherschätzung je Kandidat (Schlüssel + Zahlenfelder). */
 export const BYTES_PER_CANDIDATE = 160;
+/** Grobe Schätzung eines Endzustands-Eintrags (nur Schlüssel + Zustand, Sperre gegen Neuerzeugung). */
+export const BYTES_PER_TOMBSTONE = 40;
 
 export function metricsOf(state: ModelState, snapshot: LabSnapshot, p: LabParams): LabMetrics {
   const all = [...state.candidates.values()];
-  const live = all.filter((c) => c.lifecycle !== "removed");
+  const live = all.filter(isLive);
+  const dormant = all.filter((c) => c.lifecycle === "dormant").length;
+  const ended = all.length - live.length - dormant;
   const weak = live.filter((c) => {
     const s = strengthAt(c, state.step, state.model, p.decay);
     return s < WEAK_THRESHOLD;
@@ -346,7 +406,12 @@ export function metricsOf(state: ModelState, snapshot: LabSnapshot, p: LabParams
     unconfirmed: all.filter((c) => c.status === "hypothesis" || c.status === "weakened").length,
     rejected: all.filter((c) => c.status === "rejected").length,
     removed: all.length - live.length,
+    dormant,
+    expired: all.filter((c) => c.lifecycle === "expired").length,
     storedRecords: all.length,
+    activeBytes: live.length * BYTES_PER_CANDIDATE,
+    dormantBytes: dormant * BYTES_PER_CANDIDATE,
+    tombstoneBytes: ended * BYTES_PER_TOMBSTONE,
     approxBytes: all.length * BYTES_PER_CANDIDATE,
     ops: state.ops,
   };
@@ -390,5 +455,8 @@ export function clampParams(p: LabParams): LabParams {
     activationRate: Math.round(c(p.activationRate, LAB_LIMITS.activationRate)),
     pruneThreshold: c(p.pruneThreshold, LAB_LIMITS.pruneThreshold),
     maxCandidates: Math.round(c(p.maxCandidates, LAB_LIMITS.maxCandidates)),
+    dormantRetention: Math.round(
+      c(p.dormantRetention ?? DEFAULT_LAB_PARAMS.dormantRetention, LAB_LIMITS.dormantRetention),
+    ),
   };
 }
