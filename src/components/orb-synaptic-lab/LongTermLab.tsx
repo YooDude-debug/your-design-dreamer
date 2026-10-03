@@ -74,7 +74,7 @@ export default function LongTermLab({
         Langzeittest: Ruhephase & Reaktivierung <span className="text-destructive">SIMULATION</span>
       </h2>
       <p className="text-[11px] text-muted-foreground">
-        Alle Ereignisse sind simuliert, gleich für A/B/C und nur aus Seed + Parametern abgeleitet.
+        Alle Ereignisse sind simuliert, gleich für A/B/C/D und nur aus Seed + Parametern abgeleitet.
         {` ${run.plan.tracked.length}`} beobachtete Hypothesen, {run.plan.controls.length} nie
         erzeugte Kontrollpaare.
       </p>

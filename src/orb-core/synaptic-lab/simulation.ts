@@ -369,7 +369,13 @@ export type LabMetrics = {
   retrievability: number | null;
   unconfirmed: number;
   rejected: number;
+  /** Endgültig entfernt (nur lifecycle "removed"); ohne dormant und expired. */
   removed: number;
+  /** Abrufbar und nicht schwach (inkl. im aktuellen Schritt reaktivierter). */
+  activeCount: number;
+  weakCount: number;
+  /** Im aktuellen Schritt als "reactivated" markiert (Teilmenge von activeCount/weakCount). */
+  reactivatedCount: number;
   dormant: number;
   expired: number;
   storedRecords: number;
@@ -405,7 +411,11 @@ export function metricsOf(state: ModelState, snapshot: LabSnapshot, p: LabParams
     retrievability: state.lookups ? state.hits / state.lookups : null,
     unconfirmed: all.filter((c) => c.status === "hypothesis" || c.status === "weakened").length,
     rejected: all.filter((c) => c.status === "rejected").length,
-    removed: all.length - live.length,
+    // Nur endgültig entfernte (B/C, lifecycle "removed"); dormant und expired separat.
+    removed: all.filter((c) => c.lifecycle === "removed").length,
+    activeCount: live.length - weak.length,
+    weakCount: weak.length,
+    reactivatedCount: live.filter((c) => c.lifecycle === "reactivated").length,
     dormant,
     expired: all.filter((c) => c.lifecycle === "expired").length,
     storedRecords: all.length,

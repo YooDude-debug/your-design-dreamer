@@ -43,7 +43,7 @@ export default function ValidationLab({
       </h2>
       <p className="text-[11px] text-muted-foreground">
         Ruhephasen {VALIDATION_REST_STEPS.join(" / ")} Schritte, {VALIDATION_SEED_COUNT} Seeds (
-        {seeds[0]}–{seeds[seeds.length - 1]}). Je Seed identische Ereignisfolge für A/B/C. Werte
+        {seeds[0]}–{seeds[seeds.length - 1]}). Je Seed identische Ereignisfolge für A/B/C/D. Werte
         werden erst nach Klick berechnet.
       </p>
       <button
