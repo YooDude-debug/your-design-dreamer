@@ -31,6 +31,9 @@ import {
   isRetrievalEvent,
   type OrbRetrievalEvent,
 } from "@/orb-sdk";
+import { useSession } from "@/lib/use-session";
+import { knowledgeGraphQueryKey, openTabSignal } from "@/lib/orb-knowledge-graph/tab-signal";
+import type { OrbDataScope } from "@/orb-core/scope-values";
 
 const POLL_MS = 4000;
 const NA = "nicht verfügbar";
@@ -42,11 +45,18 @@ function time(iso: string | null | undefined) {
   return iso ? new Date(iso).toLocaleTimeString() : NA;
 }
 
-export default function KnowledgeGraphStage() {
+export default function KnowledgeGraphStage({ scope }: { scope: OrbDataScope }) {
   const load = useServerFn(getOrbKnowledgeGraph);
+  // Nutzer- und bereichsgebunden: kein Wiederverwenden fremder Cache-Einträge.
+  const { session } = useSession();
+  const userId = session?.user.id ?? null;
+  const userIdRef = useRef(userId);
+  userIdRef.current = userId;
+  const graphKey = knowledgeGraphQueryKey(userId, scope);
   const q = useQuery({
-    queryKey: ["orb-knowledge-graph"],
-    queryFn: () => load(),
+    queryKey: graphKey,
+    queryFn: () => load({ data: { scope } }),
+    enabled: !!userId,
     refetchInterval: POLL_MS,
     refetchIntervalInBackground: false,
   });
@@ -79,14 +89,16 @@ export default function KnowledgeGraphStage() {
 
   // Vorhandene Cognitive Observation aus dem Rundenergebnis (ORB-Kanal-Seite,
   // BroadcastChannel). Kein Polling, keine DB, kein Modellaufruf.
+  // Nur Signale des aktuell angemeldeten Nutzers im angezeigten Bereich.
   useEffect(() => {
     if (typeof BroadcastChannel === "undefined") return;
     const ch = new BroadcastChannel(COGNITIVE_CHANNEL);
     ch.onmessage = (msg: MessageEvent) => {
-      if (isCognitiveView(msg.data)) setCognitive(msg.data);
+      const view = openTabSignal(msg.data, userIdRef.current, scope);
+      if (isCognitiveView(view)) setCognitive(view);
     };
     return () => ch.close();
-  }, []);
+  }, [scope]);
   const cognitiveRef = useRef(cognitive);
   cognitiveRef.current = cognitive;
   const layerOnRef = useRef(layerOn);
@@ -99,19 +111,19 @@ export default function KnowledgeGraphStage() {
   const [lastRetrieval, setLastRetrieval] = useState<OrbRetrievalEvent | null>(null);
 
   // Echtes Retrieval-Event (processInput → recalled) über BroadcastChannel der
-  // ORB-Kanal-Seite. Unbekannte/ungültige Nachrichten werden ignoriert.
+  // ORB-Kanal-Seite. Unbekannte/ungültige oder fremde Nachrichten werden ignoriert.
   useEffect(() => {
     if (typeof BroadcastChannel === "undefined") return;
     const ch = new BroadcastChannel(RETRIEVAL_CHANNEL);
     const gate = createRetrievalPulseGate();
     ch.onmessage = (msg: MessageEvent) => {
-      if (!isRetrievalEvent(msg.data)) return;
-      setLastRetrieval(msg.data);
-      if (gate(Date.now()))
-        engineRef.current?.pulseRetrieval(msg.data.memory_ids, msg.data.model_visible_ids);
+      const ev = openTabSignal(msg.data, userIdRef.current, scope);
+      if (!isRetrievalEvent(ev)) return;
+      setLastRetrieval(ev);
+      if (gate(Date.now())) engineRef.current?.pulseRetrieval(ev.memory_ids, ev.model_visible_ids);
     };
     return () => ch.close();
-  }, []);
+  }, [scope]);
 
   useEffect(() => {
     if (!hostRef.current) return;
