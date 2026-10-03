@@ -40,6 +40,7 @@ const MODEL_LABEL: Record<LabModelId, string> = {
   A: "A · Unbegrenztes Wachstum",
   B: "B · Wachstum + Verfall",
   C: "C · Wachstum + Verfall + Verstärkung",
+  D: "D · C + reversibles Pruning (dormant)",
 };
 
 export default function SynapticLab({ scope }: { scope: OrbDataScope }) {
@@ -180,6 +181,7 @@ export default function SynapticLab({ scope }: { scope: OrbDataScope }) {
             ["activationRate", "Aktivierungen/Schritt", 1],
             ["pruneThreshold", "Pruning-Schwelle", 0.01],
             ["maxCandidates", "Max. Kandidaten", 10],
+            ["dormantRetention", "Aufbewahrung D (Schritte)", 5],
           ] as const
         ).map(([k, label, stepV]) => (
           <Field key={k} label={label}>
@@ -196,7 +198,7 @@ export default function SynapticLab({ scope }: { scope: OrbDataScope }) {
         ))}
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {states.map((s) => (
           <ModelPanel
             key={s.model}
@@ -302,17 +304,22 @@ function ModelPanel(props: {
         {[...state.candidates.values()].map((c) => {
           const a = pos.get(c.source);
           const b = pos.get(c.target);
-          if (!a || !b) return null;
+          // Expired: nur noch historische Statistik, nicht mehr im Graphen.
+          if (!a || !b || c.lifecycle === "expired") return null;
           const s = strengthAt(c, state.step, state.model, params.decay);
           const removed = c.lifecycle === "removed";
+          const dormant = c.lifecycle === "dormant";
+          const restoredNow = c.restoredStep === state.step;
           const cls =
             c.status === "rejected" || removed
               ? "stroke-destructive"
-              : c.lifecycle === "reactivated"
-                ? "stroke-accent-foreground"
-                : c.status === "confirmed"
-                  ? "stroke-foreground"
-                  : "stroke-primary";
+              : dormant
+                ? "stroke-muted-foreground"
+                : c.lifecycle === "reactivated" || restoredNow
+                  ? "stroke-accent-foreground"
+                  : c.status === "confirmed"
+                    ? "stroke-foreground"
+                    : "stroke-primary";
           return (
             <line
               key={c.key}
@@ -321,9 +328,9 @@ function ModelPanel(props: {
               x2={b.x}
               y2={b.y}
               className={`${cls} cursor-pointer`}
-              strokeDasharray={c.status === "confirmed" ? undefined : "1 0.8"}
+              strokeDasharray={dormant ? "0.4 0.8" : c.status === "confirmed" ? undefined : "1 0.8"}
               strokeWidth={props.selected === c.key ? 1 : 0.15 + 0.6 * s}
-              strokeOpacity={removed ? 0.12 : s < WEAK_THRESHOLD ? 0.35 : 0.9}
+              strokeOpacity={removed ? 0.12 : dormant ? 0.3 : s < WEAK_THRESHOLD ? 0.35 : 0.9}
               onClick={() => props.onSelect(c.key)}
             />
           );
@@ -367,7 +374,14 @@ function MetricsTable({
     ["Wiederauffindbarkeit (simulierte Abfragen)", (x) => pct(x.retrievability)],
     ["Unbestätigte Hypothesen", (x) => String(x.unconfirmed)],
     ["Verworfene Hypothesen", (x) => String(x.rejected)],
-    ["Experimentell entfernt", (x) => String(x.removed)],
+    ["Experimentell entfernt (gesamt)", (x) => String(x.removed)],
+    ["Dormant (ruhend, rekonstruierbar)", (x) => String(x.dormant)],
+    ["Expired (Aufbewahrung abgelaufen)", (x) => String(x.expired)],
+    [
+      "Speicher aktiv / ruhend / Endzustand",
+      (x) =>
+        `${(x.activeBytes / 1024).toFixed(1)} / ${(x.dormantBytes / 1024).toFixed(1)} / ${(x.tombstoneBytes / 1024).toFixed(1)} KB`,
+    ],
     [
       "Gespeicherte Datensätze / ca. Speicher",
       (x) => `${x.storedRecords} / ${(x.approxBytes / 1024).toFixed(1)} KB`,

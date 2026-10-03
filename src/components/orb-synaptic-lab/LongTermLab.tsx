@@ -151,7 +151,7 @@ export default function LongTermLab({
         />
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {run.traces.map((t) => (
           <div key={t.model} className="rounded-lg border border-border p-2">
             <p className="mb-1 text-xs font-semibold">Modell {t.model}</p>

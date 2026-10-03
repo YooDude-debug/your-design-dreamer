@@ -8,7 +8,7 @@
 import { LAB_MODELS, type LabModelId, type LabParams, type LabSnapshot } from "./simulation";
 import { runLongTerm, type LongTermParams, type LtMetrics } from "./longterm";
 
-export const VALIDATION_REST_STEPS = [5, 10, 20, 40] as const;
+export const VALIDATION_REST_STEPS = [5, 10, 20, 40, 80] as const;
 export const VALIDATION_SEED_COUNT = 10;
 
 export type Stats = { mean: number; min: number; max: number; std: number; n: number };
@@ -37,6 +37,14 @@ export type ModelAggregate = {
   targetHeld: number;
   recovered: number;
   targetNotReached: number;
+  restored: number;
+  restoredReachedTarget: number;
+  expired: number;
+  dormantEnd: number;
+  /** Mittelwerte je Seed (KB). */
+  activeKb: number;
+  dormantKb: number;
+  hypothesesCreated: number;
 };
 
 export type SeedRow = { seed: number; metrics: LtMetrics[] };
@@ -47,6 +55,9 @@ export type RestResult = {
   aggregate: ModelAggregate[];
   /** Seeds, bei denen C eine geringere End-Wiederauffindbarkeit als A oder B hat. */
   cWorseSeeds: number[];
+  /** Seeds, bei denen D besser / schlechter als C abschneidet. */
+  dBetterSeeds: number[];
+  dWorseSeeds: number[];
 };
 
 export function seedList(base: number, count = VALIDATION_SEED_COUNT): number[] {
@@ -81,14 +92,25 @@ export function runValidation(
         targetHeld: sum((m) => m.targetHeld),
         recovered: sum((m) => m.recovered),
         targetNotReached: sum((m) => m.targetNotReached),
+        restored: sum((m) => m.restored),
+        restoredReachedTarget: sum((m) => m.restoredReachedTarget),
+        expired: sum((m) => m.expired),
+        dormantEnd: sum((m) => m.dormantEnd),
+        activeKb: sum((m) => m.activeBytes) / ms.length / 1024,
+        dormantKb: sum((m) => m.dormantBytes) / ms.length / 1024,
+        hypothesesCreated: sum((m) => m.hypothesesCreated) / ms.length,
       };
     });
     const cWorseSeeds = rows
       .filter((r) => {
-        const [a, b, c] = r.metrics.map((m) => m.retrievabilityEnd ?? 0);
+        const [a, b, c] = r.metrics.map((m) => m.retrievabilityEnd ?? 0); // A, B, C (D separat)
         return c! < a! || c! < b!;
       })
       .map((r) => r.seed);
-    return { restSteps, seeds: rows, aggregate, cWorseSeeds };
+    const end = (r: SeedRow, m: LabModelId) =>
+      r.metrics[LAB_MODELS.indexOf(m)]!.retrievabilityEnd ?? 0;
+    const dBetterSeeds = rows.filter((r) => end(r, "D") > end(r, "C")).map((r) => r.seed);
+    const dWorseSeeds = rows.filter((r) => end(r, "D") < end(r, "C")).map((r) => r.seed);
+    return { restSteps, seeds: rows, aggregate, cWorseSeeds, dBetterSeeds, dWorseSeeds };
   });
 }

@@ -69,6 +69,9 @@ export default function ValidationLab({
                   <th className="p-2">Verloren</th>
                   <th className="p-2">Falsche Reaktiv.</th>
                   <th className="p-2">Kontrollen entstanden</th>
+                  <th className="p-2">D: rekonstruiert / davon Ziel / expired</th>
+                  <th className="p-2">Speicher aktiv / ruhend Ø</th>
+                  <th className="p-2">Hypothesen Ø</th>
                 </tr>
               </thead>
               <tbody>
@@ -89,6 +92,15 @@ export default function ValidationLab({
                       <td className="p-2 font-mono">{a.lost}</td>
                       <td className="p-2 font-mono">{a.falseReactivations}</td>
                       <td className="p-2 font-mono">{a.controlsPresent}</td>
+                      <td className="p-2 font-mono">
+                        {a.model === "D"
+                          ? `${a.restored} / ${a.restoredReachedTarget} / ${a.expired}`
+                          : "–"}
+                      </td>
+                      <td className="p-2 font-mono">
+                        {a.activeKb.toFixed(1)} / {a.dormantKb.toFixed(1)} KB
+                      </td>
+                      <td className="p-2 font-mono">{a.hypothesesCreated.toFixed(0)}</td>
                     </tr>
                   )),
                 )}
@@ -97,7 +109,7 @@ export default function ValidationLab({
           </div>
 
           <h3 className="text-xs font-semibold">
-            Wiederauffindbarkeit nach Abruf je Seed (A / B / C)
+            Wiederauffindbarkeit nach Abruf je Seed (A / B / C / D)
           </h3>
           <div className="overflow-x-auto">
             <table className="w-full text-[11px]">
@@ -135,9 +147,14 @@ export default function ValidationLab({
           </div>
           <p className="text-[11px] text-muted-foreground">
             Rot markiert: C hat bei diesem Seed eine geringere Wiederauffindbarkeit als A oder B (
-            {result.map((r) => `Ruhe ${r.restSteps}: ${r.cWorseSeeds.length}×`).join(", ")}).
-            „Gehalten“ zählt nicht als Wiederherstellung. Kontrollpaare werden nie als Reaktivierung
-            gezählt. Modelle: {LAB_MODELS.join(", ")}.
+            {result.map((r) => `Ruhe ${r.restSteps}: ${r.cWorseSeeds.length}×`).join(", ")}). D
+            gegenüber C besser/schlechter:{" "}
+            {result
+              .map((r) => `Ruhe ${r.restSteps}: ${r.dBetterSeeds.length}/${r.dWorseSeeds.length}`)
+              .join(", ")}
+            . Rekonstruktion aus „dormant“ zählt nicht als Reaktivierung. „Gehalten“ zählt nicht als
+            Wiederherstellung. Kontrollpaare werden nie als Reaktivierung gezählt. Modelle:{" "}
+            {LAB_MODELS.join(", ")}.
           </p>
         </>
       )}
