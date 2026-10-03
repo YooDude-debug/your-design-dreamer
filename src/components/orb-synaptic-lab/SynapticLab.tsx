@@ -374,9 +374,16 @@ function MetricsTable({
     ["Wiederauffindbarkeit (simulierte Abfragen)", (x) => pct(x.retrievability)],
     ["Unbestätigte Hypothesen", (x) => String(x.unconfirmed)],
     ["Verworfene Hypothesen", (x) => String(x.rejected)],
-    ["Experimentell entfernt (gesamt)", (x) => String(x.removed)],
+    ["Active (abrufbar, nicht schwach)", (x) => String(x.activeCount)],
+    ["Weak (abrufbar, schwach)", (x) => String(x.weakCount)],
+    ["davon Reactivated (in diesem Schritt)", (x) => String(x.reactivatedCount)],
     ["Dormant (ruhend, rekonstruierbar)", (x) => String(x.dormant)],
     ["Expired (Aufbewahrung abgelaufen)", (x) => String(x.expired)],
+    ["Endgültig entfernt (B/C, ohne Dormant/Expired)", (x) => String(x.removed)],
+    [
+      "Nicht abrufbar gesamt (Entfernt + Dormant + Expired)",
+      (x) => String(x.removed + x.dormant + x.expired),
+    ],
     [
       "Speicher aktiv / ruhend / Endzustand",
       (x) =>
