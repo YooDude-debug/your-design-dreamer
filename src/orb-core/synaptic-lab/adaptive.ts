@@ -322,7 +322,9 @@ export function runAdaptiveModel(
     if (retrievable(s, k)) pp.retrievable++;
     // Tatsächliche Wiederverwendung (nur Nutzungsphase) und geplanter Recall getrennt.
     pp.reuse += at.reuse;
-    pp.plannedRecalls += plan.events.filter((e) => e.phase === "recall" && e.activate.includes(k)).length;
+    pp.plannedRecalls += plan.events.filter(
+      (e) => e.phase === "recall" && e.activate.includes(k),
+    ).length;
     if (everDormant.has(k)) pp.dormant++;
     if (c && c.restoredCount > 0) pp.restored++;
     if (c?.lifecycle === "expired") pp.expired++;
