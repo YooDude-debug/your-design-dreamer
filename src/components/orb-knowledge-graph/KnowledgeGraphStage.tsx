@@ -181,20 +181,27 @@ export default function KnowledgeGraphStage() {
   const searchRef = useRef<KgSearchResult | null>(null);
   searchRef.current = search;
 
-  const playSearch = (r: KgSearchResult | null) => {
+  const lastSearchKeyRef = useRef<string | null>(null);
+  const playSearch = (r: KgSearchResult | null, reframe = true) => {
     const engine = engineRef.current;
     if (!engine) return;
     if (!r || mode !== "SEARCH") {
       engine.setFocus(null, null);
       return;
     }
-    engine.setFocus(r.nodeIds, r.edgeIds);
-    engine.playPath(
-      r.steps.map((s) => (s.kind === "hit" ? { node: s.nodeId } : { edge: s.edgeId, to: s.to })),
-    );
+    engine.setFocus(r.nodeIds, r.edgeIds, { reframe });
+    if (reframe)
+      engine.playPath(
+        r.steps.map((s) => (s.kind === "hit" ? { node: s.nodeId } : { edge: s.edgeId, to: s.to })),
+      );
   };
   useEffect(() => {
-    playSearch(search);
+    // Neuberechnung nur wegen neuer Memories/Verbindungen: Highlight
+    // aktualisieren, Kamera nicht zurücksetzen. Neue Suche/Modus: ausrichten.
+    const key = `${mode}\u0000${query}`;
+    const reframe = lastSearchKeyRef.current !== key;
+    lastSearchKeyRef.current = key;
+    playSearch(search, reframe);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, mode]);
 
