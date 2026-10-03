@@ -123,14 +123,14 @@ export default function SynapticLab({ scope, userId }: { scope: OrbDataScope; us
       </div>
 
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-surface p-3">
-        <button className="btn-lab" onClick={() => setRunning((r) => !r)} aria-label={running ? "Pause" : "Start"}>
+        <button className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold disabled:opacity-50" onClick={() => setRunning((r) => !r)} aria-label={running ? "Pause" : "Start"}>
           {running ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
           {running ? "Pause" : "Start"}
         </button>
-        <button className="btn-lab" onClick={step} disabled={running}>
+        <button className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold disabled:opacity-50" onClick={step} disabled={running}>
           <StepForward className="h-4 w-4" /> Schritt
         </button>
-        <button className="btn-lab" onClick={reset}>
+        <button className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold disabled:opacity-50" onClick={reset}>
           <RotateCcw className="h-4 w-4" /> Reset
         </button>
         <span className="text-xs text-muted-foreground">
@@ -140,7 +140,7 @@ export default function SynapticLab({ scope, userId }: { scope: OrbDataScope; us
           <input type="range" min={1} max={30} value={tempo} onChange={(e) => setTempo(Number(e.target.value))} />
         </Field>
         <Field label="Seed">
-          <input className="inp-lab" type="number" value={params.seed} onChange={(e) => num("seed", e.target.value)} />
+          <input className="w-24 rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground" type="number" value={params.seed} onChange={(e) => num("seed", e.target.value)} />
         </Field>
         {(
           [
@@ -154,7 +154,7 @@ export default function SynapticLab({ scope, userId }: { scope: OrbDataScope; us
         ).map(([k, label, stepV]) => (
           <Field key={k} label={label}>
             <input
-              className="inp-lab"
+              className="w-24 rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
               type="number"
               min={LAB_LIMITS[k][0]}
               max={LAB_LIMITS[k][1]}
@@ -197,10 +197,10 @@ export default function SynapticLab({ scope, userId }: { scope: OrbDataScope; us
             );
           })}
           <div className="mt-2 flex gap-2">
-            <button className="btn-lab" onClick={() => mark(selected, "confirmed")}>
+            <button className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold disabled:opacity-50" onClick={() => mark(selected, "confirmed")}>
               Experimentell bestätigen
             </button>
-            <button className="btn-lab" onClick={() => mark(selected, "rejected")}>
+            <button className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold disabled:opacity-50" onClick={() => mark(selected, "rejected")}>
               Verwerfen
             </button>
           </div>
