@@ -27,7 +27,6 @@ import {
 } from "@/lib/orb-knowledge-graph/cognitive-layers";
 import {
   RETRIEVAL_CHANNEL,
-  createRetrievalPulseGate,
   isRetrievalEvent,
   type OrbRetrievalEvent,
 } from "@/orb-sdk";
@@ -115,12 +114,12 @@ export default function KnowledgeGraphStage({ scope }: { scope: OrbDataScope }) 
   useEffect(() => {
     if (typeof BroadcastChannel === "undefined") return;
     const ch = new BroadcastChannel(RETRIEVAL_CHANNEL);
-    const gate = createRetrievalPulseGate();
     ch.onmessage = (msg: MessageEvent) => {
       const ev = openTabSignal(msg.data, userIdRef.current, scope);
       if (!isRetrievalEvent(ev)) return;
       setLastRetrieval(ev);
-      if (gate(Date.now())) engineRef.current?.pulseRetrieval(ev.memory_ids, ev.model_visible_ids);
+      // Nacheinander, zusammengefasst, ohne Überlagerung (Warteschlange in der Engine).
+      engineRef.current?.queueRetrieval(ev.memory_ids, ev.event_id, ev.model_visible_ids);
     };
     return () => ch.close();
   }, [scope]);
@@ -487,7 +486,7 @@ export default function KnowledgeGraphStage({ scope }: { scope: OrbDataScope }) 
               k="Memory-Retrieval"
               v={
                 lastRetrieval
-                  ? `${lastRetrieval.memory_ids.length} abgerufen · ${time(lastRetrieval.at)}`
+                  ? `${lastRetrieval.activation === "autonomous_question" ? "autonome Frage" : "Antwort"} · ${lastRetrieval.memory_ids.length} abgerufen · ${lastRetrieval.model_visible_ids.length} in Kontext übernommen · ${time(lastRetrieval.at)}`
                   : NA
               }
               src={lastRetrieval ? "tatsächlich erkanntes Retrieval" : undefined}

@@ -31,6 +31,10 @@ import {
   WebGLRenderer,
 } from "three";
 
+import {
+  enqueueActivation,
+  RETRIEVAL_STEP_MS,
+} from "@/orb-core/retrieval-event";
 import { CognitiveLayerScene } from "./cognitive-layer-scene";
 import { COGNITIVE_LAYERS, type CognitiveLayerId, type CognitiveView } from "./cognitive-layers";
 
@@ -146,6 +150,9 @@ export class KnowledgeGraphEngine {
   /** model_visible_ids des letzten Events – nur vorgehalten, keine eigene Codierung. */
   lastModelVisibleIds: string[] = [];
   private pathQueue: { at: number; node?: string; edge?: string }[] = [];
+  /** Wartende echte Aktivierungen – werden im Render-Loop nacheinander gezeigt (kein eigener Timer). */
+  private retrievalQueue: { id: string; events: string[] }[] = [];
+  private retrievalNextAt = 0;
   /** Cognitive-Ebenen (nur Darstellung, neutrale Farben). */
   private cognitiveScene = new CognitiveLayerScene(RADIUS);
   private cognitiveView: CognitiveView | null = null;
@@ -276,6 +283,20 @@ export class KnowledgeGraphEngine {
     this.lastModelVisibleIds = modelVisibleIds;
     for (const i of retrievalPulseIndices(memoryIds, this.index)) this.retrievalPulse[i] = 1;
   }
+  /**
+   * Nur nach isRetrievalEvent(): Knoten nacheinander rot hervorheben.
+   * Kanten werden bewusst nicht animiert – der Laufzeitpfad meldet keine
+   * tatsächlich durchlaufenen Verbindungen.
+   */
+  queueRetrieval(memoryIds: string[], eventId: string, modelVisibleIds: string[] = []): void {
+    this.lastModelVisibleIds = modelVisibleIds;
+    const known = memoryIds.filter((id) => this.index.has(id));
+    this.retrievalQueue = enqueueActivation(this.retrievalQueue, known, eventId);
+  }
+  /** Nur für Tests/Diagnose: wartende Aktivierungen. */
+  pendingRetrieval(): readonly { id: string; events: string[] }[] {
+    return this.retrievalQueue;
+  }
   pulseEdges(ids: string[]): void {
     for (const id of ids) {
       const i = this.edgeIndex.get(id);
@@ -349,6 +370,12 @@ export class KnowledgeGraphEngine {
         const i = this.edgeIndex.get(q.edge);
         if (i !== undefined) this.pathEdgePulse[i] = 1;
       }
+    }
+    if (this.retrievalQueue.length && now >= this.retrievalNextAt) {
+      const q = this.retrievalQueue.shift()!;
+      const i = this.index.get(q.id);
+      if (i !== undefined) this.retrievalPulse[i] = 1;
+      this.retrievalNextAt = now + RETRIEVAL_STEP_MS;
     }
     const sel = this.selected !== null ? this.index.get(this.selected) : undefined;
     if (this.mesh) {
