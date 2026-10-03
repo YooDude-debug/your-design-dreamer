@@ -15,7 +15,7 @@
 import { reinforcement, scoreImportance } from "@/orb-core/core";
 import { internalError } from "@/orb-core/internal-error";
 import { QueryCounter, touchConnection, type DB } from "@/orb-core/engine.server";
-import { normKey, topicOf } from "@/orb-core/memory";
+import { normKey, semanticTopicOf } from "@/orb-core/memory";
 import {
   analyzeContextWindow,
   estimateCostUsd,
