@@ -40,6 +40,7 @@ const MODEL_LABEL: Record<LabModelId, string> = {
   A: "A · Unbegrenztes Wachstum",
   B: "B · Wachstum + Verfall",
   C: "C · Wachstum + Verfall + Verstärkung",
+  D: "D · C + reversibles Pruning (dormant)",
 };
 
 export default function SynapticLab({ scope }: { scope: OrbDataScope }) {
