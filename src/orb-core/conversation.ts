@@ -80,6 +80,8 @@ export type ConversationInput = {
   impulseAllowed: boolean;
   /** Ausdrückliche Merk-Aufforderung wurde aufgelöst. */
   explicitLearning: boolean;
+  /** Noch offene letzte Frage von ORB im Gesprächsfenster (sonst null/fehlt). */
+  pendingQuestion?: string | null;
 };
 
 export type ConversationPlan = {
@@ -212,6 +214,12 @@ export function decideConversationMode(input: ConversationInput): ConversationPl
   // 1. Konkreter Informationsbedarf – nie eine unnötige Rückfrage.
   if (needsDirectAnswer(input.text)) {
     return plan("DIRECT_ANSWER", "Der Nutzer braucht eine konkrete Antwort.");
+  }
+
+  // 1b. Kurze Antwort auf ORBs eigene offene Frage: inhaltlich anschliessen,
+  // nie generisch „zuhören“.
+  if (input.pendingQuestion && isShortReply(input.text)) {
+    return plan("DIRECT_ANSWER", "Kurze Antwort auf deine letzte Frage – inhaltlich daran anknüpfen.");
   }
 
   // 2. Ausdrückliche Merk-Aufforderung: knapp bestätigen, nicht nachfragen.
