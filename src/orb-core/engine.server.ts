@@ -16,7 +16,7 @@
 import { isLongFormRequest, readCompletion, type ReplyCompletion } from "@/orb-core/long-form";
 import { isConceptRow } from "@/orb-core/analysis/concepts";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { internalError } from "@/orb-core/internal-error";
+import { internalError, isAuthReadError, reauthRequired } from "@/orb-core/internal-error";
 import {
   buildAutonomyTrace,
   compareIds,
@@ -474,17 +474,32 @@ export async function getSnapshot(
       .limit(12),
     db.from("orb_style").select("*").eq("user_id", userId).maybeSingle(),
   ]);
-  if (nodesRes.error) throw internalError(nodesRes.error);
-  if (threadRes.error) throw internalError(threadRes.error);
-  if (styleRes.error) throw internalError(styleRes.error);
-  if (connRes.error) throw internalError(connRes.error);
-  if (msgRes.error) throw internalError(msgRes.error);
-  if (interestRes.error) throw internalError(interestRes.error);
-  if (suggRes.error) throw internalError(suggRes.error);
-  if (acceptedRes.error) throw internalError(acceptedRes.error);
-  if (rejectedRes.error) throw internalError(rejectedRes.error);
+  // P2 Fehlerisolierung. Erforderlich: Erinnerungen, Fäden, Verbindungen,
+  // Nachrichten. Anmeldefehler → klare Neuanmeldung (nie für andere DB-Fehler).
+  // Optional (Interessen, Vorschläge, Zählwerte, Stil) → als `unavailable`
+  // markiert, Ursache bleibt serverseitig protokolliert (nur Code/Tabelle).
+  const required = { orb_nodes: nodesRes, orb_threads: threadRes, orb_connections: connRes, orb_messages: msgRes };
+  const optional = {
+    orb_interests: interestRes,
+    orb_suggestions: suggRes,
+    suggestions_accepted: acceptedRes,
+    suggestions_rejected: rejectedRes,
+    orb_style: styleRes,
+  };
+  for (const [part, r] of Object.entries({ ...required, ...optional })) {
+    if (r.error) {
+      const e = r.error as { code?: unknown };
+      console.error("[orb] snapshot_part_failed", { part, code: e.code ?? null });
+    }
+  }
+  const failed = [...Object.values(required), ...Object.values(optional)].map((r) => r.error);
+  if (failed.some((e) => e && isAuthReadError(e))) throw reauthRequired();
+  for (const r of Object.values(required)) if (r.error) throw internalError(r.error);
+  const unavailable = Object.entries(optional)
+    .filter(([, r]) => r.error)
+    .map(([part]) => part);
 
-  const connections = mapConnections(connRes.data, now);
+  const connections = mapConnections(connRes.data!, now);
 
   // Jede Momentaufnahme berechnet den Verfall neu – als Kennzahl gezählt,
   // ohne dabei irgendetwas zu entfernen.
