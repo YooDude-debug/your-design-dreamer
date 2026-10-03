@@ -59,52 +59,56 @@ function KnowledgeGraphPage() {
 
   return (
     <div className="relative min-h-[100svh] overflow-hidden bg-background text-foreground">
-      <BackButton
-        onClick={() => goBackOr(router, "/channels/orb")}
-        label="Zurück zu ORB"
-        ariaLabel="Zurück zu ORB"
-        className="absolute right-3 top-3 z-20"
-      />
-      <div className="absolute left-3 top-3 z-20 hidden rounded-full border border-border/60 sm:block bg-surface/80 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground backdrop-blur-md">
-        ORB Knowledge Graph · Experiment · nur Lesen
-      </div>
-      {access.data?.isAdmin && (
-        <Link
-          to="/orb/unassigned"
-          className="absolute right-3 top-14 z-20 rounded-full border border-border/60 bg-surface/80 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground backdrop-blur-md"
-        >
-          Nicht zugeordnet – historische Daten
-        </Link>
-      )}
-      {access.data?.isAdmin && (
-        <Link
-          to="/orb/synaptic-lab"
-          search={{ scope }}
-          className="absolute right-3 top-24 z-20 rounded-full border border-border/60 bg-surface/80 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground backdrop-blur-md"
-        >
-          Synaptic Lab (Experiment)
-        </Link>
-      )}
-      {access.data?.isAdmin && (
-        <nav
-          aria-label="Bereich"
-          className="absolute left-1/2 top-3 z-20 flex -translate-x-1/2 gap-1 rounded-full border border-border/60 bg-surface/80 p-1 backdrop-blur-md"
-        >
-          {ORB_DATA_SCOPES.map((s) => (
+      {/* Oberer Aktionsbereich: eine Zeile, die bei schmalen Viewports umbricht. */}
+      <header className="relative z-20 flex flex-wrap items-center gap-2 p-3">
+        <div className="hidden rounded-full border border-border/60 bg-surface/80 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground backdrop-blur-md sm:block">
+          ORB Knowledge Graph · Experiment · nur Lesen
+        </div>
+        {access.data?.isAdmin && (
+          <nav
+            aria-label="Bereich"
+            className="order-3 flex w-full flex-wrap gap-1 rounded-full border border-border/60 bg-surface/80 p-1 backdrop-blur-md sm:order-none sm:w-auto"
+          >
+            {ORB_DATA_SCOPES.map((s) => (
+              <Link
+                key={s}
+                to="/orb/knowledge-graph"
+                search={{ scope: s }}
+                aria-current={s === scope ? "page" : undefined}
+                className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                  s === scope ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+                }`}
+              >
+                {SCOPE_LABEL[s]}
+              </Link>
+            ))}
+          </nav>
+        )}
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+          {access.data?.isAdmin && (
             <Link
-              key={s}
-              to="/orb/knowledge-graph"
-              search={{ scope: s }}
-              aria-current={s === scope ? "page" : undefined}
-              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                s === scope ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-              }`}
+              to="/orb/unassigned"
+              className="rounded-full border border-border/60 bg-surface/80 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground backdrop-blur-md"
             >
-              {SCOPE_LABEL[s]}
+              Nicht zugeordnet – historische Daten
             </Link>
-          ))}
-        </nav>
-      )}
+          )}
+          {access.data?.isAdmin && (
+            <Link
+              to="/orb/synaptic-lab"
+              search={{ scope }}
+              className="rounded-full border border-border/60 bg-surface/80 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground backdrop-blur-md"
+            >
+              Synaptic Lab (Experiment)
+            </Link>
+          )}
+          <BackButton
+            onClick={() => goBackOr(router, "/channels/orb")}
+            label="Zurück zu ORB"
+            ariaLabel="Zurück zu ORB"
+          />
+        </div>
+      </header>
       {/* Rein erklärend: Cognitive-Daten sind transient (nur Live-Broadcast). */}
       <p className="pointer-events-none absolute inset-x-3 top-[10rem] z-10 text-center text-[11px] leading-snug text-muted-foreground lg:inset-x-auto lg:left-3 lg:top-12 lg:text-left">
         <span className="font-semibold text-foreground/80">Cognitive-Ebenen</span> erscheinen live
