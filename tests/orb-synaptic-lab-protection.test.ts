@@ -15,7 +15,12 @@ import {
 
 const a = DEFAULT_ADAPTIVE_PARAMS;
 const p = DEFAULT_LAB_PARAMS;
-const at = (importance: number, reuse: number): Attr => ({ relevance: 0.5, importance, reuse, profile: null });
+const at = (importance: number, reuse: number): Attr => ({
+  relevance: 0.5,
+  importance,
+  reuse,
+  profile: null,
+});
 
 describe("P13 Importance Protection", () => {
   it("schützt wichtige, selten genutzte Verbindungen länger als F", () => {
@@ -80,14 +85,18 @@ describe("P13 Importance Protection", () => {
   });
   it("D/E/F unverändert (Snapshot der P12-Werte bei Ruhe 80)", () => {
     const r = runAdaptiveValidation(p, a, [80])[0]!;
-    const rate = (mi: number) => r.seeds.reduce((x, s) => x + s.metrics[mi]!.retrievabilityEnd, 0) / r.seeds.length;
+    const rate = (mi: number) =>
+      r.seeds.reduce((x, s) => x + s.metrics[mi]!.retrievabilityEnd, 0) / r.seeds.length;
     expect(rate(0)).toBeCloseTo(0, 5);
     expect(rate(1)).toBeCloseTo(1 / 3, 5);
     expect(rate(2)).toBeCloseTo(0.5, 5);
   });
   it("keine produktiven Schreib- oder Netzwege", () => {
-    const src = readFileSync("src/orb-core/synaptic-lab/protection.ts", "utf8") +
+    const src =
+      readFileSync("src/orb-core/synaptic-lab/protection.ts", "utf8") +
       readFileSync("src/components/orb-synaptic-lab/ProtectionLab.tsx", "utf8");
-    expect(src).not.toMatch(/supabase|fetch\(|createServerFn|localStorage|BroadcastChannel|insert\(|update\(/);
+    expect(src).not.toMatch(
+      /supabase|fetch\(|createServerFn|localStorage|BroadcastChannel|insert\(|update\(/,
+    );
   });
 });

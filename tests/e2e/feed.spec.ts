@@ -19,8 +19,11 @@ test.describe("Feed", () => {
     await page.goto("/feed");
     await waitForApp(page);
 
-    // Feed-Umschalter (Global / Channels) ist der stabile Anker des Feeds.
-    await expect(page.getByText(/Global/i).first()).toBeVisible({ timeout: 30_000 });
+    // Feed-Umschalter (Reiter „FEED“) ist der stabile Anker des Feeds;
+    // zusätzlich muss mindestens ein Beitrag tatsächlich geladen sein.
+    const feedTab = page.getByRole("button", { name: /^feed$/i }).first();
+    await expect(feedTab).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator('a[href^="/p/"]').first()).toBeAttached({ timeout: 30_000 });
 
     const before = await page.evaluate(() => document.body.innerText.length);
     expect(before, "Feedinhalt vorhanden").toBeGreaterThan(200);
@@ -32,7 +35,10 @@ test.describe("Feed", () => {
 
     await page.reload();
     await waitForApp(page);
-    await expect(page.getByText(/Global/i).first()).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("button", { name: /^feed$/i }).first()).toBeVisible({
+      timeout: 30_000,
+    });
+    await expect(page.locator('a[href^="/p/"]').first()).toBeAttached({ timeout: 30_000 });
     errors.assertClean();
   });
 

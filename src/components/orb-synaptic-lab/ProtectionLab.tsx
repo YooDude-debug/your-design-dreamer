@@ -36,7 +36,8 @@ export default function ProtectionLab({ params }: { params: LabParams }) {
   const [rest, setRest] = useState(80);
   const [requested, setRequested] = useState<string | null>(null);
   const a = useMemo(
-    () => clampAdaptiveParams({ ...DEFAULT_ADAPTIVE_PARAMS, minRetention: minR, maxRetention: maxR }),
+    () =>
+      clampAdaptiveParams({ ...DEFAULT_ADAPTIVE_PARAMS, minRetention: minR, maxRetention: maxR }),
     [minR, maxR],
   );
   const capC = Math.max(0, Math.min(400, Math.round(cap) || 0));
@@ -44,7 +45,10 @@ export default function ProtectionLab({ params }: { params: LabParams }) {
   const result = useMemo(
     () =>
       requested === key
-        ? { val: runProtectionValidation(params, a, capC), budget: runBudgetComparison(params, a, capC) }
+        ? {
+            val: runProtectionValidation(params, a, capC),
+            budget: runBudgetComparison(params, a, capC),
+          }
         : null,
     [requested, key, params, a, capC],
   );
@@ -73,7 +77,8 @@ export default function ProtectionLab({ params }: { params: LabParams }) {
         Nur synthetischer Laborgraph, keine ORB-Memories. F: Baseline (Relevanz + Wichtigkeit +
         gemessene Nutzung). G: Frist aus max(F-Score, Wichtigkeit). H: F-Frist + begrenzter Bonus
         (bis {capC} Schritte) nur ab Wichtigkeit {IMPORTANT_THRESHOLD}, nie über die Höchstfrist.
-        Ruhe {PROTECTION_REST_STEPS.join(" / ")}, {ADAPTIVE_SEED_COUNT} Seeds, identische Ereignisse.
+        Ruhe {PROTECTION_REST_STEPS.join(" / ")}, {ADAPTIVE_SEED_COUNT} Seeds, identische
+        Ereignisse.
       </p>
       <div className="flex flex-wrap gap-3">
         {num("Mindestfrist (P13)", minR, setMinR)}
@@ -117,14 +122,20 @@ export default function ProtectionLab({ params }: { params: LabParams }) {
                       <tr key={`${r.restSteps}-${m}`} className="border-t border-border">
                         <td className="p-2">{mi === 0 ? r.restSteps : ""}</td>
                         <td className="p-2 font-semibold">{m}</td>
-                        <td className="p-2 font-mono">{pct(avg(ms, (x) => x.retrievabilityEnd))}</td>
+                        <td className="p-2 font-mono">
+                          {pct(avg(ms, (x) => x.retrievabilityEnd))}
+                        </td>
                         <td className="p-2 font-mono">{sum(ms, (x) => x.restored)}</td>
                         <td className="p-2 font-mono">{sum(ms, (x) => x.reactivated)}</td>
-                        <td className="p-2 font-mono">{avg(ms, (x) => x.dormantPeak).toFixed(1)}</td>
+                        <td className="p-2 font-mono">
+                          {avg(ms, (x) => x.dormantPeak).toFixed(1)}
+                        </td>
                         <td className="p-2 font-mono">{sum(ms, (x) => x.expired)}</td>
                         <td className="p-2 font-mono">{sum(ms, (x) => x.importantLost)}</td>
                         <td className="p-2 font-mono">{sum(ms, (x) => x.unimportantLost)}</td>
-                        <td className="p-2 font-mono">{avg(ms, (x) => x.avgRetention).toFixed(1)}</td>
+                        <td className="p-2 font-mono">
+                          {avg(ms, (x) => x.avgRetention).toFixed(1)}
+                        </td>
                         <td className="p-2 font-mono">
                           {pp("reuse")} / {pp("plannedRecalls")}
                         </td>
@@ -159,7 +170,9 @@ export default function ProtectionLab({ params }: { params: LabParams }) {
                           {(avg(ms, (x) => x.dormantPeakBytes) / 1024).toFixed(1)} /{" "}
                           {(avg(ms, (x) => x.activeEndBytes) / 1024).toFixed(1)} KB
                         </td>
-                        <td className="p-2 font-mono">{avg(ms, (x) => x.dormantStepSum).toFixed(0)}</td>
+                        <td className="p-2 font-mono">
+                          {avg(ms, (x) => x.dormantStepSum).toFixed(0)}
+                        </td>
                       </tr>
                     );
                   }),
@@ -240,7 +253,12 @@ export default function ProtectionLab({ params }: { params: LabParams }) {
                   const r = result.val.find((x) => x.restSteps === rest) ?? result.val[0]!;
                   const s0 = r.seeds[0]!.metrics[0]!.perProfile[pr.id];
                   const reuse = s0 && s0.n ? s0.reuse / s0.n : 0;
-                  const attr = { relevance: pr.relevance, importance: pr.importance, reuse, profile: pr.id };
+                  const attr = {
+                    relevance: pr.relevance,
+                    importance: pr.importance,
+                    reuse,
+                    profile: pr.id,
+                  };
                   return (
                     <tr key={pr.id} className="border-t border-border">
                       <td className="p-1.5">{pr.label}</td>
@@ -250,7 +268,10 @@ export default function ProtectionLab({ params }: { params: LabParams }) {
                       {PROTECTION_MODELS.map((m, mi) => {
                         const d = protectionRetention(m, attr, a, params, capC);
                         const tot = (f: "retrievable" | "expired" | "n") =>
-                          r.seeds.reduce((x, s) => x + (s.metrics[mi]!.perProfile[pr.id]?.[f] ?? 0), 0);
+                          r.seeds.reduce(
+                            (x, s) => x + (s.metrics[mi]!.perProfile[pr.id]?.[f] ?? 0),
+                            0,
+                          );
                         return (
                           <td key={m} className="p-1.5 font-mono">
                             {d.retention} (+{d.extension}) · {tot("retrievable")}/{tot("n")} /{" "}
