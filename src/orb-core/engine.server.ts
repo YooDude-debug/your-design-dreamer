@@ -933,7 +933,7 @@ export async function touchConnection(
   },
   q: QueryCounter,
   now: number,
-): Promise<"created" | "reactivated"> {
+): Promise<"created" | "reactivated" | "skipped"> {
   if (sourceId === targetId) return "reactivated";
   const existing = input.targetIsNew
     ? { data: null, error: null as { message: string } | null }
@@ -987,6 +987,19 @@ export async function touchConnection(
     );
     if (res.error) throw internalError(res.error);
     return "reactivated";
+  }
+
+  // P3: Vor dem Anlegen müssen beide Knoten existieren, dem Benutzer gehören
+  // und (über scopedDb) im aktuellen Bereich liegen. Fehlt einer (z. B. in der
+  // Zwischenzeit gelöscht), wird kontrolliert abgebrochen – kein RLS-Fehler.
+  // RLS (orb_owns_node) und der Scope-Trigger bleiben unverändert wirksam.
+  const owned = await q.tick(
+    db.from("orb_nodes").select("id").eq("user_id", userId).in("id", [sourceId, targetId]),
+  );
+  if (owned.error) throw internalError(owned.error);
+  if (((owned.data as { id: string }[] | null) ?? []).length !== 2) {
+    console.warn("[orb] connection_skipped", { reason: "node_missing_or_foreign", origin: input.origin });
+    return "skipped";
   }
 
   const res = await q.tick(
