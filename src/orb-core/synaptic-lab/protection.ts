@@ -39,14 +39,62 @@ export const DEFAULT_PROTECTION_CAP = 20;
 
 /** Pflichtprofile P13 (Relevanz überall 0,5, damit nur Wichtigkeit/Nutzung variieren). */
 export const PROTECTION_PROFILES: readonly Profile[] = [
-  { id: "hi_rare", label: "Hohe Wichtigkeit, seltene Nutzung", relevance: 0.5, importance: 0.9, usageEvery: 6 },
-  { id: "hi_freq", label: "Hohe Wichtigkeit, häufige Nutzung", relevance: 0.5, importance: 0.9, usageEvery: 1 },
-  { id: "lo_freq", label: "Niedrige Wichtigkeit, häufige Nutzung", relevance: 0.5, importance: 0.1, usageEvery: 1 },
-  { id: "lo_rare", label: "Niedrige Wichtigkeit, seltene Nutzung", relevance: 0.5, importance: 0.1, usageEvery: 6 },
-  { id: "eq_ru_imp_hi", label: "Gleiche Relevanz + Nutzung (jeden 3.), Wichtigkeit 0,8", relevance: 0.5, importance: 0.8, usageEvery: 3 },
-  { id: "eq_ru_imp_lo", label: "Gleiche Relevanz + Nutzung (jeden 3.), Wichtigkeit 0,3", relevance: 0.5, importance: 0.3, usageEvery: 3 },
-  { id: "eq_imp_reuse_hi", label: "Gleiche Wichtigkeit 0,6, Nutzung jeden 2.", relevance: 0.5, importance: 0.6, usageEvery: 2 },
-  { id: "eq_imp_reuse_lo", label: "Gleiche Wichtigkeit 0,6, Nutzung jeden 10.", relevance: 0.5, importance: 0.6, usageEvery: 10 },
+  {
+    id: "hi_rare",
+    label: "Hohe Wichtigkeit, seltene Nutzung",
+    relevance: 0.5,
+    importance: 0.9,
+    usageEvery: 6,
+  },
+  {
+    id: "hi_freq",
+    label: "Hohe Wichtigkeit, häufige Nutzung",
+    relevance: 0.5,
+    importance: 0.9,
+    usageEvery: 1,
+  },
+  {
+    id: "lo_freq",
+    label: "Niedrige Wichtigkeit, häufige Nutzung",
+    relevance: 0.5,
+    importance: 0.1,
+    usageEvery: 1,
+  },
+  {
+    id: "lo_rare",
+    label: "Niedrige Wichtigkeit, seltene Nutzung",
+    relevance: 0.5,
+    importance: 0.1,
+    usageEvery: 6,
+  },
+  {
+    id: "eq_ru_imp_hi",
+    label: "Gleiche Relevanz + Nutzung (jeden 3.), Wichtigkeit 0,8",
+    relevance: 0.5,
+    importance: 0.8,
+    usageEvery: 3,
+  },
+  {
+    id: "eq_ru_imp_lo",
+    label: "Gleiche Relevanz + Nutzung (jeden 3.), Wichtigkeit 0,3",
+    relevance: 0.5,
+    importance: 0.3,
+    usageEvery: 3,
+  },
+  {
+    id: "eq_imp_reuse_hi",
+    label: "Gleiche Wichtigkeit 0,6, Nutzung jeden 2.",
+    relevance: 0.5,
+    importance: 0.6,
+    usageEvery: 2,
+  },
+  {
+    id: "eq_imp_reuse_lo",
+    label: "Gleiche Wichtigkeit 0,6, Nutzung jeden 10.",
+    relevance: 0.5,
+    importance: 0.6,
+    usageEvery: 10,
+  },
 ];
 
 export function protectionRetention(
@@ -62,7 +110,10 @@ export function protectionRetention(
     const w = a.weightRelevance + a.weightImportance + a.weightReuse || 1;
     const reuseNorm = Math.min(1, Math.max(0, attr.reuse / Math.max(1, a.buildSteps)));
     const scoreF =
-      (a.weightRelevance * attr.relevance + a.weightImportance * attr.importance + a.weightReuse * reuseNorm) / w;
+      (a.weightRelevance * attr.relevance +
+        a.weightImportance * attr.importance +
+        a.weightReuse * reuseNorm) /
+      w;
     retention = retentionFromScore(Math.max(scoreF, attr.importance), a);
   } else if (model === "H" && attr.importance >= IMPORTANT_THRESHOLD) {
     const bonus = Math.round(

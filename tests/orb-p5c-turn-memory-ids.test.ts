@@ -8,19 +8,29 @@ import {
 } from "@/orb-core/memory-usage";
 
 const ok = { status: "ok", fallbackUsed: false };
-const ids = (r: string[], v: { id: string | null }[], called = true, a: any = ok) =>
+type Answer = Parameters<typeof turnVisibleMemoryIds>[1];
+const ids = (r: string[], v: { id: string | null }[], called = true, a: Answer = ok) =>
   turnVisibleMemoryIds(traceMemoryUsage(r, v, called), a);
-const row = (id: string, role: string, t: string, snap: any = {}) => ({
-  id, role, created_at: t, state_snapshot: snap,
+const row = (id: string, role: string, t: string, snap: Record<string, unknown> = {}) => ({
+  id,
+  role,
+  created_at: t,
+  state_snapshot: snap,
 });
 
 describe("P5-C Turn → model-visible Memory-IDs", () => {
   it("1 Turn → sichtbare ID", () => expect(ids(["A"], [{ id: "A" }])).toEqual(["A"]));
-  it("2 mehrere IDs", () => expect(ids(["A", "B"], [{ id: "A" }, { id: "B" }])).toEqual(["A", "B"]));
+  it("2 mehrere IDs", () =>
+    expect(ids(["A", "B"], [{ id: "A" }, { id: "B" }])).toEqual(["A", "B"]));
   it("3 P2 V2 entfernt B", () =>
     expect(ids(["A", "B", "C"], [{ id: "A" }, { id: "C" }])).toEqual(["A", "C"]));
   it("4 identischer Text, unterschiedliche IDs", () =>
-    expect(ids(["X", "Y"], [{ id: "X", content: "t" } as any, { id: "Y", content: "t" } as any])).toEqual(["X", "Y"]));
+    expect(
+      ids(["X", "Y"], [
+        { id: "X", content: "t" },
+        { id: "Y", content: "t" },
+      ] satisfies { id: string; content: string }[]),
+    ).toEqual(["X", "Y"]));
   it("5 LISTEN / 6 kein Modellaufruf", () => expect(ids(["A"], [], false)).toEqual([]));
   it("6b sichtbare Liste ohne Modellaufruf wird nicht zugeordnet", () =>
     expect(ids(["A"], [{ id: "A" }], false)).toEqual([]));
@@ -43,14 +53,23 @@ describe("P5-C Turn → model-visible Memory-IDs", () => {
     row("u3", "user", "2026-09-24T10:02:00.000Z"),
   ];
   it("8 vorheriger Turn auffindbar", () =>
-    expect(findPreviousOrbTurn(rows, "2026-09-24T10:02:00.000Z")).toMatchObject({ turnId: "o2", modelVisibleMemoryIds: ["C"] }));
+    expect(findPreviousOrbTurn(rows, "2026-09-24T10:02:00.000Z")).toMatchObject({
+      turnId: "o2",
+      modelVisibleMemoryIds: ["C"],
+    }));
   it("9 keine falsche Zuordnung zwischen Turns", () =>
-    expect(findPreviousOrbTurn(rows, "2026-09-24T10:01:00.000Z")).toMatchObject({ turnId: "o1", modelVisibleMemoryIds: ["A", "B"] }));
+    expect(findPreviousOrbTurn(rows, "2026-09-24T10:01:00.000Z")).toMatchObject({
+      turnId: "o1",
+      modelVisibleMemoryIds: ["A", "B"],
+    }));
   it("10 mehrere Turns hintereinander", () => {
     expect(findPreviousOrbTurn(rows)?.turnId).toBe("o2");
     expect(findPreviousOrbTurn(rows, "2026-09-24T10:00:00.000Z")).toBeNull();
   });
   it("alter Turn ohne Tracking → null, nicht []", () =>
-    expect(readTurnMemoryRef(row("o0", "orb", "t", { recalled: 3 }))?.modelVisibleMemoryIds).toBeNull());
-  it("User-Zeile ist kein ORB-Turn", () => expect(readTurnMemoryRef(row("u", "user", "t"))).toBeNull());
+    expect(
+      readTurnMemoryRef(row("o0", "orb", "t", { recalled: 3 }))?.modelVisibleMemoryIds,
+    ).toBeNull());
+  it("User-Zeile ist kein ORB-Turn", () =>
+    expect(readTurnMemoryRef(row("u", "user", "t"))).toBeNull());
 });

@@ -32,7 +32,7 @@ function fakeDb(opts: { uploadFails?: boolean; removeFails?: boolean } = {}) {
   const objects = new Set<string>();
   const filtersSeen: string[] = [];
   const builder = (table: string) => {
-    let rows = () => tables[table]!;
+    const rows = () => tables[table]!;
     const filters: ((r: Row) => boolean)[] = [];
     let op: "select" | "insert" | "update" | "delete" = "select";
     let payload: any = null;

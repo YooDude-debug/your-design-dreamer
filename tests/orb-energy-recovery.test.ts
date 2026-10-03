@@ -81,7 +81,7 @@ describe("Energie-Erholung (zweistufig, zeitbasiert, gedeckelt bei 100 %)", () =
   });
 
   it("wiederholte Abfragen mit identischem Zeitstempel erzeugen keine Energie", () => {
-    let v = recoverEnergy(0.1, 0, 5 * MIN);
+    const v = recoverEnergy(0.1, 0, 5 * MIN);
     for (let i = 0; i < 10; i += 1) {
       expect(recoverEnergy(0.1, 0, 5 * MIN)).toBe(v);
     }

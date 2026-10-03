@@ -17,6 +17,9 @@ export default tseslint.config(
       // Von der Backend-Anbindung erzeugte Typdatei (nicht handgepflegt).
       "src/integrations/supabase/types.ts",
       "src/integrations/supabase/previewAuthStorage.ts",
+      // Archivierte Kopien derselben generierten Typdatei im Release-Paket
+      // (Prüfsummen in PACKAGE_FILES.sha256), nicht handgepflegt.
+      "release/**/src/integrations/supabase/types.ts",
     ],
   },
   {
