@@ -7,7 +7,7 @@
  * Keine DB, keine Seiteneffekte, kein Scope-Wissen. „Vergessen“ heißt
  * Stufenverlust – niemals Löschen. Keine Dormant-/Pruning-/Reaktivierungslogik.
  */
-import type { OrbTemporalScope } from "@/orb-core/analysis/types";
+import type { OrbTemporalScope } from "@/orb-core/analysis/schema";
 
 export type Lifecycle = "active" | "weak" | "stale" | "archived" | "forgotten";
 
