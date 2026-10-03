@@ -24,7 +24,9 @@ export const getPublicSlangTag = createServerFn({ method: "GET" })
 
     const { data: tag } = await supabaseAdmin
       .from("slang_tags")
-      .select("id,name,kind,region,duration,audio_url,deleted_at,moderation_status")
+      .select(
+        "id,name,kind,region,duration,audio_url,deleted_at,moderation_status,unlock_type,follow_required",
+      )
       .eq("id", data.tagId)
       .is("deleted_at", null)
       .eq("moderation_status", "approved")
@@ -32,7 +34,23 @@ export const getPublicSlangTag = createServerFn({ method: "GET" })
 
     if (!tag) return null;
 
-    const path = (tag.audio_url as string | null) ?? null;
+    // Gesperrte Creator-SlangTags (Follower, Abo, Exclusive Drop) bekommen
+    // hier nie einen Audio-Link – dieser Weg ist ohne Anmeldung erreichbar.
+    let locked = false;
+    if (tag.kind === "creator") {
+      const unlock = (tag as { unlock_type?: string | null }).unlock_type ?? null;
+      const followRequired = (tag as { follow_required?: boolean | null }).follow_required === true;
+      if (unlock === "premium" || unlock === "follow" || followRequired) locked = true;
+      if (!locked) {
+        const { count } = await supabaseAdmin
+          .from("slang_tag_drops")
+          .select("tag_id", { count: "exact", head: true })
+          .eq("tag_id", tag.id);
+        if ((count ?? 0) > 0) locked = true;
+      }
+    }
+
+    const path = locked ? null : ((tag.audio_url as string | null) ?? null);
     const audio = path
       ? ((await supabaseAdmin.storage.from("media").createSignedUrl(path, 60 * 60)).data
           ?.signedUrl ?? null)
