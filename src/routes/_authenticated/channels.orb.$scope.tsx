@@ -62,6 +62,8 @@ import { detectDeveloperDiagnosticIntent } from "@/orb-dev/chat-bridge";
 import { adminCheckAccess } from "@/lib/admin.functions";
 import { ORB_SCOPE_LABEL, RETRIEVAL_CHANNEL, isOrbChatScope, type OrbChatScope } from "@/orb-sdk";
 import { COGNITIVE_CHANNEL, toCognitiveView } from "@/lib/orb-knowledge-graph/cognitive-layers";
+import { wrapTabSignal } from "@/lib/orb-knowledge-graph/tab-signal";
+import { useSession } from "@/lib/use-session";
 
 /** Bestehender Knowledge Globe – nur als visuelle Hintergrundebene, erst im Browser geladen. */
 const KnowledgeGraphStage = lazy(
@@ -69,12 +71,12 @@ const KnowledgeGraphStage = lazy(
 );
 
 /** Nur Darstellung: kompakte Cognitive-Ansicht an den Knowledge Globe (flüchtig). */
-function broadcastCognitive(obs: unknown) {
-  if (typeof BroadcastChannel === "undefined") return;
+function broadcastCognitive(obs: unknown, userId: string | null, scope: OrbChatScope) {
+  if (typeof BroadcastChannel === "undefined" || !userId) return;
   const view = toCognitiveView(obs, new Date().toISOString());
   if (!view) return;
   const ch = new BroadcastChannel(COGNITIVE_CHANNEL);
-  ch.postMessage(view);
+  ch.postMessage(wrapTabSignal(userId, scope, view));
   ch.close();
 }
 
@@ -143,6 +145,8 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
     staleTime: 5 * 60 * 1000,
   });
   const isAdmin = adminAccess.data?.isAdmin === true;
+  const { session } = useSession();
+  const userId = session?.user.id ?? null;
   const observe = useServerFn(observeOrbFeed);
   const decide = useServerFn(decideOrbSuggestion);
   const transcribe = useServerFn(transcribeOrbAudio);
@@ -238,12 +242,13 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
 
       queryClient.setQueryData(["orb", "snapshot", scope], turn.snapshot);
       // Flüchtiges Retrieval-Event an die Knowledge-Graph-Seite (nur Admins, nur Browser).
-      if (isAdmin && turn.retrievalEvent && typeof BroadcastChannel !== "undefined") {
+      // Nur an Tabs desselben Nutzers/Bereichs (Hülle mit Nutzer-ID, keine Inhalte).
+      if (isAdmin && userId && turn.retrievalEvent && typeof BroadcastChannel !== "undefined") {
         const ch = new BroadcastChannel(RETRIEVAL_CHANNEL);
-        ch.postMessage(turn.retrievalEvent);
+        ch.postMessage(wrapTabSignal(userId, scope, turn.retrievalEvent));
         ch.close();
       }
-      if (isAdmin) broadcastCognitive(turn.cognitive);
+      if (isAdmin) broadcastCognitive(turn.cognitive, userId, scope);
       if (turn.aiStatus === "quota") toast.error("Die Sprachschicht ist derzeit nicht verfügbar.");
 
       // Visual Memory: nur tatsächlich verknüpfte, gespeicherte Bilder der
@@ -429,7 +434,7 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
       // NUR Dry-Run (Experiment): stille Versuche in Folge zählen – reine
       // Beobachtung, beeinflusst keinen Takt und keine Entscheidung.
       silentStreakRef.current = result.asked ? 0 : silentStreakRef.current + 1;
-      if (isAdmin && result.asked) broadcastCognitive(result.cognitive);
+      if (isAdmin && result.asked) broadcastCognitive(result.cognitive, userId, scope);
       if (!result.asked || !result.question) return;
       if (result.snapshot) queryClient.setQueryData(["orb", "snapshot", scope], result.snapshot);
       setLastReply(result.question);
@@ -723,6 +728,7 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
             {isAdmin && (
               <Link
                 to="/orb/knowledge-graph"
+                search={{ scope }}
                 className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-border bg-background/80 px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-brand hover:text-brand"
               >
                 <Network className="size-3.5" aria-hidden />
@@ -758,7 +764,7 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
               >
                 <ClientOnly fallback={null}>
                   <Suspense fallback={null}>
-                    <KnowledgeGraphStage />
+                    <KnowledgeGraphStage scope={scope} />
                   </Suspense>
                 </ClientOnly>
               </div>

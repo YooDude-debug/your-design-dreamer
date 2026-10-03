@@ -182,8 +182,18 @@ function RootComponent() {
   // Ein einziger Auth-Listener: hält Router und Cache mit der Session synchron,
   // ohne bei Token-Refresh unnötig neu zu laden.
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((event) => {
+    // Nutzerbezogener Cache: beim Abmelden und bei Kontowechsel vollständig
+    // leeren, damit keine Daten des vorherigen Kontos sichtbar bleiben.
+    let lastUserId: string | null | undefined;
+    void supabase.auth.getSession().then(({ data: s }) => {
+      if (lastUserId === undefined) lastUserId = s.session?.user.id ?? null;
+    });
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      const nextUserId = session?.user.id ?? null;
+      const switched = event === "SIGNED_OUT" || (lastUserId != null && nextUserId !== lastUserId);
+      lastUserId = nextUserId;
+      if (switched) queryClient.clear();
       void router.invalidate();
       if (event !== "SIGNED_OUT") void queryClient.invalidateQueries();
     });

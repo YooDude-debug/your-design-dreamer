@@ -64,11 +64,11 @@ describe("Retrieval-Puls → einzelne Memory-Nodes", () => {
     // pulseRetrieval wird nur hinter isRetrievalEvent aufgerufen; das Event
     // entsteht ausschliesslich in processInput (siehe orb-retrieval-event.test.ts).
     const i = stageSrc.indexOf("pulseRetrieval(");
-    expect(stageSrc.slice(i - 400, i)).toContain("isRetrievalEvent(msg.data)");
+    expect(stageSrc.slice(i - 400, i)).toContain("isRetrievalEvent(ev)");
   });
 
   it("H) Stage übergibt memory_ids und model_visible_ids des Events", () => {
-    expect(stageSrc).toContain("pulseRetrieval(msg.data.memory_ids, msg.data.model_visible_ids)");
+    expect(stageSrc).toContain("pulseRetrieval(ev.memory_ids, ev.model_visible_ids)");
     // Kein globaler Puls mehr: Kanten bekommen keine Retrieval-Färbung.
     expect(engineSrc).not.toContain("this.retrievalPulse *= k;");
     const edgeLoop = engineSrc.slice(engineSrc.indexOf("const col = this.lines.geometry"));

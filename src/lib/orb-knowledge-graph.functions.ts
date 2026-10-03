@@ -11,6 +11,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { internalError } from "@/orb-core/internal-error";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { z } from "zod";
+import { orbDataScopeSchema } from "@/orb-core/scope-values";
 
 export type KgNode = {
   id: string;
@@ -68,14 +70,19 @@ export const KG_EDGE_LIMIT = 1500;
 
 export const getOrbKnowledgeGraph = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<KgGraph> => {
+  // Bereich ist Pflicht (keine Voreinstellung) – keine implizite Mischung.
+  .inputValidator((input: unknown) => z.object({ scope: orbDataScopeSchema }).parse(input))
+  .handler(async ({ context, data }): Promise<KgGraph> => {
     const { assertAdmin } = await import("@/lib/admin.server");
     await assertAdmin(context);
     const { currentWeight, isStrong, recoverEnergy } = await import("@/orb-core/core");
     const db = context.supabase;
     const uid = context.userId;
+    const scope = data.scope;
     const now = Date.now();
 
+    // Feste Sortierung vor jedem Limit; `id` ist immer das letzte Kriterium.
+    // orb_state hat bewusst keinen Bereich (nutzerweiter Zustand, Architekturregel).
     const [nodesRes, edgesRes, threadsRes, stateRes, msgRes] = await Promise.all([
       db
         .from("orb_nodes")
@@ -84,6 +91,9 @@ export const getOrbKnowledgeGraph = createServerFn({ method: "GET" })
           { count: "exact" },
         )
         .eq("user_id", uid)
+        .eq("scope", scope)
+        .order("last_accessed_at", { ascending: false })
+        .order("id", { ascending: true })
         .limit(KG_NODE_LIMIT),
       db
         .from("orb_connections")
@@ -92,25 +102,40 @@ export const getOrbKnowledgeGraph = createServerFn({ method: "GET" })
           { count: "exact" },
         )
         .eq("user_id", uid)
+        .eq("scope", scope)
+        .order("last_activated_at", { ascending: false })
+        .order("id", { ascending: true })
         .limit(KG_EDGE_LIMIT),
       db
         .from("orb_threads")
         .select("id,title,topic,status,node_ids,activation_count,last_activation_at")
         .eq("user_id", uid)
+        .eq("scope", scope)
+        .order("last_activation_at", { ascending: false })
+        .order("id", { ascending: true })
         .limit(100),
       db.from("orb_state").select("energy,curiosity,updated_at").eq("user_id", uid).maybeSingle(),
       db
         .from("orb_messages")
         .select("id,decision,created_at")
         .eq("user_id", uid)
+        .eq("scope", scope)
         .eq("role", "orb")
         .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
         .limit(1)
         .maybeSingle(),
     ]);
     for (const r of [nodesRes, edgesRes, threadsRes, stateRes, msgRes]) {
       if (r.error) throw internalError(r.error);
     }
+
+    const nodes = nodesRes.data ?? [];
+    // Kanten und Thread-Mitglieder nur zu tatsächlich geladenen, zulässigen Knoten.
+    const loaded = new Set(nodes.map((n) => n.id));
+    const edges = (edgesRes.data ?? []).filter(
+      (c) => loaded.has(c.source_node_id) && loaded.has(c.target_node_id),
+    );
 
     const s = stateRes.data;
     return {
@@ -130,7 +155,7 @@ export const getOrbKnowledgeGraph = createServerFn({ method: "GET" })
       lastOrbMessage: msgRes.data
         ? { id: msgRes.data.id, decision: msgRes.data.decision, createdAt: msgRes.data.created_at }
         : null,
-      nodes: (nodesRes.data ?? []).map((n) => ({
+      nodes: nodes.map((n) => ({
         id: n.id,
         type: n.type,
         content: n.content,
@@ -144,7 +169,7 @@ export const getOrbKnowledgeGraph = createServerFn({ method: "GET" })
         lastAccessedAt: n.last_accessed_at,
         createdAt: n.created_at,
       })),
-      edges: (edgesRes.data ?? []).map((c) => {
+      edges: edges.map((c) => {
         const weight = currentWeight({
           weight: c.weight,
           importance: c.importance,
@@ -168,7 +193,7 @@ export const getOrbKnowledgeGraph = createServerFn({ method: "GET" })
         title: t.title,
         topic: t.topic,
         status: t.status,
-        nodeIds: t.node_ids ?? [],
+        nodeIds: (t.node_ids ?? []).filter((id: string) => loaded.has(id)),
         activationCount: t.activation_count,
         lastActivationAt: t.last_activation_at,
       })),

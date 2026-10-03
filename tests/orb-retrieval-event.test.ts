@@ -82,7 +82,7 @@ describe("ORB Retrieval-Event", () => {
     );
     expect(stage.match(/pulseRetrieval\(/g)).toHaveLength(1);
     const i = stage.indexOf("pulseRetrieval(");
-    expect(stage.slice(i - 400, i)).toContain("isRetrievalEvent(msg.data)");
+    expect(stage.slice(i - 400, i)).toContain("isRetrievalEvent(ev)");
   });
 
   it("10. ungültige/unbekannte Events → false", () => {

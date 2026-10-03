@@ -7,6 +7,14 @@ import { BrainCircuit } from "lucide-react";
 import { BackButton } from "@/components/ui/nav-buttons";
 import { adminCheckAccess } from "@/lib/admin.functions";
 import { goBackOr } from "@/lib/back-nav";
+import { ORB_DATA_SCOPES, isOrbDataScope, type OrbDataScope } from "@/orb-core/scope-values";
+
+const SCOPE_LABEL: Record<OrbDataScope, string> = {
+  normal: "Normal",
+  orb_core: "ORB Core",
+  y_dude: "Y-Dude",
+  unassigned: "Nicht zugeordnet",
+};
 
 /**
  * ORB Knowledge Graph – isolierte Experiment-/Debug-Ansicht (nur Admins).
@@ -32,11 +40,16 @@ export const Route = createFileRoute("/_authenticated/orb/knowledge-graph")({
       { name: "robots", content: "noindex" },
     ],
   }),
+  // Bereich sichtbar in der Adresse; ungültig/fehlend → "normal" (immer genau ein Bereich).
+  validateSearch: (s: Record<string, unknown>): { scope: OrbDataScope } => ({
+    scope: isOrbDataScope(s.scope) ? s.scope : "normal",
+  }),
   component: KnowledgeGraphPage,
 });
 
 function KnowledgeGraphPage() {
   const router = useRouter();
+  const { scope } = Route.useSearch();
   const check = useServerFn(adminCheckAccess);
   const access = useQuery({
     queryKey: ["admin-check-access"],
@@ -63,6 +76,26 @@ function KnowledgeGraphPage() {
           Nicht zugeordnet – historische Daten
         </Link>
       )}
+      {access.data?.isAdmin && (
+        <nav
+          aria-label="Bereich"
+          className="absolute left-1/2 top-3 z-20 flex -translate-x-1/2 gap-1 rounded-full border border-border/60 bg-surface/80 p-1 backdrop-blur-md"
+        >
+          {ORB_DATA_SCOPES.map((s) => (
+            <Link
+              key={s}
+              to="/orb/knowledge-graph"
+              search={{ scope: s }}
+              aria-current={s === scope ? "page" : undefined}
+              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                s === scope ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+              }`}
+            >
+              {SCOPE_LABEL[s]}
+            </Link>
+          ))}
+        </nav>
+      )}
       {/* Rein erklärend: Cognitive-Daten sind transient (nur Live-Broadcast). */}
       <p className="pointer-events-none absolute inset-x-3 top-[10rem] z-10 text-center text-[11px] leading-snug text-muted-foreground lg:inset-x-auto lg:left-3 lg:top-12 lg:text-left">
         <span className="font-semibold text-foreground/80">Cognitive-Ebenen</span> erscheinen live
@@ -73,7 +106,7 @@ function KnowledgeGraphPage() {
       ) : access.data?.isAdmin ? (
         <ClientOnly fallback={<Fallback text="Graph wird geladen …" />}>
           <Suspense fallback={<Fallback text="Graph wird geladen …" />}>
-            <KnowledgeGraphStage />
+            <KnowledgeGraphStage key={scope} scope={scope} />
           </Suspense>
         </ClientOnly>
       ) : (
