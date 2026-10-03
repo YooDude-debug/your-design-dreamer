@@ -8,9 +8,10 @@ import {
 } from "@/orb-core/memory-usage";
 
 const ok = { status: "ok", fallbackUsed: false };
-const ids = (r: string[], v: { id: string | null }[], called = true, a: any = ok) =>
+type Answer = Parameters<typeof turnVisibleMemoryIds>[1];
+const ids = (r: string[], v: { id: string | null }[], called = true, a: Answer = ok) =>
   turnVisibleMemoryIds(traceMemoryUsage(r, v, called), a);
-const row = (id: string, role: string, t: string, snap: any = {}) => ({
+const row = (id: string, role: string, t: string, snap: Record<string, unknown> = {}) => ({
   id, role, created_at: t, state_snapshot: snap,
 });
 
@@ -20,7 +21,10 @@ describe("P5-C Turn → model-visible Memory-IDs", () => {
   it("3 P2 V2 entfernt B", () =>
     expect(ids(["A", "B", "C"], [{ id: "A" }, { id: "C" }])).toEqual(["A", "C"]));
   it("4 identischer Text, unterschiedliche IDs", () =>
-    expect(ids(["X", "Y"], [{ id: "X", content: "t" } as any, { id: "Y", content: "t" } as any])).toEqual(["X", "Y"]));
+    expect(ids(["X", "Y"], [
+        { id: "X", content: "t" },
+        { id: "Y", content: "t" },
+      ] satisfies { id: string; content: string }[])).toEqual(["X", "Y"]));
   it("5 LISTEN / 6 kein Modellaufruf", () => expect(ids(["A"], [], false)).toEqual([]));
   it("6b sichtbare Liste ohne Modellaufruf wird nicht zugeordnet", () =>
     expect(ids(["A"], [{ id: "A" }], false)).toEqual([]));
