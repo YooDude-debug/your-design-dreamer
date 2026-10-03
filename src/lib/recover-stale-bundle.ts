@@ -47,11 +47,19 @@ async function clearCachesAndServiceWorkers() {
   }
 }
 
-/** Verwirft Caches/Service Worker und lädt einmalig neu. */
+/**
+ * Mindestabstand zwischen zwei Wiederherstellungen im selben Tab. Ein
+ * dauerhafter Marker würde nach dem zweiten Deploy im selben Tab nie wieder
+ * heilen (leere Seite); ein Zeitfenster verhindert trotzdem Reload-Schleifen.
+ */
+const RECOVERY_COOLDOWN_MS = 60_000;
+
+/** Verwirft Caches/Service Worker und lädt neu (höchstens alle 60 s). */
 async function performRecovery(): Promise<void> {
   try {
-    if (sessionStorage.getItem(MARKER)) return;
-    sessionStorage.setItem(MARKER, "1");
+    const last = Number(sessionStorage.getItem(MARKER) ?? 0);
+    if (Number.isFinite(last) && Date.now() - last < RECOVERY_COOLDOWN_MS) return;
+    sessionStorage.setItem(MARKER, String(Date.now()));
   } catch {
     return;
   }
