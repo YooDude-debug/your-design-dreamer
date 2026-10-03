@@ -31,10 +31,7 @@ import {
   WebGLRenderer,
 } from "three";
 
-import {
-  enqueueActivation,
-  RETRIEVAL_STEP_MS,
-} from "@/orb-core/retrieval-event";
+import { enqueueActivation, RETRIEVAL_STEP_MS } from "@/orb-core/retrieval-event";
 import { CognitiveLayerScene } from "./cognitive-layer-scene";
 import { COGNITIVE_LAYERS, type CognitiveLayerId, type CognitiveView } from "./cognitive-layers";
 
@@ -77,7 +74,11 @@ export function retrievalPulseIndices(
 }
 
 /** Rein visuelles Framing: hält den gegebenen Radius in beiden Achsen im Bild. */
-export function calculateFramingDistance(radius: number, fovDegrees: number, aspect: number): number {
+export function calculateFramingDistance(
+  radius: number,
+  fovDegrees: number,
+  aspect: number,
+): number {
   const verticalHalfFov = (fovDegrees * Math.PI) / 360;
   const horizontalHalfFov = Math.atan(Math.tan(verticalHalfFov) * aspect);
   const limitingHalfFov = Math.min(verticalHalfFov, horizontalHalfFov);
@@ -539,11 +540,12 @@ export class KnowledgeGraphEngine {
     const radius = this.cognitiveScene.framingRadius(this.layerVisible, this.layerFocus);
     const prevFraming = this.framingDistance;
     this.framingDistance = calculateFramingDistance(radius, this.camera.fov, this.camera.aspect);
-    this.minDistance = calculateFramingDistance(
-      this.cognitiveScene.getMemoryCoreRadius(),
-      this.camera.fov,
-      this.camera.aspect,
-    ) * 0.55;
+    this.minDistance =
+      calculateFramingDistance(
+        this.cognitiveScene.getMemoryCoreRadius(),
+        this.camera.fov,
+        this.camera.aspect,
+      ) * 0.55;
     this.camera.far = Math.max(200, this.framingDistance + radius * 2);
     this.camera.updateProjectionMatrix();
     this.distance = nextFramedDistance({

@@ -25,11 +25,7 @@ import {
   type CognitiveLayerId,
   type CognitiveView,
 } from "@/lib/orb-knowledge-graph/cognitive-layers";
-import {
-  RETRIEVAL_CHANNEL,
-  isRetrievalEvent,
-  type OrbRetrievalEvent,
-} from "@/orb-sdk";
+import { RETRIEVAL_CHANNEL, isRetrievalEvent, type OrbRetrievalEvent } from "@/orb-sdk";
 import { useSession } from "@/lib/use-session";
 import { knowledgeGraphQueryKey, openTabSignal } from "@/lib/orb-knowledge-graph/tab-signal";
 import type { OrbDataScope } from "@/orb-core/scope-values";

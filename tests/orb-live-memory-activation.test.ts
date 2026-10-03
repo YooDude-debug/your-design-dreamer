@@ -49,7 +49,11 @@ describe("Live Memory Activation", () => {
       { id: "b", events: ["e1", "e2"] },
       { id: "c", events: ["e2"] },
     ]);
-    const many = enqueueActivation([], Array.from({ length: 40 }, (_, i) => `n${i}`), "e");
+    const many = enqueueActivation(
+      [],
+      Array.from({ length: 40 }, (_, i) => `n${i}`),
+      "e",
+    );
     expect(many).toHaveLength(RETRIEVAL_QUEUE_MAX);
   });
 
