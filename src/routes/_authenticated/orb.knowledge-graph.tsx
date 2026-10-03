@@ -77,6 +77,15 @@ function KnowledgeGraphPage() {
         </Link>
       )}
       {access.data?.isAdmin && (
+        <Link
+          to="/orb/synaptic-lab"
+          search={{ scope }}
+          className="absolute right-3 top-24 z-20 rounded-full border border-border/60 bg-surface/80 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground backdrop-blur-md"
+        >
+          Synaptic Lab (Experiment)
+        </Link>
+      )}
+      {access.data?.isAdmin && (
         <nav
           aria-label="Bereich"
           className="absolute left-1/2 top-3 z-20 flex -translate-x-1/2 gap-1 rounded-full border border-border/60 bg-surface/80 p-1 backdrop-blur-md"

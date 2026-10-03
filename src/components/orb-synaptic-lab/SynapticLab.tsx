@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Pause, Play, RotateCcw, StepForward } from "lucide-react";
 
+import { useSession } from "@/lib/use-session";
 import { getOrbKnowledgeGraph } from "@/lib/orb-knowledge-graph.functions";
 import type { OrbDataScope } from "@/orb-core/scope-values";
 import {
@@ -39,13 +40,16 @@ const MODEL_LABEL: Record<LabModelId, string> = {
   C: "C · Wachstum + Verfall + Verstärkung",
 };
 
-export default function SynapticLab({ scope, userId }: { scope: OrbDataScope; userId: string }) {
+export default function SynapticLab({ scope }: { scope: OrbDataScope }) {
   const fetchGraph = useServerFn(getOrbKnowledgeGraph);
+  const { session } = useSession();
+  const userId = session?.user.id ?? null;
   const graph = useQuery({
     queryKey: ["orb-synaptic-lab-source", userId, scope],
     queryFn: () => fetchGraph({ data: { scope } }),
     staleTime: Infinity,
     refetchOnWindowFocus: false,
+    enabled: !!userId,
   });
 
   // Eingefrorener Snapshot: nur IDs, Gruppe, Kanten – keine Inhalte.
@@ -98,7 +102,7 @@ export default function SynapticLab({ scope, userId }: { scope: OrbDataScope; us
   const mark = (key: string, status: "confirmed" | "rejected") =>
     setStates((prev) => prev.map((s) => setCandidateStatus(s, key, status)));
 
-  if (graph.isLoading) return <p className="p-6 text-sm text-muted-foreground">Snapshot wird gelesen …</p>;
+  if (!userId || graph.isLoading) return <p className="p-6 text-sm text-muted-foreground">Snapshot wird gelesen …</p>;
   if (graph.isError || !snapshot)
     return <p className="p-6 text-sm text-destructive">Snapshot konnte nicht gelesen werden.</p>;
 
