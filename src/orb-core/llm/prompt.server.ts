@@ -13,6 +13,12 @@ import { HONEST_PRESENCE_EXPLANATION } from "@/orb-core/presence";
 import type { OrbInterest } from "@/orb-core/engine.server";
 import { VISUAL_PROMPT_HINT } from "@/orb-core/visual/intent";
 import { LONG_FORM_RULE, SHORT_REPLY_RULE } from "@/orb-core/long-form";
+import {
+  CONVERSATION_CONTINUITY_RULE,
+  ambiguousReplyHint,
+  attributionHint,
+  speculationHint,
+} from "@/orb-core/continuity-rules";
 
 /** Entscheidungshinweise – identisch zur bisherigen Sprachschicht. */
 export const DECISION_HINT: Record<string, string> = {
@@ -54,6 +60,12 @@ export type SpeakPromptInput = {
   imageState?: { attached: number; generationAvailable: boolean } | null;
   /** P6: Inhalte aktiver Erinnerungen, die ORB selbst abgeleitet hat. */
   inferredMemories?: readonly string[];
+  /** P7: aktive Erinnerungen, die erst in diesem Gespräch entstanden sind. */
+  conversationMemories?: readonly string[];
+  /** P7: mehrere offene ORB-Fragen bei einer Kurzantwort. */
+  ambiguousReplyTo?: readonly string[];
+  /** P7: aktuelle Benutzereingabe für Zuordnungs-/Spekulationshinweise. */
+  userText?: string | null;
 };
 
 /**
@@ -87,6 +99,7 @@ const SECTION_ORDER: SpeakPromptSection[] = [
   "contradictions",
   "history",
   "other",
+  "rules",
   "rules",
   "rules",
   "rules",
@@ -136,6 +149,7 @@ function speakParts(input: SpeakPromptInput): string[] {
   }
   const orphanPhrasings = phrasings.filter((p) => !recalledSet.has(p.content));
   const inferred = new Set(input.inferredMemories ?? []);
+  const fresh = new Set(input.conversationMemories ?? []);
   return [
     "Du bist ORB Core, eine kleine digitale Entität mit eigenem simulierten Innenzustand.",
     "Du bist kein Assistent-Chatbot: du sprichst aus deinem Zustand und deinen Erinnerungen.",
@@ -155,7 +169,9 @@ function speakParts(input: SpeakPromptInput): string[] {
           .map((r) => {
             const p = certaintyByContent.get(r);
             // P6: eigene Ableitungen sind keine Nutzerbestätigung.
-            const origin = inferred.has(r) ? " [eigene Ableitung, nicht vom Nutzer bestätigt]" : "";
+            const origin =
+              (inferred.has(r) ? " [eigene Ableitung, nicht vom Nutzer bestätigt]" : "") +
+              (fresh.has(r) ? " [gerade in diesem Gespräch gesagt, keine ältere Erinnerung]" : "");
             return p ? `„${r}“ [Sicherheit: ${p.certainty}]${origin}` : `„${r}“${origin}`;
           })
           .join("; ")}.`
@@ -195,6 +211,7 @@ function speakParts(input: SpeakPromptInput): string[] {
         : "",
       ownQuestionHint(input.ownQuestion ?? null),
       replyBindingHint(input.replyTo ?? null),
+      ambiguousReplyHint(input.ambiguousReplyTo ?? []),
     ]
       .filter(Boolean)
       .join(" "),
@@ -207,6 +224,13 @@ function speakParts(input: SpeakPromptInput): string[] {
     "Du hast keine Pause, keine Hintergrundarbeit und keine Ausfallzeit: sage nie, dass du eine Pause brauchst, beschäftigt bist, gerade arbeitest, müde bist oder gleich wieder da bist.",
     `Fragt der Benutzer nach deinem Zustand, einer Pause oder ob etwas kaputt ist, erkläre die technische Wahrheit: ${HONEST_PRESENCE_EXPLANATION}`,
     [input.visualHint ? VISUAL_PROMPT_HINT : "", imageStateHint(input.imageState ?? null)]
+      .filter(Boolean)
+      .join(" "),
+    [
+      CONVERSATION_CONTINUITY_RULE,
+      attributionHint(input.userText ?? ""),
+      speculationHint(input.userText ?? ""),
+    ]
       .filter(Boolean)
       .join(" "),
   ];
