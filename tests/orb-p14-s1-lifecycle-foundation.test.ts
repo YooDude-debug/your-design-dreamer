@@ -15,7 +15,7 @@ import {
 } from "@/orb-core/memory-lifecycle";
 import { lifecycleFor as reExported } from "@/orb-core/analysis/validate";
 import type { OrbTemporalScope } from "@/orb-core/analysis/schema";
-import { ORB_DATA_SCOPES } from "@/orb-core/scope";
+import { ORB_DATA_SCOPES } from "@/orb-core/scope-values";
 
 const DAY = 86_400_000;
 
@@ -129,7 +129,12 @@ describe("P14 S1 – Fortschreibung je Knoten identisch zur alten Schleife", () 
   it("Regression: heutiger DB-Zustand (alle active, Daten von heute) ändert sich nicht", () => {
     for (const t of SCOPES_T) {
       const iso = new Date(now - 3_600_000).toISOString();
-      const row = { temporal_scope: t, created_at: iso, last_accessed_at: iso, lifecycle: "active" };
+      const row = {
+        temporal_scope: t,
+        created_at: iso,
+        last_accessed_at: iso,
+        lifecycle: "active",
+      };
       expect(analysisLifecycleUpdate(row, now)).toBeNull();
     }
   });
