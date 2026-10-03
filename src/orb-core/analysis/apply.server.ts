@@ -36,14 +36,13 @@ import {
 } from "@/orb-core/analysis/concepts.server";
 import { analysisRunColumns, logAnalysisRun } from "@/orb-core/observability.server";
 import {
-  lifecycleFor,
   userSignalsFrom,
   validateCandidates,
   type CandidateDecision,
   type ExistingNode,
-  type Lifecycle,
   type ValidatedCandidate,
 } from "@/orb-core/analysis/validate";
+import { analysisLifecycleUpdate, weaken, type Lifecycle } from "@/orb-core/memory-lifecycle";
 
 /** Wie viele Nachrichten die Analyse betrachtet (mehr als das Chatfenster). */
 export const ANALYSIS_TRANSCRIPT_MESSAGES = 24;
@@ -116,14 +115,6 @@ const EMPTY_REPORT = (
   trace: [],
   concepts: { ...EMPTY_CONCEPT_REPORT(), proposalsRejected: 0 },
 });
-
-const LIFECYCLE_ORDER: Lifecycle[] = ["active", "weak", "stale", "archived", "forgotten"];
-
-/** Eine Stufe schwächer – niemals löschen, niemals überspringen. */
-function weaken(current: Lifecycle): Lifecycle {
-  const index = LIFECYCLE_ORDER.indexOf(current);
-  return LIFECYCLE_ORDER[Math.min(LIFECYCLE_ORDER.length - 1, index + 1)]!;
-}
 
 /**
  * Hintergrundanalyse des verfügbaren Gesprächskontexts. Wirft nie: ein Fehler
@@ -365,13 +356,8 @@ export async function analyzeAndPersist(db: DB, userId: string): Promise<Analysi
 
   // Lebenszyklus fortschreiben: Zeitbezug und Ruhezeit bestimmen die Stufe.
   for (const row of nodeRows) {
-    const next = lifecycleFor({
-      temporalScope: row.temporal_scope as OrbTemporalScope,
-      ageMs: now - new Date(row.created_at).getTime(),
-      lastAccessedAgeMs: now - new Date(row.last_accessed_at).getTime(),
-      forgotten: row.lifecycle === "forgotten",
-    });
-    if (next === row.lifecycle) continue;
+    const next = analysisLifecycleUpdate(row, now);
+    if (next === null) continue;
     const res = await q.tick(
       db.from("orb_nodes").update({ lifecycle: next }).eq("id", row.id).eq("user_id", userId),
     );

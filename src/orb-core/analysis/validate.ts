@@ -97,38 +97,10 @@ function hasNegation(text: string): boolean {
 }
 
 /**
- * Lebenszyklus eines Knotens aus Zeitbezug und Alter. „Vergessen“ heisst hier
- * Gewichts- und Stufenverlust – niemals Löschen.
+ * Lebenszyklus eines Knotens: ausgelagert nach @/orb-core/memory-lifecycle
+ * (P14 S1, Verhalten unverändert). Re-Export hält bestehende Importe stabil.
  */
-export type Lifecycle = "active" | "weak" | "stale" | "archived" | "forgotten";
-
-const DAY = 86_400_000;
-
-export function lifecycleFor(input: {
-  temporalScope: OrbTemporalScope;
-  ageMs: number;
-  lastAccessedAgeMs: number;
-  forgotten?: boolean;
-}): Lifecycle {
-  if (input.forgotten) return "forgotten";
-  if (input.temporalScope === "persistent") return "active";
-  const idleDays = input.lastAccessedAgeMs / DAY;
-  if (input.temporalScope === "one_time") {
-    if (idleDays >= 7) return "archived";
-    if (idleDays >= 1) return "stale";
-    return "active";
-  }
-  if (input.temporalScope === "temporary") {
-    if (idleDays >= 30) return "archived";
-    if (idleDays >= 7) return "stale";
-    if (idleDays >= 2) return "weak";
-    return "active";
-  }
-  // long_term
-  if (idleDays >= 180) return "stale";
-  if (idleDays >= 60) return "weak";
-  return "active";
-}
+export { lifecycleFor, type Lifecycle } from "@/orb-core/memory-lifecycle";
 
 /* ------------------------------------------------------------- Validierung */
 
