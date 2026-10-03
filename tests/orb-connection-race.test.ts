@@ -8,13 +8,23 @@ import { QueryCounter, touchConnection, type DB } from "@/orb-core/engine.server
 import { scopedDb } from "@/orb-core/scope";
 
 type Row = Record<string, unknown>;
-type Opts = { insertError?: { code: string; message: string }; onInsert?: (rows: Row[]) => void };
+type Opts = {
+  insertError?: { code: string; message: string };
+  onInsert?: (rows: Row[]) => void;
+  /** P3: vorhandene Knoten (Standard: s und t von user-a im Bereich normal). */
+  nodes?: Row[];
+};
 
 function mockDb(rows: Row[], opts: Opts = {}) {
   const calls = { inserts: 0, updates: 0, selects: 0 };
-  const from = (_table: string) => {
+  const nodes = opts.nodes ?? [
+    { id: "s", user_id: "user-a", scope: "normal" },
+    { id: "t", user_id: "user-a", scope: "normal" },
+  ];
+  const from = (table: string) => {
     const filters: [string, unknown][] = [];
-    const match = () => rows.filter((r) => filters.every(([k, v]) => r[k] === v));
+    const source = table === "orb_nodes" ? nodes : rows;
+    const match = () => source.filter((r) => filters.every(([k, v]) => r[k] === v));
     const chain: Record<string, unknown> = {
       eq(k: string, v: unknown) {
         filters.push([k, v]);
@@ -128,5 +138,31 @@ describe("touchConnection – 23505-Rennen", () => {
     });
     await expect(run(db)).rejects.toThrow();
     expect(calls.selects).toBe(1); // nur die erste Existenzprüfung
+  });
+
+  it("P3 gelöschter Zielknoten: kontrolliert übersprungen, kein Insert", async () => {
+    const { db, calls } = mockDb([], { nodes: [{ id: "s", user_id: U, scope: "normal" }] });
+    await expect(run(db)).resolves.toBe("skipped");
+    expect(calls.inserts).toBe(0);
+  });
+  it("P3 fremder Knoten: übersprungen, kein Insert", async () => {
+    const { db, calls } = mockDb([], {
+      nodes: [
+        { id: "s", user_id: U, scope: "normal" },
+        { id: "t", user_id: "user-b", scope: "normal" },
+      ],
+    });
+    await expect(run(db)).resolves.toBe("skipped");
+    expect(calls.inserts).toBe(0);
+  });
+  it("P3 Knoten in fremdem Bereich: übersprungen, kein Insert", async () => {
+    const { db, calls } = mockDb([], {
+      nodes: [
+        { id: "s", user_id: U, scope: "normal" },
+        { id: "t", user_id: U, scope: "orb_core" },
+      ],
+    });
+    await expect(run(db)).resolves.toBe("skipped");
+    expect(calls.inserts).toBe(0);
   });
 });
