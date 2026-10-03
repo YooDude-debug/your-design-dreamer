@@ -382,7 +382,7 @@ const TOPIC_KEYWORDS: Record<string, string[]> = {
     "programmier",
     "code",
     "softwar",
-    "softwareentwickl",
+    "softwareentwicklung",
     "entwickl",
     "javascript",
     "python",
