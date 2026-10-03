@@ -9,7 +9,8 @@ export function logPassiveMemoryEvaluation(input: {
   scope: OrbDataScope | null;
   eventId: string;
   recalled: EvaluationInputMemory[];
-  modelVisibleIds: readonly string[];
+  /** Ohne ID (null) nie als sichtbar gewertet. */
+  modelVisibleIds: readonly (string | null)[];
   replyText: string;
   userText: string;
 }): void {
@@ -19,7 +20,7 @@ export function logPassiveMemoryEvaluation(input: {
     const evaluation = evaluateMemories({
       scope: input.scope,
       memories: input.recalled,
-      modelVisibleIds: input.modelVisibleIds,
+      modelVisibleIds: input.modelVisibleIds.filter((id): id is string => typeof id === "string"),
       replyText: input.replyText,
       userText: input.userText,
     });
