@@ -171,6 +171,9 @@ export function traceModel(
 
 export type LtMetrics = {
   tracked: number;
+  /** Nie beobachtete Kontrollpaare (dürfen nie entstehen/reaktiviert werden). */
+  controls: number;
+  controlsPresent: number;
   retrievabilityBeforeRest: number | null;
   retrievabilityAfterRest: number | null;
   retrievabilityEnd: number | null;
@@ -178,10 +181,18 @@ export type LtMetrics = {
   weakShareAfterRest: number | null;
   /** Vorhanden + schwach/inaktiv nach der Ruhe (Basis der Reaktivierungsquote). */
   weakPresentAfterRest: number;
+  /** Nach der Ruhe experimentell entfernt. */
+  removedAfterRest: number;
   reactivated: number;
   reactivationRate: number | null;
+  /** Ø Abrufschritte – nur über „nach Wiederaktivierung erreicht“. */
   meanStepsToRecovery: number | null;
+  /** Zielstärke erst nach Wiederaktivierung erreicht (echter Wiederherstellungserfolg). */
   recovered: number;
+  /** Zielstärke vor der Ruhe erreicht und gehalten – kein Wiederherstellungserfolg. */
+  targetHeld: number;
+  /** Zielstärke nie erreicht (inkl. entfernt). */
+  targetNotReached: number;
   lost: number;
   falseReactivations: number;
   hypothesesCreated: number;
@@ -213,9 +224,17 @@ export function ltMetrics(
   let recovered = 0;
   let recoverySum = 0;
   let falseReact = 0;
+  // P10: Zielstärke-Klassifikation – „bereits erreicht“ ist KEIN Wiederherstellungserfolg.
+  let targetHeld = 0; // vor der Ruhe erreicht und bis Abrufbeginn nie darunter gefallen
+  let targetNotReached = 0;
   plan.tracked.forEach((key, i) => {
     let firstRecovery: number | null = null;
     let didReactivate = false;
+    let heldThroughRest = true;
+    for (let s = lt.buildSteps - 1; s < recallStart && s >= 0; s++) {
+      const x = trace.samples[s]?.[i];
+      if (!x || !x.present || x.strength! < lt.recoveryStrength) heldThroughRest = false;
+    }
     for (let s = recallStart; s < trace.samples.length; s++) {
       const x = trace.samples[s]![i]!;
       const c = trace.states[s]!.candidates.get(key);
@@ -229,28 +248,39 @@ export function ltMetrics(
         firstRecovery = s - recallStart + 1;
     }
     if (didReactivate) reactivated++;
-    if (firstRecovery !== null) {
+    if (heldThroughRest) targetHeld++;
+    else if (firstRecovery !== null) {
       recovered++;
       recoverySum += firstRecovery;
-    }
+    } else targetNotReached++;
   });
   // Kontrollpaare wurden nie erzeugt – jeder vorhandene Eintrag wäre falsch.
   const final = trace.states[trace.states.length - 1];
-  for (const k of plan.controls) if (final?.candidates.get(k)) falseReact++;
+  let controlsPresent = 0;
+  for (const k of plan.controls)
+    if (final?.candidates.get(k)) {
+      falseReact++;
+      controlsPresent++;
+    }
 
   const weakPresent = eligible.filter(Boolean).length;
   return {
     tracked: n,
+    controls: plan.controls.length,
+    controlsPresent,
     retrievabilityBeforeRest: retr(endBuild),
     retrievabilityAfterRest: retr(endRest),
     retrievabilityEnd: retr(last),
     survivalShare: endRest ? share(endRest.filter((x) => x.present).length, n) : null,
     weakShareAfterRest: endRest ? share(weakPresent, n) : null,
     weakPresentAfterRest: weakPresent,
+    removedAfterRest: endRest ? endRest.filter((x) => !x.present).length : 0,
     reactivated,
     reactivationRate: share(reactivated, weakPresent),
     meanStepsToRecovery: recovered ? recoverySum / recovered : null,
     recovered,
+    targetHeld,
+    targetNotReached,
     lost: last ? last.filter((x) => !x.present).length : 0,
     falseReactivations: falseReact,
     hypothesesCreated: final ? final.candidates.size : 0,
