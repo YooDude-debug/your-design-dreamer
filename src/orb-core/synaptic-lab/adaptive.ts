@@ -251,7 +251,21 @@ export type AdaptiveMetrics = {
   dormantEnd: number;
   dormantPeakBytes: number;
   activeEndBytes: number;
-  perProfile: Record<string, { retrievable: number; n: number; retention: number }>;
+  perProfile: Record<
+    string,
+    {
+      retrievable: number;
+      n: number;
+      retention: number;
+      /** Aktivierungen in der Nutzungsphase (nie Recall). */
+      reuse: number;
+      /** Geplante Recall-Ereignisse, separat. */
+      plannedRecalls: number;
+      dormant: number;
+      restored: number;
+      expired: number;
+    }
+  >;
 };
 
 export function runAdaptiveModel(
@@ -298,9 +312,20 @@ export function runAdaptiveModel(
       retrievable: 0,
       n: 0,
       retention: retentionFor(model, at, a, p),
+      reuse: 0,
+      plannedRecalls: 0,
+      dormant: 0,
+      restored: 0,
+      expired: 0,
     });
     pp.n++;
     if (retrievable(s, k)) pp.retrievable++;
+    // Tatsächliche Wiederverwendung (nur Nutzungsphase) und geplanter Recall getrennt.
+    pp.reuse += at.reuse;
+    pp.plannedRecalls += plan.events.filter((e) => e.phase === "recall" && e.activate.includes(k)).length;
+    if (everDormant.has(k)) pp.dormant++;
+    if (c && c.restoredCount > 0) pp.restored++;
+    if (c?.lifecycle === "expired") pp.expired++;
     if (c?.lifecycle === "expired") expired++;
     if (c && c.restoredCount > 0) restored++;
     if (c && isLive(c) && strengthAt(c, s.step, "D", p.decay) >= a.recoveryStrength)
