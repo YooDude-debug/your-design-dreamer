@@ -1,3 +1,4 @@
+import { assertSafeReturnUrl } from "./return-url.server";
 /**
  * Y-Dude – Abrechnung (serverseitig).
  *
@@ -181,7 +182,7 @@ export async function createPromotionCheckout(
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       ui_mode: "embedded_page",
-      return_url: input.returnUrl,
+      return_url: await assertSafeReturnUrl(input.returnUrl),
       customer: customerId,
       line_items: [{ price: price.id, quantity: 1 }],
       payment_intent_data: { description: `${product.name} · ${item.title}` },
@@ -415,7 +416,7 @@ export async function createSubscriptionCheckout(
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       ui_mode: "embedded_page",
-      return_url: input.returnUrl,
+      return_url: await assertSafeReturnUrl(input.returnUrl),
       customer: customerId,
       line_items: [{ price: price.id, quantity: 1 }],
       managed_payments: { enabled: true },
@@ -540,7 +541,7 @@ export async function createPortalSession(
     const stripe = await stripeFor(input.environment);
     const portal = await stripe.billingPortal.sessions.create({
       customer: row.stripe_customer_id,
-      return_url: input.returnUrl,
+      return_url: await assertSafeReturnUrl(input.returnUrl),
     });
     return { url: portal.url };
   } catch (error) {

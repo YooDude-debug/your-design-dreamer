@@ -1,3 +1,4 @@
+import { assertSafeReturnUrl } from "./return-url.server";
 /**
  * Creator-Abo (serverseitig).
  *
@@ -108,7 +109,7 @@ export async function createCreatorSubscriptionCheckout(
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       ui_mode: "embedded_page",
-      return_url: input.returnUrl,
+      return_url: await assertSafeReturnUrl(input.returnUrl),
       customer: customerId,
       line_items: [
         {

@@ -186,17 +186,6 @@ export const listCreatorSlangTags = createServerFn({ method: "POST" })
       ),
     );
 
-    // Probeanhören: kurzlebige signierte URL aus dem privaten Bucket.
-    const paths = [...new Set(list.map((r) => r.audio_url).filter((p): p is string => !!p))];
-    const signed = new Map<string, string>();
-    if (paths.length) {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data: urls } = await supabaseAdmin.storage
-        .from("media")
-        .createSignedUrls(paths, 60 * 10);
-      for (const u of urls ?? []) if (u.path && u.signedUrl) signed.set(u.path, u.signedUrl);
-    }
-
     const now = Date.now();
     const tags: CreatorSlangTagView[] = list.map((row, i) => {
       const drop = drops.get(row.id) ?? null;
@@ -245,10 +234,25 @@ export const listCreatorSlangTags = createServerFn({ method: "POST" })
           dropWindowOpen &&
           (dropRemaining === null || dropRemaining > 0 || pending) &&
           !pending,
-        previewUrl: row.audio_url ? (signed.get(row.audio_url) ?? null) : null,
+        // Vorläufig der Speicherpfad; unten nur für freigeschaltete Tags signiert.
+        previewUrl: unlocked && row.audio_url ? row.audio_url : null,
         mine,
       };
     });
+
+    // Anhören: kurzlebige signierte URL aus dem privaten Bucket – nur für
+    // SlangTags, die der anfragende Nutzer tatsächlich freigeschaltet hat.
+    // Gesperrte Tags erhalten keinen Link, auch nicht bei direktem Aufruf.
+    const paths = [...new Set(tags.map((t) => t.previewUrl).filter((p): p is string => !!p))];
+    const signed = new Map<string, string>();
+    if (paths.length) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: urls } = await supabaseAdmin.storage
+        .from("media")
+        .createSignedUrls(paths, 60 * 10);
+      for (const u of urls ?? []) if (u.path && u.signedUrl) signed.set(u.path, u.signedUrl);
+    }
+    for (const t of tags) t.previewUrl = t.previewUrl ? (signed.get(t.previewUrl) ?? null) : null;
 
     return {
       creatorId,
