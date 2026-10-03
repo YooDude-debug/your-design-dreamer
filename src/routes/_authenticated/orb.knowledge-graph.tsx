@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { ClientOnly, createFileRoute, useRouter } from "@tanstack/react-router";
+import { ClientOnly, createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { BrainCircuit } from "lucide-react";
