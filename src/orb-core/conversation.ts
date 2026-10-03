@@ -80,6 +80,8 @@ export type ConversationInput = {
   impulseAllowed: boolean;
   /** Ausdrückliche Merk-Aufforderung wurde aufgelöst. */
   explicitLearning: boolean;
+  /** Noch offene letzte Frage von ORB im Gesprächsfenster (sonst null/fehlt). */
+  pendingQuestion?: string | null;
 };
 
 export type ConversationPlan = {
@@ -122,6 +124,40 @@ const SMALLTALK_PATTERNS: RegExp[] = [
 /** Kurzer sozialer Gesprächsbeitrag ohne Informationsbedarf. */
 export function isSmallTalkOpening(text: string): boolean {
   return SMALLTALK_PATTERNS.some((re) => re.test(text.trim()));
+}
+
+/* ------------------------------------- Kurzantwort auf ORBs letzte Frage */
+
+/** Höchstlänge einer Kurzantwort (Wörter). Längere Eingaben tragen eigenen Inhalt. */
+export const SHORT_REPLY_MAX_WORDS = 6;
+
+const SHORT_REPLY_RE =
+  /^\s*(?:ja|jap|jep|jo|jein|nein|nö|noe|nee|genau|stimmt|richtig|korrekt|falsch|exakt|klar|sicher|auf jeden fall|eher (?:ja|nein|nicht)|teilweise|beides|keins|keines|alle|alles|komplett|das erste|das zweite|das dritte|erste[rs]?|zweite[rs]?|dritte[rs]?)\b/i;
+
+/**
+ * Bezieht sich die Eingabe als knappe Antwort auf eine vorherige Frage
+ * („Ja“, „Nein“, „Genau“, „Alle 3 Punkte“)? Deterministisch, kein Modell.
+ */
+export function isShortReply(text: string): boolean {
+  const t = (text ?? "").trim();
+  if (!t || t.includes("?")) return false;
+  if (t.split(/\s+/).length > SHORT_REPLY_MAX_WORDS) return false;
+  return SHORT_REPLY_RE.test(t);
+}
+
+/**
+ * Letzte noch unbeantwortete Frage von ORB im Gesprächsfenster: nur wenn die
+ * neueste Nachricht von ORB stammt und eine Frage enthält. Liefert den
+ * letzten Fragesatz (gekürzt), sonst null. `messages` chronologisch.
+ */
+export function pendingOrbQuestion(
+  messages: readonly { role: string; body: string }[],
+): string | null {
+  const last = messages[messages.length - 1];
+  if (!last || last.role !== "orb" || !last.body.includes("?")) return null;
+  const sentences = last.body.match(/[^.!?]*\?/g) ?? [];
+  const q = sentences[sentences.length - 1]?.trim() ?? "";
+  return q ? q.slice(0, 300) : null;
 }
 
 /* ------------------------------------------------------- Strang-Relevanz */
@@ -178,6 +214,12 @@ export function decideConversationMode(input: ConversationInput): ConversationPl
   // 1. Konkreter Informationsbedarf – nie eine unnötige Rückfrage.
   if (needsDirectAnswer(input.text)) {
     return plan("DIRECT_ANSWER", "Der Nutzer braucht eine konkrete Antwort.");
+  }
+
+  // 1b. Kurze Antwort auf ORBs eigene offene Frage: inhaltlich anschliessen,
+  // nie generisch „zuhören“.
+  if (input.pendingQuestion && isShortReply(input.text)) {
+    return plan("DIRECT_ANSWER", "Kurze Antwort auf deine letzte Frage – inhaltlich daran anknüpfen.");
   }
 
   // 2. Ausdrückliche Merk-Aufforderung: knapp bestätigen, nicht nachfragen.
