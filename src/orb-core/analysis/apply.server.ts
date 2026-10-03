@@ -116,7 +116,6 @@ const EMPTY_REPORT = (
   concepts: { ...EMPTY_CONCEPT_REPORT(), proposalsRejected: 0 },
 });
 
-
 /**
  * Hintergrundanalyse des verfügbaren Gesprächskontexts. Wirft nie: ein Fehler
  * darf den Chat nicht beeinträchtigen.
