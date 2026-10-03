@@ -207,7 +207,10 @@ describe("P14 S2 – passiv, ohne Inhalte, ohne Rückwirkung", () => {
     ).not.toThrow();
   });
   it("Module ohne DB/KI/Netz; Engine-Aufruf nach Abschlusslog, Rückgabe unbeeinflusst", () => {
-    for (const f of ["src/orb-core/memory-evaluation.ts", "src/orb-core/memory-evaluation.server.ts"]) {
+    for (const f of [
+      "src/orb-core/memory-evaluation.ts",
+      "src/orb-core/memory-evaluation.server.ts",
+    ]) {
       const src = readFileSync(f, "utf8");
       expect(src).not.toMatch(/supabase|\.from\(|fetch\(|scopedDb|gateway|insert|update\(/);
     }
