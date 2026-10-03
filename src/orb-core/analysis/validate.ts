@@ -67,7 +67,17 @@ export type UserSignals = {
   temporaryOnly: boolean;
   forget: boolean;
   change: boolean;
+  /** P6: ausdrückliche Bestätigung des Benutzers im Kontext. */
+  confirmed?: boolean;
 };
+
+/** P6: Formulierungen, die eine Aussage zur bestätigten Tatsache hochstufen. */
+export const CONFIRMATION_CLAIM_RE =
+  /\b(bestätigt\w*|verifiziert\w*|nachweislich|erwiesenermaßen|zweifelsfrei)\b/i;
+
+/** P6: ausdrückliche Bestätigung im Benutzertext (nicht bloßes „ja“). */
+const USER_CONFIRM_RE =
+  /\b(ich bestätige|bestätige ich|ich kann bestätigen|das bin (?:wirklich |tatsächlich )?ich|das ist (?:wirklich |tatsächlich )?(?:mein|mein echtes|mein tatsächliches) (?:bild|foto|aussehen|gesicht)|stimmt so|ist korrekt|genau so sehe ich aus)\b/i;
 
 /** Ausdrückliche Steuerbefehle des Benutzers aus dem verfügbaren Kontext. */
 export function userSignalsFrom(texts: string[]): UserSignals {
@@ -77,6 +87,8 @@ export function userSignalsFrom(texts: string[]): UserSignals {
     temporaryOnly: TODAY_ONLY_RE.test(joined),
     forget: FORGET_RE.test(joined),
     change: CHANGE_RE.test(joined),
+    // Nur bei ausdrücklicher Bestätigung gesetzt (Form bleibt sonst gleich).
+    ...(USER_CONFIRM_RE.test(joined) ? { confirmed: true } : {}),
   };
 }
 
@@ -163,6 +175,18 @@ export function validateCandidate(
       ...base,
       decision: "rejected",
       reason: "Kein belastbarer Aussagesatz (Frage, Aufforderung oder Fragment).",
+      nodeId: null,
+    };
+  }
+
+  // P6: Eine Ableitung darf sich nicht selbst zur bestätigten Tatsache
+  // hochstufen. Ohne ausdrückliche Bestätigung des Benutzers abgelehnt.
+  if (CONFIRMATION_CLAIM_RE.test(candidate.value) && signals.confirmed !== true) {
+    return {
+      ...base,
+      decision: "rejected",
+      reason:
+        "Ableitung behauptet eine Bestätigung, die der Benutzer nicht ausdrücklich gegeben hat.",
       nodeId: null,
     };
   }

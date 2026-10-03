@@ -15,7 +15,7 @@
 import { reinforcement, scoreImportance } from "@/orb-core/core";
 import { internalError } from "@/orb-core/internal-error";
 import { QueryCounter, touchConnection, type DB } from "@/orb-core/engine.server";
-import { normKey, topicOf } from "@/orb-core/memory";
+import { normKey, semanticTopicOf } from "@/orb-core/memory";
 import {
   analyzeContextWindow,
   estimateCostUsd,
@@ -534,7 +534,7 @@ async function applyOne(
           decay_rate: v.decayRate,
           lifecycle: "active",
           norm_key: normKey(v.candidate.value) || null,
-          topic: topicOf(v.candidate.value),
+          topic: semanticTopicOf(v.candidate.value),
           source_reference: v.candidate.sourceReference || null,
           activation_count: row.activation_count + 1,
           last_accessed_at: ctx.nowIso,
@@ -597,7 +597,7 @@ async function applyOne(
         // Aus dem Gespräch abgeleitet – ausdrücklich nicht als eigene Angabe.
         source: "inferred",
         norm_key: normKey(v.candidate.value) || null,
-        topic: topicOf(v.candidate.value),
+        topic: semanticTopicOf(v.candidate.value),
         category: v.candidate.category,
         long_term_value: v.longTermValue,
         temporal_scope: v.temporalScope,

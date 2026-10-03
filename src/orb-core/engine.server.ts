@@ -54,7 +54,9 @@ import {
   memoryRelevance,
   nextInterest,
   normKey,
+  isSemanticTopic,
   selectByLevel,
+  semanticTopicOf,
   similarity,
   topicOf,
   topicsOf,
@@ -77,7 +79,7 @@ import {
   type ConversationMessage,
 } from "@/orb-core/context";
 import { domainKeywords, questionIntentOf, topicAffinity } from "@/orb-core/recall";
-import { filterDirectAnswerMemories } from "@/orb-core/prompt-memory-filter";
+import { filterDirectAnswerMemories, isReferentlessClosure } from "@/orb-core/prompt-memory-filter";
 import { filterContradictionsForPrompt } from "@/orb-core/prompt-contradiction-filter";
 import { suppressLearningForConfirmation } from "@/orb-core/confirmation-learning-gate";
 import { recallActivationExclusions } from "@/orb-core/recall-activation-filter";
@@ -96,6 +98,8 @@ import { decideConversationMode, type ConversationMode } from "@/orb-core/conver
 
 import {
   CURIOSITY_SCOPE,
+  checkQuestionFidelity,
+  compareGaps,
   decideCuriosity,
   deriveKnowledgeGaps,
   GAP_HINT,
@@ -103,6 +107,7 @@ import {
   isDuplicateQuestion,
   KNOWLEDGE_GAP_KINDS,
   QUESTION_MEMORY_LOCK_MS,
+  nameTokensFrom,
   recentlyAskedMemoryIds,
   type AskedQuestion,
   type CuriosityAction,
@@ -721,6 +726,10 @@ export async function speak(input: {
   codeTool?: CodeToolRuntime | null;
   /** P2: Bild-Markierung erlauben (nur Benutzerantworten). */
   visualHint?: boolean;
+  /** P5: Bildstatus dieser Anfrage (nur bei Bildbezug gesetzt). */
+  imageState?: { attached: number; generationAvailable: boolean } | null;
+  /** P6: aktive Erinnerungen, die ORB selbst abgeleitet hat. */
+  inferredMemories?: readonly string[];
 }): Promise<{
   reply: string;
   status: "ok" | "quota" | "unavailable";
@@ -895,6 +904,8 @@ async function upsertInterest(
   q: QueryCounter,
   delta?: number,
 ): Promise<void> {
+  // P1: nur semantisch belegte Themen werden Interesse (Name/Einzelwort ⇒ unbekannt).
+  if (!isSemanticTopic(topic)) return;
   const existing = await q.tick(
     db.from("orb_interests").select("*").eq("user_id", userId).eq("topic", topic).maybeSingle(),
   );
@@ -1354,13 +1365,33 @@ export async function processInput(
     reliableRecalled.map((r) => ({ id: r.node.id, content: r.node.content, topic: r.node.topic })),
   );
   const directAnswerMemories = directAnswerItems.map((m) => m.content);
+  // P4: Abschlussaussagen ohne eigenen Bezug gehen nicht in den Prompt.
   const promptMemories = (plan: typeof conversationPlan): string[] =>
-    plan.mode === "DIRECT_ANSWER" ? directAnswerMemories : plan.relevantStrands;
+    (plan.mode === "DIRECT_ANSWER" ? directAnswerMemories : plan.relevantStrands).filter(
+      (c) => !isReferentlessClosure(c),
+    );
   /** P5-A: dieselbe endgültige Liste wie `promptMemories`, je Objekt mit ID. */
   const promptMemoryRefs = (
     plan: typeof conversationPlan,
   ): { id: string | null; content: string }[] =>
-    plan.mode === "DIRECT_ANSWER" ? directAnswerItems : plan.relevantStrandRefs;
+    (plan.mode === "DIRECT_ANSWER" ? directAnswerItems : plan.relevantStrandRefs).filter(
+      (r) => !isReferentlessClosure(r.content),
+    );
+  /** P6: Herkunft je Inhalt – eigene Ableitungen werden im Prompt gekennzeichnet. */
+  const inferredMemories = reliableRecalled
+    .filter((r) => r.node.source === "inferred")
+    .map((r) => r.node.content);
+  /**
+   * P5: Bildstatus nur bei Bildbezug (Anhang, Bildwort in der Eingabe oder
+   * Bild-Erinnerung im Abruf) – sonst bleibt der Prompt unverändert.
+   */
+  const IMAGE_REF_RE = /\b(bild\w*|foto\w*|selfie\w*|aussehen|aussehe|siehst|zeig\w*|bart|gesicht)\b/i;
+  const imageState =
+    images.length > 0 ||
+    IMAGE_REF_RE.test(text) ||
+    reliableRecalled.some((r) => /\b(bild\w*|foto\w*)\b/i.test(r.node.content))
+      ? { attached: images.length, generationAvailable: true }
+      : null;
   /**
    * B2: Widerspruchs-Referenzen für den Prompt. Sitzt NACH P2 V2 und nutzt
    * genau dieselbe endgültige Liste wie `promptMemoryRefs`. Es wird nichts neu
@@ -1507,6 +1538,8 @@ export async function processInput(
         mode: conversationPlan.mode,
         modeReason: conversationPlan.reason,
         visualHint: true,
+        imageState,
+        inferredMemories,
       });
     }
   } else {
@@ -1552,6 +1585,8 @@ export async function processInput(
       modeReason: conversationPlan.reason,
       ownQuestion,
       visualHint: true,
+      imageState,
+      inferredMemories,
     });
   }
   const aiMs = Date.now() - aiStart;
@@ -1756,7 +1791,8 @@ export async function processInput(
       confidence: learning ? 0.9 : confidenceFor(source),
       source,
       norm_key: normKey(memoryText) || null,
-      topic: resolvedContextFact ? topicOf(memoryText) : topic,
+      // P1: gespeichert wird nur ein semantisch belegtes Thema, sonst unbekannt.
+      topic: semanticTopicOf(resolvedContextFact ? memoryText : text),
       activation_count: 1,
       metadata: {
         learning_event: learning,
@@ -2190,7 +2226,7 @@ export async function recordLearning(db: DB, userId: string, lesson: string): Pr
       confidence: 0.9,
       source: "user_stated" as const,
       norm_key: key,
-      topic: topicOf(text),
+      topic: semanticTopicOf(text),
       activation_count: 1,
       metadata: { learning_event: true, crack: true },
     };
@@ -2437,6 +2473,8 @@ export type CuriosityContext = {
   questions: QuestionRow[];
   asked: AskedQuestion[];
   conversationTopics: string[];
+  /** P1: Grundformen des Benutzernamens aus Identitätsangaben. */
+  nameTokens: string[];
   lastQuestionAt: number | null;
   openQuestion: QuestionRow | null;
   gaps: KnowledgeGap[];
@@ -2649,7 +2687,18 @@ async function loadCuriosityContext(
     ),
   ];
 
-  const conversationTopics = messageRows.flatMap((m) => topicsOf(m.body));
+  // P1/P2/P4: Name ist kein Thema; Nutzerbezug und letzte Nutzernachricht
+  // (Gesprächsanker) werden getrennt erfasst. Nur bereits geladene Zeilen.
+  const nameTokens = nameTokensFrom(nodeRes.data.map((n) => n.content));
+  const nameSet = new Set(nameTokens);
+  const conversationTopics = messageRows
+    .flatMap((m) => topicsOf(m.body))
+    .filter((t) => !nameSet.has(t));
+  const userConversationTopics = messageRows
+    .filter((m) => m.role === "user")
+    .flatMap((m) => topicsOf(m.body));
+  const lastUserRow = messageRows.find((m) => m.role === "user");
+  const anchorTopics = lastUserRow ? topicsOf(lastUserRow.body) : [];
   const memories: ProactiveMemory[] = mapNodes(nodeRes.data).map((n) => ({
     id: n.id,
     content: n.content,
@@ -2666,6 +2715,9 @@ async function loadCuriosityContext(
     interests: mapInterests(interestRows),
     asked,
     conversationTopics,
+    userConversationTopics,
+    anchorTopics,
+    nameTokens,
     curiosity: state.curiosity,
     now,
   });
@@ -2679,9 +2731,7 @@ async function loadCuriosityContext(
     interests: mapInterests(interestRows),
     now,
   });
-  const mergedGaps = [...gaps, ...threadGaps]
-    .sort((a, b) => b.score - a.score || compareIds(a.nodeId, b.nodeId))
-    .slice(0, 12);
+  const mergedGaps = [...gaps, ...threadGaps].sort(compareGaps).slice(0, 12);
 
   // Proactive Intent: Lücken im Spiderweb (Beziehungen, Widersprüche, offene
   // Entscheidungen). Rein rechnend aus den bereits geladenen Zeilen.
@@ -2735,6 +2785,7 @@ async function loadCuriosityContext(
     questions,
     asked,
     conversationTopics,
+    nameTokens,
     lastQuestionAt,
     openQuestion,
     gaps: mergedGaps,
@@ -3106,6 +3157,20 @@ export async function askProactively(
   const aiMs = Date.now() - aiStart;
   if (spoken.status !== "ok" || !spoken.question) {
     return silent("Sprachschicht nicht verfügbar – ORB bleibt still.", { gate: "formulation" });
+  }
+
+  // P3: deterministische Prüfung der autonomen Formulierung gegen ihre Quelle.
+  // Kein zweiter Modellaufruf; bei fehlender Deckung bleibt ORB still.
+  if (options.explicit !== true) {
+    const fidelity = checkQuestionFidelity({
+      question: spoken.question,
+      memory: gap.memory,
+      topic: gap.topic,
+      nameTokens: ctx.nameTokens,
+    });
+    if (!fidelity.ok) {
+      return silent(`Formulierung verworfen: ${fidelity.reason}`, { gate: "fidelity" });
+    }
   }
 
   // Semantische Duplikatprüfung gegen die eigenen früheren Fragen.

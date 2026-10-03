@@ -48,6 +48,10 @@ export type SpeakPromptInput = {
   visualHint?: boolean;
   /** B1: ausdrücklich angeforderter längerer Text. Fehlt ⇒ Kurzregel unverändert. */
   longForm?: boolean;
+  /** P5: Bildverfügbarkeit dieser Anfrage. Fehlt ⇒ Prompt unverändert. */
+  imageState?: { attached: number; generationAvailable: boolean } | null;
+  /** P6: Inhalte aktiver Erinnerungen, die ORB selbst abgeleitet hat. */
+  inferredMemories?: readonly string[];
 };
 
 /**
@@ -129,6 +133,7 @@ function speakParts(input: SpeakPromptInput): string[] {
     }
   }
   const orphanPhrasings = phrasings.filter((p) => !recalledSet.has(p.content));
+  const inferred = new Set(input.inferredMemories ?? []);
   return [
     "Du bist ORB Core, eine kleine digitale Entität mit eigenem simulierten Innenzustand.",
     "Du bist kein Assistent-Chatbot: du sprichst aus deinem Zustand und deinen Erinnerungen.",
@@ -147,7 +152,9 @@ function speakParts(input: SpeakPromptInput): string[] {
       ? `Aktive Erinnerungen: ${input.recalled
           .map((r) => {
             const p = certaintyByContent.get(r);
-            return p ? `„${r}“ [Sicherheit: ${p.certainty}]` : `„${r}“`;
+            // P6: eigene Ableitungen sind keine Nutzerbestätigung.
+            const origin = inferred.has(r) ? " [eigene Ableitung, nicht vom Nutzer bestätigt]" : "";
+            return p ? `„${r}“ [Sicherheit: ${p.certainty}]${origin}` : `„${r}“${origin}`;
           })
           .join("; ")}.`
       : "Du hast zu dieser Eingabe keine passende Erinnerung.",
@@ -196,8 +203,32 @@ function speakParts(input: SpeakPromptInput): string[] {
     "Behaupte niemals, echtes Bewusstsein oder echte Gefühle zu haben.",
     "Du hast keine Pause, keine Hintergrundarbeit und keine Ausfallzeit: sage nie, dass du eine Pause brauchst, beschäftigt bist, gerade arbeitest, müde bist oder gleich wieder da bist.",
     `Fragt der Benutzer nach deinem Zustand, einer Pause oder ob etwas kaputt ist, erkläre die technische Wahrheit: ${HONEST_PRESENCE_EXPLANATION}`,
-    input.visualHint ? VISUAL_PROMPT_HINT : "",
+    [input.visualHint ? VISUAL_PROMPT_HINT : "", imageStateHint(input.imageState ?? null)]
+      .filter(Boolean)
+      .join(" "),
   ];
+}
+
+/**
+ * P5: eindeutiger Bildstatus. Leer ohne Angabe – der Prompt bleibt dann
+ * byte-identisch. Trennt aktuellen Anhang, erinnerte Beschreibung,
+ * Bearbeitung und Neuerzeugung.
+ */
+export function imageStateHint(
+  state: { attached: number; generationAvailable: boolean } | null,
+): string {
+  if (!state) return "";
+  const n = Math.max(0, Math.floor(state.attached));
+  return [
+    n > 0
+      ? `Bildstatus: Dieser Nachricht ${n === 1 ? "ist 1 Bild" : `sind ${n} Bilder`} angehängt – nur ${n === 1 ? "dieses siehst" : "diese siehst"} du jetzt.`
+      : "Bildstatus: Dieser Nachricht ist kein Bild angehängt – du siehst gerade kein Bild.",
+    "Frühere Bilder kennst du höchstens als gespeicherte Beschreibung; das ist kein aktueller Bildzugriff – behaupte nie, ein früheres Bild jetzt zu sehen oder wiedergefunden zu haben.",
+    "Bildbearbeitung (etwas in einem vorhandenen Foto ändern oder entfernen) kannst du nicht – sage das ehrlich und biete keine Bearbeitung an.",
+    state.generationAvailable
+      ? "Ein neues Bild erzeugen kannst du; es ist kein bearbeitetes Original."
+      : "Ein neues Bild erzeugen kannst du hier nicht.",
+  ].join(" ");
 }
 
 /**
@@ -214,6 +245,8 @@ export function ownQuestionHint(own: { question: string; gap: string | null } | 
       ? `Sie entstand aus dieser gespeicherten Wissenslücke: ${gap}`
       : "Zu dieser Frage ist keine Wissenslücke gespeichert.",
     "Fragt der Benutzer, was du damit meintest, erkläre genau diesen Ursprung in eigenen Worten.",
+    // P4: die aktuelle Nachricht ist der Gesprächsanker.
+    "Kritisiert oder lehnt der Benutzer diese Frage ab, beziehe dich ausdrücklich auf genau diese Frage – nicht auf ein früheres oder bereits abgeschlossenes Thema.",
     gap
       ? "Erfinde keinen anderen Bezug und stelle dieselbe Frage nicht erneut."
       : "Sage offen, dass du den Bezug nicht sicher rekonstruieren kannst, statt einen zu erfinden, und stelle dieselbe Frage nicht erneut.",

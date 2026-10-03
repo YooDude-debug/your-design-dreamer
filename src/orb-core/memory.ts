@@ -507,6 +507,25 @@ export function topicOf(text: string): string | null {
   return pairs[0]?.stem ?? null;
 }
 
+/**
+ * P1 Themenbildung: nur ein semantisch belegtes Thema (bekanntes
+ * Schlüsselwort). Kein Treffer ⇒ `null` = unbekannt. Kein Rückfall auf das
+ * erste Inhaltswort – Eigennamen und Einzelwörter werden so nie zum Thema
+ * oder Interesse. `topicOf` bleibt für den Abruf unverändert.
+ */
+export function semanticTopicOf(text: string): string | null {
+  const pairs = contentTokenPairs(text);
+  for (const [topic, keys] of Object.entries(TOPIC_KEYWORDS)) {
+    if (pairs.some((p) => keys.some((k) => matchesKeyword(p, k)))) return topic;
+  }
+  return null;
+}
+
+/** Ist das Thema semantisch belegt (bekannte Themengruppe)? */
+export function isSemanticTopic(topic: string | null | undefined): boolean {
+  return typeof topic === "string" && Object.prototype.hasOwnProperty.call(TOPIC_KEYWORDS, topic);
+}
+
 /** Alle erkennbaren Themen einer Erfahrung (für Feed-Vergleiche). */
 export function topicsOf(text: string): string[] {
   const pairs = contentTokenPairs(text);

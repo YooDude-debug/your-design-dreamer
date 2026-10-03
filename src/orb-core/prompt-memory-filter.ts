@@ -34,3 +34,17 @@ export function filterDirectAnswerMemories<T extends FinalMemory>(
 ): T[] {
   return memories.filter((m) => !isForeignForDirectAnswer(text, m));
 }
+
+/**
+ * P4 Gesprächsanker: Eine gespeicherte Abschlussaussage ohne eigenen Bezug
+ * („Das Thema haben wir beendet …“) benennt kein Thema. Über Wortähnlichkeit
+ * abgerufen, würde sie die aktuelle Nachricht auf ein früheres, beendetes
+ * Thema zurückführen – sie geht deshalb nicht in den Antwort-Prompt.
+ * Gespeicherte Werte bleiben unverändert.
+ */
+const CLOSURE_RE =
+  /^\s*(?:(?:das|dieses|dies)\s+thema\s+(?:haben\s+wir|ist)\s+(?:jetzt\s+|nun\s+)?(?:beendet|abgeschlossen|erledigt|durch)|(?:dann\s+)?lassen\s+wir\s+das(?:\s+thema)?(?:\s+einfach)?(?:\s+beiseite|\s+ruhen|\s+sein)?)\b/i;
+
+export function isReferentlessClosure(content: string): boolean {
+  return content.length <= 160 && CLOSURE_RE.test(content);
+}

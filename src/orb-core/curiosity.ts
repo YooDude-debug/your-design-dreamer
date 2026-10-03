@@ -18,7 +18,14 @@
 
 import { clamp01 } from "@/orb-core/core";
 import { compareIds } from "@/orb-core/decision-trace";
-import { contentTokens, recencyFactor, similarity, type InterestRow } from "@/orb-core/memory";
+import {
+  contentTokens,
+  isSemanticTopic,
+  recencyFactor,
+  semanticTopicOf,
+  similarity,
+  type InterestRow,
+} from "@/orb-core/memory";
 import {
   PROACTIVE_COOLDOWN_MS,
   PROACTIVE_MIN_CONFIDENCE,
@@ -131,6 +138,8 @@ export type KnowledgeGap = {
   conversationalFit: number;
   score: number;
   reason: string;
+  /** P4: Thema der letzten Nutzernachricht. */
+  anchored?: boolean;
 };
 
 /* ------------------------------------------------------------- Neugier-Wert */
@@ -191,6 +200,16 @@ export type GapInput = {
   asked: AskedQuestion[];
   /** Themen des laufenden Gesprächs (letzte Nachrichten). */
   conversationTopics?: string[];
+  /**
+   * P2: Themen der Nutzernachrichten im Fenster. Gesetzt ⇒ ein nicht
+   * semantisch belegtes (Alt-)Thema zählt nur, wenn der Nutzer es selbst
+   * anspricht. Fehlt ⇒ bisheriges Verhalten.
+   */
+  userConversationTopics?: string[];
+  /** P4: Themen der letzten Nutzernachricht (Gesprächsanker). */
+  anchorTopics?: string[];
+  /** P1: Grundformen des Benutzernamens – nie Thema, nie Gesprächsbezug. */
+  nameTokens?: string[];
   now: number;
 };
 
@@ -201,11 +220,21 @@ export type GapInput = {
  */
 export function deriveKnowledgeGaps(input: GapInput & { curiosity: number }): KnowledgeGap[] {
   const interestByTopic = new Map(input.interests.map((i) => [i.topic, i]));
-  const topics = new Set((input.conversationTopics ?? []).filter(Boolean));
+  const names = new Set(input.nameTokens ?? []);
+  const topics = new Set((input.conversationTopics ?? []).filter((t) => t && !names.has(t)));
+  const anchor = new Set((input.anchorTopics ?? []).filter((t) => t && !names.has(t)));
+  const userTopics = input.userConversationTopics
+    ? new Set(input.userConversationTopics.filter((t) => t && !names.has(t)))
+    : null;
   const gaps: KnowledgeGap[] = [];
 
   for (const m of input.memories) {
     if (!m.topic) continue;
+    // P1: Name als Thema = unbekannt; reine Identitätsangaben haben keine Lücke.
+    if (names.has(m.topic)) continue;
+    if (isIdentityMemory(m.content)) continue;
+    // P2: unbelegtes Alt-Thema nur bei eigenem Gesprächsbezug des Nutzers.
+    if (userTopics && !isSemanticTopic(m.topic) && !userTopics.has(m.topic)) continue;
     if (m.confidence < PROACTIVE_MIN_CONFIDENCE) continue;
     if (contentTokens(m.content).length === 0) continue;
 
@@ -228,6 +257,7 @@ export function deriveKnowledgeGaps(input: GapInput & { curiosity: number }): Kn
         (1 + Math.min(0.3, 0.1 * m.activationCount)),
     );
     const conversationalFit = topics.has(m.topic) ? 1 : 0.6;
+    const anchored = anchor.has(m.topic);
 
     for (const kind of gapKindsFor(m.content)) {
       // Geschlossene Lücke: eine beantwortete Frage wird nicht erneut gestellt.
@@ -262,12 +292,101 @@ export function deriveKnowledgeGaps(input: GapInput & { curiosity: number }): Kn
         conversationalFit,
         score,
         reason: `${GAP_LABEL[kind]} Thema „${m.topic}“, Relevanz ${relevance.toFixed(2)}, Neuheit ${novelty.toFixed(2)}.`,
+        ...(anchored ? { anchored: true } : {}),
       });
     }
   }
 
-  // Gleichstand: feste Reihenfolge über die Knoten-ID (keine fachliche Gewichtung).
-  return gaps.sort((a, b) => b.score - a.score || compareIds(a.nodeId, b.nodeId));
+  return gaps.sort(compareGaps);
+}
+
+/**
+ * P2/P4 Rangfolge: Gesprächsbezug vor Erinnerungsstärke. Stufe 2 = Thema der
+ * letzten Nutzernachricht, 1 = Thema des Gesprächsfensters, 0 = ohne Bezug.
+ * Innerhalb der Stufe Score, dann Knoten-ID. Schwellen bleiben unverändert –
+ * eine Lücke ohne Bezug darf weiter fragen, wenn keine passende existiert.
+ */
+export function conversationTier(gap: Pick<KnowledgeGap, "conversationalFit" | "anchored">): number {
+  if (gap.anchored) return 2;
+  return gap.conversationalFit >= 1 ? 1 : 0;
+}
+
+export function compareGaps(a: KnowledgeGap, b: KnowledgeGap): number {
+  return (
+    conversationTier(b) - conversationTier(a) ||
+    b.score - a.score ||
+    compareIds(a.nodeId, b.nodeId)
+  );
+}
+
+/* ------------------------------------------------------- Identität / Namen */
+
+const NAME_PATTERNS = [
+  /^\s*(\p{Lu}[\p{L}-]+)\s+ist\s+(?:der|sein|ihr|mein)?\s*(?:richtige[rn]?|echte[rn]?|eigentliche[rn]?)?\s*(?:Vor)?[Nn]ame\b/u,
+  /\b(?:[Mm]ein|[Ss]ein|[Ii]hr)\s+(?:richtiger\s+|echter\s+)?(?:Vor)?[Nn]ame\s+ist\s+(\p{Lu}[\p{L}-]+)/u,
+  /\b[Ii]ch\s+hei(?:ß|ss)e\s+(\p{Lu}[\p{L}-]+)/u,
+  /\b(?:Benutzer|Nutzer)\s+hei(?:ß|ss)t\s+(\p{Lu}[\p{L}-]+)/u,
+];
+
+/** Reine Identitätsangabe (Name) – daraus entsteht keine Wissenslücke. */
+export function isIdentityMemory(content: string): boolean {
+  if (content.length > 120) return false;
+  return NAME_PATTERNS.some((re) => re.test(content));
+}
+
+/** Grundformen der Benutzernamen aus belegten Identitätsangaben. */
+export function nameTokensFrom(contents: readonly string[]): string[] {
+  const out = new Set<string>();
+  for (const c of contents) {
+    for (const re of NAME_PATTERNS) {
+      const name = re.exec(c)?.[1];
+      if (!name) continue;
+      for (const t of contentTokens(name)) out.add(t);
+    }
+  }
+  return [...out].sort();
+}
+
+/* ------------------------------------------- P3 Prüfung nach Formulierung */
+
+export type QuestionFidelity = { ok: true } | { ok: false; reason: string };
+
+function sharesStem(a: readonly string[], b: ReadonlySet<string>): boolean {
+  return a.some(
+    (t) =>
+      b.has(t) ||
+      [...b].some((x) => x.length >= 4 && t.length >= 4 && (t.startsWith(x) || x.startsWith(t))),
+  );
+}
+
+/**
+ * Deterministische Prüfung einer autonom formulierten Frage gegen ihre Quelle
+ * (kein Modellaufruf). Die Frage muss sich sichtbar auf die Quell-Erinnerung
+ * beziehen und darf kein neues Thema einführen. Namen zählen nicht als Bezug.
+ */
+export function checkQuestionFidelity(input: {
+  question: string;
+  memory: string;
+  topic: string | null;
+  nameTokens?: readonly string[];
+}): QuestionFidelity {
+  const names = new Set(input.nameTokens ?? []);
+  const q = contentTokens(input.question).filter((t) => !names.has(t));
+  const m = new Set(contentTokens(input.memory).filter((t) => !names.has(t)));
+  if (q.length === 0) return { ok: false, reason: "Frage ohne eigenen Inhalt." };
+  const memoryTopic =
+    semanticTopicOf(input.memory) ?? (isSemanticTopic(input.topic) ? input.topic : null);
+  const questionTopic = semanticTopicOf(input.question);
+  if (questionTopic && questionTopic !== memoryTopic) {
+    return {
+      ok: false,
+      reason: `Formulierung führt ein neues Thema ein („${questionTopic}“).`,
+    };
+  }
+  if (!sharesStem(q, m) && !(questionTopic && questionTopic === memoryTopic)) {
+    return { ok: false, reason: "Frage hat keinen Bezug zur Quell-Erinnerung." };
+  }
+  return { ok: true };
 }
 
 /* -------------------------------------------------------------- Entscheidung */
