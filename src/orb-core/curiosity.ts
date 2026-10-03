@@ -345,6 +345,6 @@ export function isAskMeRequest(text: string): boolean {
   return ASK_ME_RE.test(text);
 }
 
-/** Harte Grenze: der Curiosity Core wirkt ausschliesslich im ORB-Core-Chat. */
-export const CURIOSITY_SCOPE = "orb_core_chat_only" as const;
+/** Harte Grenze: der Curiosity Core wirkt ausschliesslich im eigenen Chat des Benutzers. */
+export const CURIOSITY_SCOPE = "own_chat_only" as const;
 export const CURIOSITY_SOCIAL_ACTIONS_ENABLED = false;

@@ -232,7 +232,7 @@ describe("Frageziel aus dem Gedächtnis", () => {
 
 describe("Grenzen der Kernpräsenz", () => {
   it("nur der ORB-Core-Chat, keine sozialen Aktionen", () => {
-    expect(PROACTIVE_SCOPE).toBe("orb_core_chat_only");
+    expect(PROACTIVE_SCOPE).toBe("own_chat_only");
     expect(PROACTIVE_SOCIAL_ACTIONS_ENABLED).toBe(false);
   });
 });

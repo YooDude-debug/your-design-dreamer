@@ -314,7 +314,7 @@ describe("Impuls-Bewertung", () => {
   });
 
   it("bleibt auf den ORB-Core-Chat begrenzt", () => {
-    expect(IMPULSE_SCOPE).toBe("orb_core_chat_only");
+    expect(IMPULSE_SCOPE).toBe("own_chat_only");
     expect(IMPULSE_SOCIAL_ACTIONS_ENABLED).toBe(false);
   });
 });

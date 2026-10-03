@@ -48,7 +48,7 @@ describe("SDK-Grenze: identische Ergebnisse", () => {
   });
 
   it("ORB bleibt auf den eigenen Chat begrenzt", () => {
-    expect(sdk.PROACTIVE_SCOPE).toBe("orb_core_chat_only");
+    expect(sdk.PROACTIVE_SCOPE).toBe("own_chat_only");
     expect(sdk.PROACTIVE_SOCIAL_ACTIONS_ENABLED).toBe(false);
   });
 });

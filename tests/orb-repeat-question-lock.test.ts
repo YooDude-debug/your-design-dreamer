@@ -13,7 +13,7 @@ import { detectGaps, type GapNode } from "@/orb-core/gaps";
 import { decideImpulse } from "@/orb-core/impulse";
 import { buildSpeakSystemPrompt, ownQuestionHint } from "@/orb-core/llm/prompt.server";
 import { scopedDb } from "@/orb-core/scope";
-import { askProactively, AUTONOMOUS_QUESTION_SCOPE, type DB } from "@/orb-core/engine.server";
+import { askProactively, AUTONOMOUS_QUESTION_SCOPES, type DB } from "@/orb-core/engine.server";
 
 const NOW = Date.parse("2026-10-02T04:30:43Z");
 const MIN = 60_000;
@@ -192,7 +192,7 @@ describe("Antwortschritt kennt die eigene Frage", () => {
   });
 });
 
-describe("Autonome Fragen nur im ORB-Core-Chat", () => {
+describe("Autonome Fragen in allen Chat-Bereichen", () => {
   const SENTINEL = new Error("db-accessed");
   function recordingDb() {
     const tables: string[] = [];
@@ -209,7 +209,7 @@ describe("Autonome Fragen nur im ORB-Core-Chat", () => {
     return { db, tables };
   }
 
-  for (const scope of ["normal", "y_dude", "unassigned"] as const) {
+  for (const scope of ["unassigned"] as const) {
     it(`keine autonome Frage im Scope ${scope} – kein Laden, kein Eintrag`, async () => {
       const { db, tables } = recordingDb();
       const r = await askProactively(scopedDb(db, scope), "user-1");
@@ -225,10 +225,15 @@ describe("Autonome Fragen nur im ORB-Core-Chat", () => {
     expect(tables).toEqual([]);
   });
 
-  it("Scope orb_core → der bestehende Prüfpfad läuft (lädt Daten)", async () => {
-    expect(AUTONOMOUS_QUESTION_SCOPE).toBe("orb_core");
-    const { db, tables } = recordingDb();
-    await expect(askProactively(scopedDb(db, "orb_core"), "user-1")).rejects.toBe(SENTINEL);
-    expect(tables.length).toBeGreaterThan(0);
+  it("erlaubte Bereiche = alle Chat-Bereiche, ohne unassigned", () => {
+    expect([...AUTONOMOUS_QUESTION_SCOPES]).toEqual(["normal", "orb_core", "y_dude"]);
   });
+
+  for (const scope of ["normal", "orb_core", "y_dude"] as const) {
+    it(`Scope ${scope} → der bestehende Prüfpfad läuft (lädt Daten)`, async () => {
+      const { db, tables } = recordingDb();
+      await expect(askProactively(scopedDb(db, scope), "user-1")).rejects.toBe(SENTINEL);
+      expect(tables.length).toBeGreaterThan(0);
+    });
+  }
 });

@@ -258,7 +258,7 @@ describe("ORB Curiosity Core – Duplikate, Aufforderung, Grenzen", () => {
   });
 
   it("28. wirkt ausschliesslich im ORB-Core-Chat, ohne soziale Aktionen", () => {
-    expect(CURIOSITY_SCOPE).toBe("orb_core_chat_only");
+    expect(CURIOSITY_SCOPE).toBe("own_chat_only");
     expect(CURIOSITY_SOCIAL_ACTIONS_ENABLED).toBe(false);
   });
 });

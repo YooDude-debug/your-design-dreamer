@@ -29,7 +29,7 @@ import {
 } from "@/orb-core/curiosity";
 
 /** Harte Grenze: Kontinuität wirkt ausschliesslich im ORB-Core-Chat. */
-export const CONTINUITY_SCOPE = "orb_core_chat_only" as const;
+export const CONTINUITY_SCOPE = "own_chat_only" as const;
 /** Schweigen ist ausdrücklich erlaubt – keine künstliche Aktivität. */
 export const SILENCE_IS_VALID = true;
 

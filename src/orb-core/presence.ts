@@ -231,10 +231,10 @@ export function selectProactiveCandidate(input: CandidateInput): ProactiveCandid
 }
 
 /**
- * Harte Grenze der Kernpräsenz: der ORB spricht nur im eigenen ORB-Core-Chat.
+ * Harte Grenze der Kernpräsenz: der ORB spricht nur im eigenen Chat des Benutzers.
  * Keine Posts, Likes, Kommentare, Nachrichten an andere oder Follows.
  */
-export const PROACTIVE_SCOPE = "orb_core_chat_only" as const;
+export const PROACTIVE_SCOPE = "own_chat_only" as const;
 export const PROACTIVE_SOCIAL_ACTIONS_ENABLED = false;
 
 /* ------------------------------------- Interne Zustände ≠ Benutzermeldung */

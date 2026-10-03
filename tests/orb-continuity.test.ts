@@ -359,7 +359,7 @@ describe("Zustand und Geltungsbereich", () => {
   });
 
   it("36 bleibt auf den ORB-Core-Chat begrenzt und erlaubt Schweigen", () => {
-    expect(CONTINUITY_SCOPE).toBe("orb_core_chat_only");
+    expect(CONTINUITY_SCOPE).toBe("own_chat_only");
     expect(SILENCE_IS_VALID).toBe(true);
   });
 });

@@ -254,5 +254,5 @@ export function decideImpulse(input: ImpulseDecisionInput): ImpulseDecision {
 }
 
 /** Harte Grenze: wirkt ausschliesslich im ORB-Core-Chat. */
-export const IMPULSE_SCOPE = "orb_core_chat_only" as const;
+export const IMPULSE_SCOPE = "own_chat_only" as const;
 export const IMPULSE_SOCIAL_ACTIONS_ENABLED = false;
