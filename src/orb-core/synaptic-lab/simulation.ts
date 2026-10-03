@@ -111,7 +111,10 @@ export function prng(seed: number): () => number {
 
 const pairKey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`);
 
-export type PoolEntry = Pick<LabCandidate, "key" | "source" | "target" | "relation" | "origin" | "confidence">;
+export type PoolEntry = Pick<
+  LabCandidate,
+  "key" | "source" | "target" | "relation" | "origin" | "confidence"
+>;
 
 /**
  * Deterministischer, begrenzter Kandidatenpool: Paare ohne bestehende Kante,
@@ -174,7 +177,8 @@ export function generateEvents(pool: PoolEntry[], params: LabParams, steps: numb
   let cursor = 0;
   for (let s = 0; s < steps; s++) {
     const grow: string[] = [];
-    for (let g = 0; g < params.growthRate && cursor < order.length; g++) grow.push(order[cursor++]!);
+    for (let g = 0; g < params.growthRate && cursor < order.length; g++)
+      grow.push(order[cursor++]!);
     const activate: string[] = [];
     // Aktivierungen nur auf bereits vorgeschlagene Paare (sonst ohne Bedeutung).
     for (let a = 0; a < params.activationRate && cursor > 0; a++) {
@@ -190,7 +194,12 @@ export function initModel(model: LabModelId): ModelState {
 }
 
 /** S(t) = S₀ · e^(−λ·Δt); Modell A verfällt nicht. */
-export function strengthAt(c: LabCandidate, step: number, model: LabModelId, decay: number): number {
+export function strengthAt(
+  c: LabCandidate,
+  step: number,
+  model: LabModelId,
+  decay: number,
+): number {
   if (model === "A") return c.anchorStrength;
   return c.anchorStrength * Math.exp(-decay * Math.max(0, step - c.lastActivatedStep));
 }

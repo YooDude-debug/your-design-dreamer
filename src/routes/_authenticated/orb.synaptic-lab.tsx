@@ -16,10 +16,14 @@ export const Route = createFileRoute("/_authenticated/orb/synaptic-lab")({
       { title: "ORB Synaptic Lab (Experiment) — Y-Dude" },
       {
         name: "description",
-        content: "Isoliertes Experiment: Wachstum, Verfall und Verstärkung eines Wissensgraphen im Vergleich.",
+        content:
+          "Isoliertes Experiment: Wachstum, Verfall und Verstärkung eines Wissensgraphen im Vergleich.",
       },
       { property: "og:title", content: "ORB Synaptic Lab (Experiment) — Y-Dude" },
-      { property: "og:description", content: "Synaptisches Wachstum und Pruning – Simulation A/B/C." },
+      {
+        property: "og:description",
+        content: "Synaptisches Wachstum und Pruning – Simulation A/B/C.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
@@ -35,7 +39,11 @@ function SynapticLabPage() {
   const router = useRouter();
   const { scope } = Route.useSearch();
   const check = useServerFn(adminCheckAccess);
-  const access = useQuery({ queryKey: ["admin-check-access"], queryFn: () => check(), staleTime: 300_000 });
+  const access = useQuery({
+    queryKey: ["admin-check-access"],
+    queryFn: () => check(),
+    staleTime: 300_000,
+  });
   return (
     <div className="relative min-h-[100svh] bg-background text-foreground">
       <BackButton

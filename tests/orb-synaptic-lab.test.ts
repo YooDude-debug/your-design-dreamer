@@ -73,9 +73,14 @@ describe("Synaptic Lab", () => {
   });
 
   it("5 Labor hat keinen Schreibweg (kein insert/update/delete, nur getOrbKnowledgeGraph)", () => {
-    for (const f of ["src/orb-core/synaptic-lab/simulation.ts", "src/components/orb-synaptic-lab/SynapticLab.tsx"]) {
+    for (const f of [
+      "src/orb-core/synaptic-lab/simulation.ts",
+      "src/components/orb-synaptic-lab/SynapticLab.tsx",
+    ]) {
       const src = readFileSync(f, "utf8");
-      expect(src).not.toMatch(/\.(insert|update|upsert|delete)\(|supabase|localStorage|BroadcastChannel/);
+      expect(src).not.toMatch(
+        /\.(insert|update|upsert|delete)\(|supabase|localStorage|BroadcastChannel/,
+      );
     }
   });
 
@@ -106,20 +111,26 @@ describe("Synaptic Lab", () => {
 
   it("9 Wachstum bleibt in Grenzen", () => {
     const big: LabSnapshot = {
-      nodes: Array.from({ length: 300 }, (_, i) => ({ id: `n${String(i).padStart(3, "0")}`, group: "g" })),
+      nodes: Array.from({ length: 300 }, (_, i) => ({
+        id: `n${String(i).padStart(3, "0")}`,
+        group: "g",
+      })),
       edges: [],
     };
     expect(buildPool(big).length).toBeLessThanOrEqual(POOL_MAX);
     const p = { ...DEFAULT_LAB_PARAMS, growthRate: 20, maxCandidates: 30 };
     const r = runComparison(big, p, 20);
     for (const s of r.states) {
-      expect([...s.candidates.values()].filter((c) => c.lifecycle !== "removed").length).toBeLessThanOrEqual(30);
+      expect(
+        [...s.candidates.values()].filter((c) => c.lifecycle !== "removed").length,
+      ).toBeLessThanOrEqual(30);
     }
   });
 
   it("10 Hypothesen werden nie automatisch bestätigt; bestätigt wird nicht entfernt", () => {
     const r = runComparison(snap, { ...DEFAULT_LAB_PARAMS, activationRate: 30 }, 200);
-    for (const s of r.states) for (const c of s.candidates.values()) expect(c.status).not.toBe("confirmed");
+    for (const s of r.states)
+      for (const c of s.candidates.values()) expect(c.status).not.toBe("confirmed");
     let s = stepModel(initModel("B"), { grow: [key], activate: [] }, pm, P);
     s = setCandidateStatus(s, key, "confirmed");
     for (let i = 0; i < 40; i++) s = stepModel(s, { grow: [], activate: [] }, pm, P);

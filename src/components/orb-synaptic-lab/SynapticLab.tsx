@@ -102,7 +102,8 @@ export default function SynapticLab({ scope }: { scope: OrbDataScope }) {
   const mark = (key: string, status: "confirmed" | "rejected") =>
     setStates((prev) => prev.map((s) => setCandidateStatus(s, key, status)));
 
-  if (!userId || graph.isLoading) return <p className="p-6 text-sm text-muted-foreground">Snapshot wird gelesen …</p>;
+  if (!userId || graph.isLoading)
+    return <p className="p-6 text-sm text-muted-foreground">Snapshot wird gelesen …</p>;
   if (graph.isError || !snapshot)
     return <p className="p-6 text-sm text-destructive">Snapshot konnte nicht gelesen werden.</p>;
 
@@ -120,31 +121,54 @@ export default function SynapticLab({ scope }: { scope: OrbDataScope }) {
   return (
     <div className="mx-auto max-w-7xl space-y-4 p-4 pt-16">
       <div className="rounded-xl border border-dashed border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-        Forschungsexperiment. Datenquelle: eingefrorener, nur gelesener Snapshot deines Bereichs „{scope}“ (
-        {snapshot.nodes.length} Knoten, {snapshot.edges.length} Kanten). Alle Kandidaten und Aktivierungen
-        sind <strong>simuliert</strong> – keine echten ORB-Gedanken oder Abrufe – und existieren nur in
-        dieser Seite. Es wird nichts gespeichert; Reset oder Verlassen verwirft alles.
+        Forschungsexperiment. Datenquelle: eingefrorener, nur gelesener Snapshot deines Bereichs „
+        {scope}“ ({snapshot.nodes.length} Knoten, {snapshot.edges.length} Kanten). Alle Kandidaten
+        und Aktivierungen sind <strong>simuliert</strong> – keine echten ORB-Gedanken oder Abrufe –
+        und existieren nur in dieser Seite. Es wird nichts gespeichert; Reset oder Verlassen
+        verwirft alles.
       </div>
 
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-surface p-3">
-        <button className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold disabled:opacity-50" onClick={() => setRunning((r) => !r)} aria-label={running ? "Pause" : "Start"}>
+        <button
+          className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold disabled:opacity-50"
+          onClick={() => setRunning((r) => !r)}
+          aria-label={running ? "Pause" : "Start"}
+        >
           {running ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
           {running ? "Pause" : "Start"}
         </button>
-        <button className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold disabled:opacity-50" onClick={step} disabled={running}>
+        <button
+          className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold disabled:opacity-50"
+          onClick={step}
+          disabled={running}
+        >
           <StepForward className="h-4 w-4" /> Schritt
         </button>
-        <button className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold disabled:opacity-50" onClick={reset}>
+        <button
+          className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold disabled:opacity-50"
+          onClick={reset}
+        >
           <RotateCcw className="h-4 w-4" /> Reset
         </button>
         <span className="text-xs text-muted-foreground">
           Schritt {cur} / {MAX_STEPS}
         </span>
         <Field label={`Tempo ${tempo}/s`}>
-          <input type="range" min={1} max={30} value={tempo} onChange={(e) => setTempo(Number(e.target.value))} />
+          <input
+            type="range"
+            min={1}
+            max={30}
+            value={tempo}
+            onChange={(e) => setTempo(Number(e.target.value))}
+          />
         </Field>
         <Field label="Seed">
-          <input className="w-24 rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground" type="number" value={params.seed} onChange={(e) => num("seed", e.target.value)} />
+          <input
+            className="w-24 rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+            type="number"
+            value={params.seed}
+            onChange={(e) => num("seed", e.target.value)}
+          />
         </Field>
         {(
           [
@@ -201,14 +225,22 @@ export default function SynapticLab({ scope }: { scope: OrbDataScope }) {
             );
           })}
           <div className="mt-2 flex gap-2">
-            <button className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold disabled:opacity-50" onClick={() => mark(selected, "confirmed")}>
+            <button
+              className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold disabled:opacity-50"
+              onClick={() => mark(selected, "confirmed")}
+            >
               Experimentell bestätigen
             </button>
-            <button className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold disabled:opacity-50" onClick={() => mark(selected, "rejected")}>
+            <button
+              className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold disabled:opacity-50"
+              onClick={() => mark(selected, "rejected")}
+            >
               Verwerfen
             </button>
           </div>
-          <p className="mt-1 text-muted-foreground">Wirkt nur im Labor, nie auf ORB-Erinnerungen.</p>
+          <p className="mt-1 text-muted-foreground">
+            Wirkt nur im Labor, nie auf ORB-Erinnerungen.
+          </p>
         </div>
       )}
 
@@ -238,12 +270,28 @@ function ModelPanel(props: {
   return (
     <section className="rounded-xl border border-border bg-surface p-2">
       <h2 className="px-1 text-xs font-semibold">{MODEL_LABEL[state.model]}</h2>
-      <svg viewBox="0 0 100 100" className="aspect-square w-full" role="img" aria-label={MODEL_LABEL[state.model]}>
+      <svg
+        viewBox="0 0 100 100"
+        className="aspect-square w-full"
+        role="img"
+        aria-label={MODEL_LABEL[state.model]}
+      >
         {snapshot.edges.map((e, i) => {
           const a = pos.get(e.source);
           const b = pos.get(e.target);
           if (!a || !b) return null;
-          return <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} className="stroke-muted-foreground" strokeWidth={0.25} strokeOpacity={0.5} />;
+          return (
+            <line
+              key={i}
+              x1={a.x}
+              y1={a.y}
+              x2={b.x}
+              y2={b.y}
+              className="stroke-muted-foreground"
+              strokeWidth={0.25}
+              strokeOpacity={0.5}
+            />
+          );
         })}
         {[...state.candidates.values()].map((c) => {
           const a = pos.get(c.source);
@@ -285,15 +333,23 @@ function ModelPanel(props: {
 function Legend() {
   return (
     <p className="text-[11px] text-muted-foreground">
-      Graue durchgezogene Linien: Ausgangsdaten (produktiv, nur gelesen). Gestrichelt: experimentelle
-      Hypothesen, Dicke = synaptische Stärke, blass = schwach. Hervorgehoben: reaktiviert. Rot/blass:
-      experimentell entfernt oder verworfen. Durchgezogen hell: im Labor bestätigt. Darstellung zeigt bis zu{" "}
-      {VIEW_NODES} Knoten; gerechnet wird mit allen.
+      Graue durchgezogene Linien: Ausgangsdaten (produktiv, nur gelesen). Gestrichelt:
+      experimentelle Hypothesen, Dicke = synaptische Stärke, blass = schwach. Hervorgehoben:
+      reaktiviert. Rot/blass: experimentell entfernt oder verworfen. Durchgezogen hell: im Labor
+      bestätigt. Darstellung zeigt bis zu {VIEW_NODES} Knoten; gerechnet wird mit allen.
     </p>
   );
 }
 
-function MetricsTable({ states, snapshot, params }: { states: ModelState[]; snapshot: LabSnapshot; params: LabParams }) {
+function MetricsTable({
+  states,
+  snapshot,
+  params,
+}: {
+  states: ModelState[];
+  snapshot: LabSnapshot;
+  params: LabParams;
+}) {
   const m = states.map((s) => metricsOf(s, snapshot, params));
   const pct = (v: number | null) => (v === null ? "–" : `${(v * 100).toFixed(1)} %`);
   const rows: [string, (x: (typeof m)[number]) => string][] = [
@@ -306,7 +362,10 @@ function MetricsTable({ states, snapshot, params }: { states: ModelState[]; snap
     ["Unbestätigte Hypothesen", (x) => String(x.unconfirmed)],
     ["Verworfene Hypothesen", (x) => String(x.rejected)],
     ["Experimentell entfernt", (x) => String(x.removed)],
-    ["Gespeicherte Datensätze / ca. Speicher", (x) => `${x.storedRecords} / ${(x.approxBytes / 1024).toFixed(1)} KB`],
+    [
+      "Gespeicherte Datensätze / ca. Speicher",
+      (x) => `${x.storedRecords} / ${(x.approxBytes / 1024).toFixed(1)} KB`,
+    ],
     ["Rechenoperationen (kumuliert)", (x) => String(x.ops)],
   ];
   return (
@@ -316,7 +375,9 @@ function MetricsTable({ states, snapshot, params }: { states: ModelState[]; snap
           <tr className="text-left text-muted-foreground">
             <th className="p-2">Messgrösse</th>
             {LAB_MODELS.map((k) => (
-              <th key={k} className="p-2">Modell {k}</th>
+              <th key={k} className="p-2">
+                Modell {k}
+              </th>
             ))}
           </tr>
         </thead>
@@ -325,7 +386,9 @@ function MetricsTable({ states, snapshot, params }: { states: ModelState[]; snap
             <tr key={label} className="border-t border-border">
               <td className="p-2 text-muted-foreground">{label}</td>
               {m.map((x, i) => (
-                <td key={i} className="p-2 font-mono">{f(x)}</td>
+                <td key={i} className="p-2 font-mono">
+                  {f(x)}
+                </td>
               ))}
             </tr>
           ))}
