@@ -48,8 +48,8 @@ describe("Energie-Erholung (zweistufig, zeitbasiert, gedeckelt bei 100 %)", () =
   });
 
   it("Grenzwert 49 %: startet mit 3 %/min und wechselt bei 50 %", () => {
-    // 1 min mit 3 %/min bis 50 %, 9 min mit 2 %/min → 0.68
-    expect(recoverEnergy(0.49, 0, 10 * MIN)).toBeCloseTo(0.68, 10);
+    // 1/3 min mit 3 %/min bis 50 %, Rest 29/3 min mit 2 %/min → 0.6933…
+    expect(recoverEnergy(0.49, 0, 10 * MIN)).toBeCloseTo(0.5 + (29 / 3) * 0.02, 10);
   });
 
   it("Grenzwert 51 %: komplett mit 2 %/min", () => {
