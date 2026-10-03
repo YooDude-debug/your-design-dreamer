@@ -39,3 +39,26 @@ export function shouldMaskServerError(error: unknown): boolean {
   }
   return RUNTIME_ERRORS.some((C) => error.constructor === C);
 }
+
+/** Kennung im Fehlertext, an der der Client „erneut anmelden“ erkennt. */
+export const ORB_REAUTH_REQUIRED = "ORB_REAUTH_REQUIRED";
+
+/**
+ * true nur für Anmelde-/Rollenfehler beim LESEN: fehlendes/abgelaufenes Token
+ * (PGRST301/PGRST302/401) oder Tabellenrecht fehlt, weil die Anfrage als `anon`
+ * lief (42501 „permission denied for table“). RLS-Schreibablehnungen
+ * („row-level security“) und alle übrigen DB-Fehler gelten NICHT als Auth.
+ */
+export function isAuthReadError(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const e = err as { code?: unknown; message?: unknown; status?: unknown };
+  const code = typeof e.code === "string" ? e.code : "";
+  const msg = typeof e.message === "string" ? e.message.toLowerCase() : "";
+  if (code === "PGRST301" || code === "PGRST302" || e.status === 401) return true;
+  return code === "42501" && msg.includes("permission denied for table");
+}
+
+/** Klarer, nicht maskierter Fehler: Benutzer muss sich neu anmelden. */
+export function reauthRequired(): Error {
+  return new Error(`${ORB_REAUTH_REQUIRED}: Bitte melde dich erneut an.`);
+}
