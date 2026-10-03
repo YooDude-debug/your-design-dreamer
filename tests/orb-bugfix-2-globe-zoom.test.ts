@@ -21,14 +21,35 @@ describe("BUG 2 – Globe Zoom", () => {
   });
   it("ohne manuellen Zoom: neuer Rahmen", () =>
     expect(
-      nextFramedDistance({ userZoomed: false, distance: 5, prevFraming: small, framing: big, min: memoryMin, keepRatio: false }),
+      nextFramedDistance({
+        userZoomed: false,
+        distance: 5,
+        prevFraming: small,
+        framing: big,
+        min: memoryMin,
+        keepRatio: false,
+      }),
     ).toBe(big));
   it("Cognitive-Update zerstört manuellen Zoom nicht", () =>
     expect(
-      nextFramedDistance({ userZoomed: true, distance: memoryMin + 1, prevFraming: small, framing: big, min: memoryMin, keepRatio: false }),
+      nextFramedDistance({
+        userZoomed: true,
+        distance: memoryMin + 1,
+        prevFraming: small,
+        framing: big,
+        min: memoryMin,
+        keepRatio: false,
+      }),
     ).toBe(memoryMin + 1));
   it("Resize hält das Zoomverhältnis", () => {
-    const d = nextFramedDistance({ userZoomed: true, distance: small, prevFraming: small, framing: small * 1.2, min: memoryMin, keepRatio: true });
+    const d = nextFramedDistance({
+      userZoomed: true,
+      distance: small,
+      prevFraming: small,
+      framing: small * 1.2,
+      min: memoryMin,
+      keepRatio: true,
+    });
     expect(d).toBeCloseTo(small * 1.2);
   });
 });

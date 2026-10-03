@@ -95,7 +95,10 @@ function FlyerOne({ format }: { format: FlyerFormat }) {
         spacingClasses[format],
       )}
     >
-      <div aria-hidden className="absolute inset-x-[7%] top-[28%] h-px bg-gradient-brand opacity-35" />
+      <div
+        aria-hidden
+        className="absolute inset-x-[7%] top-[28%] h-px bg-gradient-brand opacity-35"
+      />
       <div
         aria-hidden
         className="absolute left-1/2 top-[51%] h-[35%] w-[65%] -translate-x-1/2 rounded-full bg-brand/10 blur-3xl"
@@ -109,24 +112,34 @@ function FlyerOne({ format }: { format: FlyerFormat }) {
           </span>
         </div>
 
-        <header className={cn(story ? "mt-[18%]" : "mt-[10%]") }>
+        <header className={cn(story ? "mt-[18%]" : "mt-[10%]")}>
           <p className="text-[clamp(6px,2.7cqw,14px)] font-bold uppercase text-brand">
             Ein Wort. Ein Sound. Eine Bedeutung.
           </p>
           <h2 className="mt-[2%] max-w-[86%] text-[clamp(24px,13cqw,68px)] font-black uppercase leading-[0.88]">
             Slang has
-            <br />
-            a <span className="text-brand">sound.</span>
+            <br />a <span className="text-brand">sound.</span>
           </h2>
           <p className="mt-[3%] text-[clamp(8px,3.4cqw,18px)] font-semibold text-muted-foreground">
             Y-Dude macht Sprache hörbar.
           </p>
         </header>
 
-        <div className={cn("relative flex flex-1 items-center justify-center", story ? "my-[8%]" : "my-[3%]") }>
+        <div
+          className={cn(
+            "relative flex flex-1 items-center justify-center",
+            story ? "my-[8%]" : "my-[3%]",
+          )}
+        >
           <div className="relative flex w-full items-center justify-center">
-            <div aria-hidden className="absolute h-[150%] w-[72%] rounded-full border border-brand/15" />
-            <div aria-hidden className="absolute h-[105%] w-[55%] rounded-full border border-brand/25" />
+            <div
+              aria-hidden
+              className="absolute h-[150%] w-[72%] rounded-full border border-brand/15"
+            />
+            <div
+              aria-hidden
+              className="absolute h-[105%] w-[55%] rounded-full border border-brand/25"
+            />
             <div className="relative flex w-[88%] items-center gap-[5%] rounded-[2rem] border border-brand/55 bg-surface/90 px-[7%] py-[6%] shadow-glow backdrop-blur-xl">
               <span className="grid aspect-square w-[18%] place-items-center rounded-full border border-brand bg-brand/15 text-brand">
                 <Play className="h-[42%] w-[42%] fill-current" aria-hidden />
@@ -148,9 +161,18 @@ function FlyerOne({ format }: { format: FlyerFormat }) {
           <MiniTag muted>#Mate</MiniTag>
         </div>
 
-        <div className={cn("flex items-end justify-between gap-[5%] border-t border-border/70 pt-[4%]", story ? "mt-[10%]" : "mt-[6%]") }>
+        <div
+          className={cn(
+            "flex items-end justify-between gap-[5%] border-t border-border/70 pt-[4%]",
+            story ? "mt-[10%]" : "mt-[6%]",
+          )}
+        >
           <p className="max-w-[53%] text-[clamp(7px,3cqw,16px)] font-semibold leading-[1.35]">
-            Entdecke Wörter.<br />Hör ihre Sounds.<br />Teile deinen Slang.
+            Entdecke Wörter.
+            <br />
+            Hör ihre Sounds.
+            <br />
+            Teile deinen Slang.
           </p>
           <div className="text-right">
             <p className="text-[clamp(6px,2.4cqw,13px)] font-black uppercase text-brand">
@@ -184,8 +206,14 @@ function FlyerTwo({ format }: { format: FlyerFormat }) {
         spacingClasses[format],
       )}
     >
-      <div aria-hidden className="absolute inset-0 opacity-25 [background-image:linear-gradient(var(--border)_1px,transparent_1px),linear-gradient(90deg,var(--border)_1px,transparent_1px)] [background-size:8%_8%]" />
-      <div aria-hidden className="absolute inset-x-0 top-[30%] h-[56%] bg-[radial-gradient(circle,var(--brand)/0.15,transparent_68%)]" />
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-25 [background-image:linear-gradient(var(--border)_1px,transparent_1px),linear-gradient(90deg,var(--border)_1px,transparent_1px)] [background-size:8%_8%]"
+      />
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-[30%] h-[56%] bg-[radial-gradient(circle,var(--brand)/0.15,transparent_68%)]"
+      />
 
       <div className="relative z-10 flex h-full flex-col">
         <div className="flex items-start justify-between">
@@ -195,7 +223,7 @@ function FlyerTwo({ format }: { format: FlyerFormat }) {
           </div>
         </div>
 
-        <header className={cn("text-center", story ? "mt-[14%]" : "mt-[7%]") }>
+        <header className={cn("text-center", story ? "mt-[14%]" : "mt-[7%]")}>
           <h2 className="text-[clamp(22px,11.6cqw,62px)] font-black uppercase leading-[0.9]">
             The world speaks
             <br />
@@ -206,14 +234,22 @@ function FlyerTwo({ format }: { format: FlyerFormat }) {
           </p>
         </header>
 
-        <div className={cn("relative flex min-h-0 flex-1 items-center justify-center", story ? "my-[5%]" : "my-[1%]") }>
+        <div
+          className={cn(
+            "relative flex min-h-0 flex-1 items-center justify-center",
+            story ? "my-[5%]" : "my-[1%]",
+          )}
+        >
           <div
             className={cn(
               "relative aspect-square",
               format === "feed" ? "w-[59%]" : format === "a4" ? "w-[84%]" : "w-[91%]",
             )}
           >
-            <div aria-hidden className="absolute inset-[9%] rounded-full border border-brand/25 shadow-glow" />
+            <div
+              aria-hidden
+              className="absolute inset-[9%] rounded-full border border-brand/25 shadow-glow"
+            />
             <div aria-hidden className="absolute inset-[3%] rounded-full border border-brand/10" />
             <img
               src={globeImage}
@@ -251,7 +287,12 @@ function FlyerTwo({ format }: { format: FlyerFormat }) {
           </p>
         </div>
 
-        <div className={cn("flex items-center justify-between border-t border-brand/25 pt-[4%]", story ? "mt-[9%]" : "mt-[5%]") }>
+        <div
+          className={cn(
+            "flex items-center justify-between border-t border-brand/25 pt-[4%]",
+            story ? "mt-[9%]" : "mt-[5%]",
+          )}
+        >
           <p className="text-[clamp(6px,2.4cqw,13px)] font-black uppercase text-brand">
             Speak local. Connect global.
           </p>
@@ -290,7 +331,7 @@ function FlyerThree({ format }: { format: FlyerFormat }) {
           </span>
         </div>
 
-        <header className={cn(story ? "mt-[15%]" : "mt-[7%]") }>
+        <header className={cn(story ? "mt-[15%]" : "mt-[7%]")}>
           <h2
             className={cn(
               "font-black uppercase leading-[0.91]",
@@ -299,8 +340,10 @@ function FlyerThree({ format }: { format: FlyerFormat }) {
                 : "text-[clamp(22px,11cqw,58px)]",
             )}
           >
-            Your word.<br />
-            Your <span className="text-brand">sound.</span><br />
+            Your word.
+            <br />
+            Your <span className="text-brand">sound.</span>
+            <br />
             Your world.
           </h2>
           <p className="mt-[3%] max-w-[68%] text-[clamp(8px,3.2cqw,17px)] font-semibold text-muted-foreground">
@@ -308,7 +351,9 @@ function FlyerThree({ format }: { format: FlyerFormat }) {
           </p>
         </header>
 
-        <div className={cn("relative flex min-h-0 flex-1 items-center", story ? "my-[8%]" : "my-[3%]") }>
+        <div
+          className={cn("relative flex min-h-0 flex-1 items-center", story ? "my-[8%]" : "my-[3%]")}
+        >
           <div
             className={cn(
               "relative mx-auto w-full",
@@ -340,8 +385,18 @@ function FlyerThree({ format }: { format: FlyerFormat }) {
               />
             </div>
 
-            <svg aria-hidden viewBox="0 0 100 80" className="absolute inset-0 h-full w-full text-brand/45">
-              <path d="M50 40 L16 14 M50 40 L84 22 M50 40 L14 66 M50 40 L86 70" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2 2" />
+            <svg
+              aria-hidden
+              viewBox="0 0 100 80"
+              className="absolute inset-0 h-full w-full text-brand/45"
+            >
+              <path
+                d="M50 40 L16 14 M50 40 L84 22 M50 40 L14 66 M50 40 L86 70"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="0.5"
+                strokeDasharray="2 2"
+              />
             </svg>
 
             {socialNodes.map(({ label, icon: Icon, className }) => (
@@ -372,9 +427,15 @@ function FlyerThree({ format }: { format: FlyerFormat }) {
           <span>Connect.</span>
         </div>
 
-        <div className={cn("flex items-end justify-between gap-[4%]", story ? "mt-[9%]" : "mt-[5%]") }>
+        <div
+          className={cn("flex items-end justify-between gap-[4%]", story ? "mt-[9%]" : "mt-[5%]")}
+        >
           <p className="max-w-[56%] text-[clamp(6px,2.5cqw,13px)] font-semibold leading-[1.45] text-muted-foreground">
-            Erstelle deinen SlangTag.<br />Teile ihn mit deiner Community.<br />Entdecke neue Sounds.
+            Erstelle deinen SlangTag.
+            <br />
+            Teile ihn mit deiner Community.
+            <br />
+            Entdecke neue Sounds.
           </p>
           <div className="text-right">
             <p className="inline-flex items-center gap-[0.4em] text-[clamp(8px,3.4cqw,18px)] font-black uppercase text-brand">
@@ -425,7 +486,8 @@ export function YDudeFlyerShowcase() {
               Drei Welten. Ein <span className="text-brand">SlangTag.</span>
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
-              Drei eigenständige Richtungen, verbunden durch Sound, Orte, Menschen und die echte Y-Dude-Oberfläche.
+              Drei eigenständige Richtungen, verbunden durch Sound, Orte, Menschen und die echte
+              Y-Dude-Oberfläche.
             </p>
           </div>
 
@@ -440,7 +502,9 @@ export function YDudeFlyerShowcase() {
                 className="h-auto min-w-0 flex-col gap-0.5 px-3 py-2"
               >
                 <span className="font-black uppercase">{item.label}</span>
-                <span className="hidden text-[10px] font-normal opacity-70 sm:block">{item.detail}</span>
+                <span className="hidden text-[10px] font-normal opacity-70 sm:block">
+                  {item.detail}
+                </span>
               </Button>
             ))}
           </div>

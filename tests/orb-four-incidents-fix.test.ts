@@ -9,9 +9,20 @@ import { createFakeDb, type FakeCall, type FakeResponse } from "./helpers/fake-s
 const USER = "11111111-1111-4111-8111-111111111111";
 const NOW = new Date().toISOString();
 const stateRow = {
-  id: "s1", user_id: USER, curiosity: 0.5, joy: 0.5, fear: 0.1, trust: 0.4, uncertainty: 0.3,
-  energy: 0.9, cracks: 0, reactivation_count: 0, decay_computations: 0, goals: ["help_user"],
-  created_at: NOW, updated_at: NOW,
+  id: "s1",
+  user_id: USER,
+  curiosity: 0.5,
+  joy: 0.5,
+  fear: 0.1,
+  trust: 0.4,
+  uncertainty: 0.3,
+  energy: 0.9,
+  cracks: 0,
+  reactivation_count: 0,
+  decay_computations: 0,
+  goals: ["help_user"],
+  created_at: NOW,
+  updated_at: NOW,
 };
 
 function snapDb(fail: Record<string, { code: string; message: string }>) {
@@ -19,14 +30,18 @@ function snapDb(fail: Record<string, { code: string; message: string }>) {
     if (call.table === "orb_state") return { data: stateRow };
     const err = fail[call.table];
     if (err && call.action === "select") return { data: null, error: err } as FakeResponse;
-    if (call.action === "select") return { data: call.single ? null : [], count: 0 } as FakeResponse;
+    if (call.action === "select")
+      return { data: call.single ? null : [], count: 0 } as FakeResponse;
     return { data: null };
   }, 30000);
 }
 
 describe("P2 – Fehlerisolierung der ORB-Übersicht", () => {
   it("optionaler Teil fällt aus → Übersicht bleibt, Teil als unavailable markiert", async () => {
-    const snap = await getSnapshot(snapDb({ orb_interests: { code: "XX000", message: "boom" } }), USER);
+    const snap = await getSnapshot(
+      snapDb({ orb_interests: { code: "XX000", message: "boom" } }),
+      USER,
+    );
     expect(snap.unavailable).toContain("orb_interests");
     expect(snap.interests).toEqual([]);
     expect(snap.nodes).toEqual([]);
@@ -51,8 +66,12 @@ describe("P2 – Fehlerisolierung der ORB-Übersicht", () => {
   });
   it("Klassifizierung: nur echte Anmeldefehler", () => {
     expect(isAuthReadError({ code: "PGRST301", message: "JWT expired" })).toBe(true);
-    expect(isAuthReadError({ code: "42501", message: "permission denied for table orb_threads" })).toBe(true);
-    expect(isAuthReadError({ code: "42501", message: "new row violates row-level security policy" })).toBe(false);
+    expect(
+      isAuthReadError({ code: "42501", message: "permission denied for table orb_threads" }),
+    ).toBe(true);
+    expect(
+      isAuthReadError({ code: "42501", message: "new row violates row-level security policy" }),
+    ).toBe(false);
     expect(isAuthReadError({ code: "57014", message: "timeout" })).toBe(false);
     expect(isAuthReadError(null)).toBe(false);
   });

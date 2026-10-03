@@ -64,7 +64,6 @@ export async function verifyTurnstileToken(
   }
 }
 
-
 /** Ermittelt die Client-IP aus dem aktuellen Request (best effort). */
 export async function currentRequestIp(): Promise<string | undefined> {
   try {

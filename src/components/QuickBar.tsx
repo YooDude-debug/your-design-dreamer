@@ -118,7 +118,6 @@ export function QuickBar() {
         <ShoppingBag className="h-5 w-5 shrink-0" />
         <span className="sr-only">Market</span>
       </Link>
-
     </section>
   );
 }

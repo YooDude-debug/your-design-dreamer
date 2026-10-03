@@ -12,7 +12,12 @@ const OTHER = "22222222-2222-4222-8222-222222222222";
 const iso = (ms: number) => new Date(ms).toISOString();
 
 function fakeDb(opts: { conflict?: boolean } = {}) {
-  const t = { updates: [] as any[], history: [] as any[], candidates: [] as any[], inserts: [] as any[] };
+  const t = {
+    updates: [] as any[],
+    history: [] as any[],
+    candidates: [] as any[],
+    inserts: [] as any[],
+  };
   const n: any = {
     id: A,
     content: OLD,
@@ -42,10 +47,14 @@ function fakeDb(opts: { conflict?: boolean } = {}) {
       update: (p: any) => ((o.op = "update"), (o.p = p), b),
       then: (res: any) => {
         if (table === "orb_messages")
-          return res({ data: [{ role: "user", body: NEW, created_at: iso(Date.now()) }], error: null });
+          return res({
+            data: [{ role: "user", body: NEW, created_at: iso(Date.now()) }],
+            error: null,
+          });
         if (table === "orb_nodes" && o.op === "select" && o.single)
           return res({ data: opts.conflict ? { id: OTHER } : null, error: null });
-        if (table === "orb_nodes" && o.op === "select") return res({ data: [{ ...n }], error: null });
+        if (table === "orb_nodes" && o.op === "select")
+          return res({ data: [{ ...n }], error: null });
         if (table === "orb_nodes" && o.op === "update") {
           if (opts.conflict && "content" in o.p)
             return res({ data: null, error: { code: "23505", message: "dup" } });
@@ -55,8 +64,10 @@ function fakeDb(opts: { conflict?: boolean } = {}) {
         }
         if (table === "orb_nodes" && o.op === "insert")
           return (t.inserts.push(o.p), res({ data: { id: "new" }, error: null }));
-        if (table === "orb_node_history") return (t.history.push(o.p), res({ data: null, error: null }));
-        if (table === "orb_candidates") return (t.candidates.push(o.p), res({ data: null, error: null }));
+        if (table === "orb_node_history")
+          return (t.history.push(o.p), res({ data: null, error: null }));
+        if (table === "orb_candidates")
+          return (t.candidates.push(o.p), res({ data: null, error: null }));
         return res({ data: null, error: null });
       },
     };

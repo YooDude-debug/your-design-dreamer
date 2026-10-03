@@ -45,7 +45,12 @@ const B = "22222222-2222-4222-8222-222222222222";
 const ORB = "33333333-3333-4333-8333-333333333333";
 
 function orbRow(ids: string[]) {
-  return { id: ORB, role: "orb", created_at: "2026-09-25T07:00:00Z", state_snapshot: { model_visible_memory_ids: ids } };
+  return {
+    id: ORB,
+    role: "orb",
+    created_at: "2026-09-25T07:00:00Z",
+    state_snapshot: { model_visible_memory_ids: ids },
+  };
 }
 
 describe("P5-B1 C1-Kette", () => {
@@ -55,10 +60,18 @@ describe("P5-B1 C1-Kette", () => {
     expect(ref.referencedModelVisibleMemoryIds).toEqual([A]);
   });
   it("multi: beide IDs geladen, keine Reihenfolge-Semantik", () => {
-    expect(resolveReplyReference(ORB, orbRow([A, B])).referencedModelVisibleMemoryIds).toEqual([A, B]);
+    expect(resolveReplyReference(ORB, orbRow([A, B])).referencedModelVisibleMemoryIds).toEqual([
+      A,
+      B,
+    ]);
   });
   it("alte ORB-Zeile ohne Tracking → null (nicht leer)", () => {
-    const ref = resolveReplyReference(ORB, { id: ORB, role: "orb", created_at: "x", state_snapshot: {} });
+    const ref = resolveReplyReference(ORB, {
+      id: ORB,
+      role: "orb",
+      created_at: "x",
+      state_snapshot: {},
+    });
     expect(ref.referencedModelVisibleMemoryIds).toBeNull();
   });
 });
@@ -109,7 +122,8 @@ describe("P5-B1 Diagnose-Kategorien", () => {
     expect(d).not.toBe("CONFIRMED_MULTIPLE");
   });
   it("Learning bleibt Learning", () => {
-    for (const t of ["Ich bin Koch", "Ja, ich bin Koch", "Koch bin ich"]) expect(diagnose(t, [A])).toBe("LEARNING");
+    for (const t of ["Ich bin Koch", "Ja, ich bin Koch", "Koch bin ich"])
+      expect(diagnose(t, [A])).toBe("LEARNING");
   });
   it("Negation nie positive Confirmation", () => {
     for (const t of ["Nein.", "Nein, das stimmt nicht", "Das stimmt nicht"]) {
@@ -117,7 +131,14 @@ describe("P5-B1 Diagnose-Kategorien", () => {
     }
   });
   it("Keine Memory-Daten verändert", () => {
-    const node = { id: A, activation_count: 3, importance: 0.6, safety: 0.5, last_accessed_at: "t", content: "Koch" };
+    const node = {
+      id: A,
+      activation_count: 3,
+      importance: 0.6,
+      safety: 0.5,
+      last_accessed_at: "t",
+      content: "Koch",
+    };
     const before = JSON.stringify(node);
     for (const [t] of TABLE) diagnose(t, [A, B]);
     resolveReplyReference(ORB, orbRow([A]));

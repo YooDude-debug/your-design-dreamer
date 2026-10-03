@@ -251,9 +251,7 @@ function LongResponseContainer({
         className="flex w-full flex-col gap-1 rounded-lg px-3 py-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span className="flex w-full items-center justify-between gap-2 text-xs font-semibold text-foreground">
-          <span>
-            Ausführliche Antwort · {words.toLocaleString("de-DE")} Wörter
-          </span>
+          <span>Ausführliche Antwort · {words.toLocaleString("de-DE")} Wörter</span>
           <ChevronDown
             aria-hidden
             className={`h-4 w-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
@@ -280,7 +278,6 @@ function LongResponseContainer({
     </div>
   );
 }
-
 
 function IncompleteNotice({
   completion,

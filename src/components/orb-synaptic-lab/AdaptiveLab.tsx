@@ -216,7 +216,8 @@ export default function AdaptiveLab({ params }: { params: LabParams }) {
                   const sum = (
                     mi: number,
                     f: "reuse" | "plannedRecalls" | "dormant" | "restored" | "expired",
-                  ) => r.seeds.reduce((x, s) => x + (s.metrics[mi]!.perProfile[pr.id]?.[f] ?? 0), 0);
+                  ) =>
+                    r.seeds.reduce((x, s) => x + (s.metrics[mi]!.perProfile[pr.id]?.[f] ?? 0), 0);
                   return (
                     <tr key={pr.id} className="border-t border-border">
                       <td className="p-1.5">{pr.label}</td>

@@ -11,7 +11,14 @@ import {
 import { buildSpeakSystemPrompt } from "@/orb-core/llm/prompt.server";
 import { isShortReply, pendingOrbQuestion } from "@/orb-core/conversation";
 
-const state = { curiosity: 0.5, joy: 0.5, fear: 0.1, trust: 0.5, uncertainty: 0.3, energy: 0.8 } as never;
+const state = {
+  curiosity: 0.5,
+  joy: 0.5,
+  fear: 0.1,
+  trust: 0.5,
+  uncertainty: 0.3,
+  energy: 0.8,
+} as never;
 const base = { state, goals: [], decision: "answer", recalled: [] as string[], interests: [] };
 const u = (body: string) => ({ role: "user", body });
 const o = (body: string) => ({ role: "orb", body });
@@ -22,19 +29,30 @@ describe("P7 Gesprächskontinuität", () => {
     expect(isAnsweredInConversation("Magst du lieber dünne oder dicke Pizza?", msgs)).toBe(true);
   });
   it("Frau/dicker Teig nach Erklärung → beantwortet (Inhalt statt Wortlaut)", () => {
-    const msgs = [u("Ich koche alles ohne Rezept."), u("Meine Frau mag dicken Teig, deshalb mache ich ihre Pizza dicker.")];
-    expect(isAnsweredInConversation("Machst du für deine Frau einen dickeren Teig?", msgs)).toBe(true);
+    const msgs = [
+      u("Ich koche alles ohne Rezept."),
+      u("Meine Frau mag dicken Teig, deshalb mache ich ihre Pizza dicker."),
+    ];
+    expect(isAnsweredInConversation("Machst du für deine Frau einen dickeren Teig?", msgs)).toBe(
+      true,
+    );
   });
   it("neues Thema bleibt fragbar", () => {
-    expect(isAnsweredInConversation("Welchen Käse nimmst du für Lasagne?", [u("Ich mag dünne Pizza.")])).toBe(false);
+    expect(
+      isAnsweredInConversation("Welchen Käse nimmst du für Lasagne?", [u("Ich mag dünne Pizza.")]),
+    ).toBe(false);
   });
   it("nur Benutzernachrichten zählen als Antwort", () => {
-    expect(isAnsweredInConversation("Magst du dünne Pizza?", [o("Magst du dünne Pizza?")])).toBe(false);
+    expect(isAnsweredInConversation("Magst du dünne Pizza?", [o("Magst du dünne Pizza?")])).toBe(
+      false,
+    );
   });
   it("„Meine Frau mag dicke Pizza“ → Zuordnung zur Frau", () => {
     expect(attributionHint("Meine Frau mag dicke Pizza")).toMatch(/meine frau/);
     expect(attributionHint("Ich mag dicke Pizza")).toBe("");
-    expect(buildSpeakSystemPrompt({ ...base, userText: "Meine Frau mag dicke Pizza" })).toContain("nicht dem Benutzer");
+    expect(buildSpeakSystemPrompt({ ...base, userText: "Meine Frau mag dicke Pizza" })).toContain(
+      "nicht dem Benutzer",
+    );
   });
   it("„Ja“ auf eine eindeutige Frage bleibt gebunden", () => {
     const msgs = [o("Soll ich das zusammenfassen?")];
@@ -63,10 +81,18 @@ describe("P7 Gesprächskontinuität", () => {
       "2026-10-03T14:50:00Z",
     );
     expect(fresh).toEqual(["mag dünne Pizza"]);
-    const p = buildSpeakSystemPrompt({ ...base, recalled: ["mag dünne Pizza", "ist Koch"], conversationMemories: fresh });
-    expect(p).toContain("„mag dünne Pizza“ [gerade in diesem Gespräch gesagt, keine ältere Erinnerung]");
+    const p = buildSpeakSystemPrompt({
+      ...base,
+      recalled: ["mag dünne Pizza", "ist Koch"],
+      conversationMemories: fresh,
+    });
+    expect(p).toContain(
+      "„mag dünne Pizza“ [gerade in diesem Gespräch gesagt, keine ältere Erinnerung]",
+    );
     expect(p).not.toContain("„ist Koch“ [gerade");
-    expect(conversationOriginContents([{ content: "x", createdAt: "2026-10-03T15:00:00Z" }], null)).toEqual([]);
+    expect(
+      conversationOriginContents([{ content: "x", createdAt: "2026-10-03T15:00:00Z" }], null),
+    ).toEqual([]);
   });
   it("Korrektur und unklare Antwort: keine erfundene Bestätigung", () => {
     expect(isShortReply("Vielleicht?")).toBe(false);
@@ -77,6 +103,8 @@ describe("P7 Gesprächskontinuität", () => {
     expect(speculationHint("Wie geht es dir?")).toBe("");
   });
   it("Aussage ohne Rückfrage ist erlaubt", () => {
-    expect(buildSpeakSystemPrompt(base)).toContain("Aussage ohne Rückfrage ist ausdrücklich erlaubt");
+    expect(buildSpeakSystemPrompt(base)).toContain(
+      "Aussage ohne Rückfrage ist ausdrücklich erlaubt",
+    );
   });
 });

@@ -148,7 +148,12 @@ describe("Fehlerfall A / P2 Gesprächsrelevanz", () => {
       }).length,
     ).toBeGreaterThan(0);
     expect(
-      deriveKnowledgeGaps({ ...base, interests: [], memories: [projekt], userConversationTopics: [] }),
+      deriveKnowledgeGaps({
+        ...base,
+        interests: [],
+        memories: [projekt],
+        userConversationTopics: [],
+      }),
     ).toEqual([]);
   });
 });
@@ -176,7 +181,8 @@ describe("Fehlerfall A / P3 Prüfung nach Formulierung", () => {
   it("passende Frage bleibt erhalten", () => {
     expect(
       checkQuestionFidelity({
-        question: "Welcher Teil der technischen Funktionsweise von ORB Core interessiert dich am meisten?",
+        question:
+          "Welcher Teil der technischen Funktionsweise von ORB Core interessiert dich am meisten?",
         memory: ORB_TECH.content,
         topic: "ki",
         nameTokens: ["mario"],
@@ -192,14 +198,20 @@ describe("Fehlerfall A / P3 Prüfung nach Formulierung", () => {
   });
   it("nur autonome Fragen werden geprüft, verworfen mit Gate fidelity", () => {
     const engine = readFileSync("src/orb-core/engine.server.ts", "utf8");
-    expect(engine).toMatch(/if \(options\.explicit !== true\) \{\s+const fidelity = checkQuestionFidelity/);
+    expect(engine).toMatch(
+      /if \(options\.explicit !== true\) \{\s+const fidelity = checkQuestionFidelity/,
+    );
     expect(engine).toContain('{ gate: "fidelity" }');
   });
 });
 
 describe("Fehlerfall C / P4 Gesprächsanker", () => {
   it("Abschlussaussage ohne Bezug wird nicht in den Prompt gegeben", () => {
-    expect(isReferentlessClosure("Das Thema haben wir beendet. Wir konzentrieren uns auf andere Sachen.")).toBe(true);
+    expect(
+      isReferentlessClosure(
+        "Das Thema haben wir beendet. Wir konzentrieren uns auf andere Sachen.",
+      ),
+    ).toBe(true);
     expect(isReferentlessClosure("Mario hat das Projekt Fernweh beendet.")).toBe(false);
   });
   it("Eigene-Frage-Hinweis verlangt Bezug auf genau diese Frage", () => {
@@ -218,8 +230,23 @@ describe("Fehlerfall C / P4 Gesprächsanker", () => {
 describe("Fehlerfall B / P5 Bildzustand", () => {
   const state = { curiosity: 1, joy: 1, fear: 0, trust: 1, uncertainty: 0, energy: 0.4 };
   it("ohne Bildbezug bleibt der Prompt byte-identisch", () => {
-    const a = buildSpeakSystemPrompt({ state, goals: [], decision: "answer", recalled: [], interests: [], visualHint: true });
-    const b = buildSpeakSystemPrompt({ state, goals: [], decision: "answer", recalled: [], interests: [], visualHint: true, imageState: null });
+    const a = buildSpeakSystemPrompt({
+      state,
+      goals: [],
+      decision: "answer",
+      recalled: [],
+      interests: [],
+      visualHint: true,
+    });
+    const b = buildSpeakSystemPrompt({
+      state,
+      goals: [],
+      decision: "answer",
+      recalled: [],
+      interests: [],
+      visualHint: true,
+      imageState: null,
+    });
     expect(a).toBe(b);
   });
   it("kein Anhang ⇒ kein Bildzugriff, Bearbeitung nicht verfügbar, Erzeugung getrennt", () => {

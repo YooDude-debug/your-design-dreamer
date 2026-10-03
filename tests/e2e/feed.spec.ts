@@ -47,11 +47,15 @@ test.describe("Feed", () => {
     await page.goto("/feed");
     await waitForApp(page);
 
-    const postLink = page.locator('a[href^="/p/"]').first();
-    const count = await postLink.count();
-    test.skip(count === 0, "Keine Beiträge im Feed der Testsitzung");
+    // Der Feed verlinkt Beiträge nicht mehr per <a href="/p/…">; die
+    // Detailseite /p/$postId existiert weiterhin (u. a. aus den Creator-Stats).
+    // Daher: echte Beitrags-ID aus dem Feed lesen und die Detailseite direkt öffnen.
+    const article = page.locator("article[data-post-id]").first();
+    await expect(article).toBeVisible({ timeout: 30_000 });
+    const postId = await article.getAttribute("data-post-id");
+    expect(postId).toBeTruthy();
 
-    await postLink.click();
+    await page.goto(`/p/${postId}`);
     await page.waitForURL(/\/p\//, { timeout: 30_000 });
     await waitForApp(page);
 

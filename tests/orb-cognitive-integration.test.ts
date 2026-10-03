@@ -184,7 +184,8 @@ describe("Cognitive Architecture – ORB-Core-Integration (observational)", () =
     const ui = readFileSync("src/routes/_authenticated/channels.orb.$scope.tsx", "utf8");
     const uses = ui.match(/[^\n]*\.cognitive\b[^\n]*/g) ?? [];
     expect(uses.length).toBe(2);
-    for (const u of uses) expect(u).toMatch(/broadcastCognitive\((turn|result)\.cognitive, userId, scope\)/);
+    for (const u of uses)
+      expect(u).toMatch(/broadcastCognitive\((turn|result)\.cognitive, userId, scope\)/);
     expect(engine).toContain("const recalled = selectByLevel(scored, RECALL_LIMIT);");
     expect(engine.match(/runCognitiveObservation\(/g)).toHaveLength(3);
     for (const line of engine.split("\n").filter((l) => l.includes("runCognitiveObservation(")))

@@ -18,7 +18,11 @@ const { fontFamily } = loadFont("normal", {
 const UI_FONT = `${fontFamily}, sans-serif`;
 
 /** Szenenlängen (30 fps): 2 s / 3 s / 3 s / 3 s / 4 s = 15 s. */
-const SCENES: { from: number; dur: number; render: (p: { frame: number; fps: number }) => React.ReactNode }[] = [
+const SCENES: {
+  from: number;
+  dur: number;
+  render: (p: { frame: number; fps: number }) => React.ReactNode;
+}[] = [
   { from: 0, dur: 60, render: (p) => <SceneImpulse {...p} /> },
   { from: 60, dur: 90, render: (p) => <SceneVoice {...p} /> },
   { from: 150, dur: 90, render: (p) => <SceneEarlyBird {...p} /> },

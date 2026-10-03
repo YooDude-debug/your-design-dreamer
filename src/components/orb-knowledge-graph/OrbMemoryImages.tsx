@@ -58,7 +58,8 @@ export function OrbMemoryImages({ memoryId }: { memoryId: string }) {
   });
 
   if (q.isLoading) return <p className="mt-3 text-muted-foreground">Bilder werden geladen …</p>;
-  if (q.isError || !q.data) return <p className="mt-3 text-muted-foreground">Bilder nicht verfügbar.</p>;
+  if (q.isError || !q.data)
+    return <p className="mt-3 text-muted-foreground">Bilder nicht verfügbar.</p>;
   const { linked, unassigned } = q.data as { linked: View[]; unassigned: View[] };
 
   return (
