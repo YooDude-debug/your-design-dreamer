@@ -86,7 +86,10 @@ export function Turnstile({
   onLoaded,
   handleRef,
   className,
+  unavailableText,
 }: {
+  /** Eigener Hinweistext bei Fehlschlag (z. B. für die Sprachdemo statt Registrierung). */
+  unavailableText?: string;
   onToken: (token: string | null) => void;
   /** Wird gemeldet, sobald das Widget gerendert wurde (rein technisch). */
   onLoaded?: () => void;
@@ -250,7 +253,7 @@ export function Turnstile({
           role="alert"
           className="mt-1 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-[11px] leading-relaxed text-destructive"
         >
-          {t.unavailable}
+          {unavailableText ?? t.unavailable}
         </p>
       )}
     </div>
