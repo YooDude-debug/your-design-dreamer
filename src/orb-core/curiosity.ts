@@ -233,6 +233,8 @@ export function deriveKnowledgeGaps(input: GapInput & { curiosity: number }): Kn
     // P1: Name als Thema = unbekannt; reine Identitätsangaben haben keine Lücke.
     if (names.has(m.topic)) continue;
     if (isIdentityMemory(m.content)) continue;
+    // Berufsangaben sind keine Interessen und keine Gesprächsthemen.
+    if (isOccupationStatement(m.content)) continue;
     // P2: unbelegtes Alt-Thema nur bei eigenem Gesprächsbezug des Nutzers.
     if (userTopics && !isSemanticTopic(m.topic) && !userTopics.has(m.topic)) continue;
     if (m.confidence < PROACTIVE_MIN_CONFIDENCE) continue;

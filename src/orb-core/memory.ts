@@ -387,6 +387,9 @@ const TOPIC_KEYWORDS: Record<string, string[]> = {
     "python",
     "datenbank",
     "api",
+    "backend",
+    "frontend",
+    "server",
   ],
   ki: ["künstlich", "kuenstlich", "intelligenz", "modell", "neural", "robot"],
   essen: [
@@ -481,7 +484,17 @@ function contentTokenPairs(text: string): { word: string; stem: string }[] {
  * verkürzte Stämme („wandern“ → „wand“) werden über das geschriebene Wort
  * abgedeckt („wandern“ beginnt mit „wander“).
  */
+/**
+ * Falsche Freunde: Wörter, die mit einem Schlüsselwort beginnen, aber ein
+ * anderes Gebiet benennen („Backend“ ist kein „backen“).
+ */
+const TOPIC_FALSE_FRIENDS: Record<string, readonly string[]> = { backen: ["backend"] };
+
 function matchesKeyword(pair: { word: string; stem: string }, key: string): boolean {
+  const friends = TOPIC_FALSE_FRIENDS[key];
+  if (friends && friends.some((f) => pair.word.startsWith(f) || pair.stem.startsWith(f))) {
+    return false;
+  }
   const ambiguous = AMBIGUOUS_TOPIC_KEYWORDS.has(key);
   if (!ambiguous && pair.stem === key) return true;
   if (key.length < TOPIC_MIN_PREFIX) return false;
@@ -513,8 +526,26 @@ export function topicOf(text: string): string | null {
  * erste Inhaltswort – Eigennamen und Einzelwörter werden so nie zum Thema
  * oder Interesse. `topicOf` bleibt für den Abruf unverändert.
  */
+/**
+ * Berufsangaben („bin Koch“, „arbeitet als Koch“) beschreiben die Person, kein
+ * Interesse oder Gesprächsthema. Das Berufswort wird vor der Themenbildung
+ * entfernt; deterministisch, kein Modell.
+ */
+const OCCUPATION_RE =
+  /\b(?:bin|bist|ist|sind|war|arbeite(?:t|n)?\s+als|von\s+beruf|beruflich)\s+(?:ein(?:e|en)?\s+|gelernte[rn]?\s+)?(\p{Lu}[\p{L}-]+)/gu;
+
+export function isOccupationStatement(text: string): boolean {
+  OCCUPATION_RE.lastIndex = 0;
+  const m = OCCUPATION_RE.exec(text ?? "");
+  return m !== null && /^\p{Lu}/u.test(m[1] ?? "") && !/\bName\b/.test(text);
+}
+
+function withoutOccupation(text: string): string {
+  return (text ?? "").replace(OCCUPATION_RE, (all, word: string) => all.slice(0, all.length - word.length));
+}
+
 export function semanticTopicOf(text: string): string | null {
-  const pairs = contentTokenPairs(text);
+  const pairs = contentTokenPairs(withoutOccupation(text));
   for (const [topic, keys] of Object.entries(TOPIC_KEYWORDS)) {
     if (pairs.some((p) => keys.some((k) => matchesKeyword(p, k)))) return topic;
   }
