@@ -234,13 +234,22 @@ function lifecycleFor(s: number, p: LabParams): Lifecycle {
   return "active";
 }
 
+/**
+ * Optionaler Haken (P12, nur Modell D-Mechanik): Aufbewahrungsfrist je Verbindung.
+ * Ohne Angabe gilt unverändert `p.dormantRetention`.
+ */
+export type StepOptions = { retention?: (c: LabCandidate) => number };
+
 /** Ein Simulationsschritt – reine Funktion, liefert neuen Zustand. */
 export function stepModel(
   prev: ModelState,
   ev: LabEvents,
   pool: ReadonlyMap<string, PoolEntry>,
   p: LabParams,
+  opts?: StepOptions,
 ): ModelState {
+  const retentionOf = (c: LabCandidate) =>
+    opts?.retention ? opts.retention(c) : p.dormantRetention;
   const step = prev.step + 1;
   const cands = new Map<string, LabCandidate>();
   for (const [k, c] of prev.candidates) cands.set(k, { ...c });
@@ -308,7 +317,7 @@ export function stepModel(
   for (const c of cands.values()) {
     if (c.lifecycle === "dormant") {
       // Aufbewahrungsfrist: danach endgültig expired (nur noch Statistik, nicht rekonstruierbar).
-      if (step - c.dormantSince! >= p.dormantRetention) c.lifecycle = "expired";
+      if (step - c.dormantSince! >= retentionOf(c)) c.lifecycle = "expired";
       ops++;
       continue;
     }
@@ -328,7 +337,7 @@ export function stepModel(
         if (prev.model === "D") {
           c.lifecycle = "dormant";
           c.dormantSince = step;
-          if (p.dormantRetention === 0) c.lifecycle = "expired";
+          if (retentionOf(c) === 0) c.lifecycle = "expired";
         } else c.lifecycle = "removed";
       }
     } else {
