@@ -139,7 +139,20 @@ export default function KnowledgeGraphStage({ scope }: { scope: OrbDataScope }) 
     };
   }, []);
 
-  const graph = q.data;
+  // Konto- oder Bereichswechsel: bisherige Darstellung vollständig verwerfen,
+  // damit keine Daten des vorherigen Kontos/Bereichs sichtbar bleiben.
+  const graphKeyId = graphKey.join("|");
+  useEffect(() => {
+    prevRef.current = null;
+    engineRef.current?.setData([], []);
+    setSelected(null);
+    setEvents([]);
+    setEventIdx(0);
+    setCognitive(null);
+    setLastRetrieval(null);
+  }, [graphKeyId]);
+
+  const graph = userId ? q.data : undefined;
   useEffect(() => {
     const engine = engineRef.current;
     if (!graph || !engine) return;
