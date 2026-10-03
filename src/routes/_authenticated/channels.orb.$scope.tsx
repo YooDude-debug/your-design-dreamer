@@ -172,8 +172,27 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
   // Ergebnis einer ausdrücklich angeforderten technischen Analyse. Rein
   // informativ: der Vorschlag wartet immer auf eine menschliche Freigabe.
   const [bridge, setBridge] = useState<ChatBridgeView | null>(null);
-  // Reiner UI-Zustand: Globe als Hintergrund an/aus (keine Speicherung).
-  const [globeOn, setGlobeOn] = useState(false);
+  // Globe ist standardmäßig aktiv; gespeichert wird nur das ausdrückliche
+  // Ausschalten (Browser). Aus ⇒ Stage ausgehängt ⇒ keine Abfragen/Timer.
+  const [globeOn, setGlobeOnState] = useState(true);
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem(GLOBE_DISABLED_KEY) === "1") setGlobeOnState(false);
+    } catch {
+      /* Speicher nicht verfügbar ⇒ Standard EIN */
+    }
+  }, []);
+  const toggleGlobe = () =>
+    setGlobeOnState((on) => {
+      const next = !on;
+      try {
+        if (next) window.localStorage.removeItem(GLOBE_DISABLED_KEY);
+        else window.localStorage.setItem(GLOBE_DISABLED_KEY, "1");
+      } catch {
+        /* ignorieren */
+      }
+      return next;
+    });
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [speechLevel, setSpeechLevel] = useState(0);
@@ -805,15 +824,14 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
                       type="button"
                       role="switch"
                       aria-checked={globeOn}
-                      onClick={() => setGlobeOn((v) => !v)}
-                      className="inline-flex shrink-0 items-center gap-2 rounded-full border border-border bg-background/80 py-1 pl-3 pr-1 text-xs font-semibold text-foreground"
+                      onClick={toggleGlobe}
+                      className="inline-flex shrink-0 items-center gap-2 rounded-full border border-border bg-background/80 px-3 py-1 text-xs font-semibold text-foreground"
                     >
-                      Knowledge Globe
                       <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${globeOn ? "bg-brand text-primary-foreground" : "bg-muted text-muted-foreground"}`}
-                      >
-                        {globeOn ? "ON" : "OFF"}
-                      </span>
+                        aria-hidden="true"
+                        className={`h-2 w-2 rounded-full ${globeOn ? "bg-brand" : "bg-muted-foreground/50"}`}
+                      />
+                      {globeOn ? "Knowledge Globe aktiv" : "Knowledge Globe deaktiviert"}
                     </button>
                   ) : undefined
                 }
