@@ -31,6 +31,7 @@ import {
   type ModelState,
 } from "@/orb-core/synaptic-lab/simulation";
 import LongTermLab from "./LongTermLab";
+import ValidationLab from "./ValidationLab";
 
 const MAX_STEPS = 400;
 const VIEW_NODES = 80;
@@ -248,6 +249,8 @@ export default function SynapticLab({ scope }: { scope: OrbDataScope }) {
       <MetricsTable states={states} snapshot={snapshot} params={params} />
 
       <LongTermLab snapshot={snapshot} params={params} />
+
+      <ValidationLab snapshot={snapshot} params={params} />
     </div>
   );
 }
