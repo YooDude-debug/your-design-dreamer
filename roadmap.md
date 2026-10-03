@@ -14,3 +14,7 @@
 - [x] Assets, Verknüpfung, Abruf, Graph-Detail, Löschen, Kontolöschung, Tests, Audit
 - [ ] Echter Ende-zu-Ende-Lauf im Chat (wartet auf Ihren Test bzw. Freigabe)
 - [ ] Veröffentlichung: wartet auf ausdrückliche Freigabe
+
+# Roadmap – P8 Synaptic Lab
+- [x] Simulation A/B/C, Seite, Tests
+- [ ] Veröffentlichung: wartet auf Freigabe

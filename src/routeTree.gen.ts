@@ -72,6 +72,7 @@ import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authent
 import { Route as AuthenticatedProfileUsernameRouteImport } from './routes/_authenticated/profile.$username'
 import { Route as AuthenticatedPPostIdRouteImport } from './routes/_authenticated/p.$postId'
 import { Route as AuthenticatedOrbUnassignedRouteImport } from './routes/_authenticated/orb.unassigned'
+import { Route as AuthenticatedOrbSynapticLabRouteImport } from './routes/_authenticated/orb.synaptic-lab'
 import { Route as AuthenticatedOrbKnowledgeGraphRouteImport } from './routes/_authenticated/orb.knowledge-graph'
 import { Route as AuthenticatedMarketOrdersRouteImport } from './routes/_authenticated/market.orders'
 import { Route as AuthenticatedMarketNewRouteImport } from './routes/_authenticated/market.new'
@@ -408,6 +409,12 @@ const AuthenticatedOrbUnassignedRoute =
     path: '/orb/unassigned',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedOrbSynapticLabRoute =
+  AuthenticatedOrbSynapticLabRouteImport.update({
+    id: '/orb/synaptic-lab',
+    path: '/orb/synaptic-lab',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedOrbKnowledgeGraphRoute =
   AuthenticatedOrbKnowledgeGraphRouteImport.update({
     id: '/orb/knowledge-graph',
@@ -563,6 +570,7 @@ export interface FileRoutesByFullPath {
   '/market/new': typeof AuthenticatedMarketNewRoute
   '/market/orders': typeof AuthenticatedMarketOrdersRoute
   '/orb/knowledge-graph': typeof AuthenticatedOrbKnowledgeGraphRoute
+  '/orb/synaptic-lab': typeof AuthenticatedOrbSynapticLabRoute
   '/orb/unassigned': typeof AuthenticatedOrbUnassignedRoute
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
@@ -641,6 +649,7 @@ export interface FileRoutesByTo {
   '/market/new': typeof AuthenticatedMarketNewRoute
   '/market/orders': typeof AuthenticatedMarketOrdersRoute
   '/orb/knowledge-graph': typeof AuthenticatedOrbKnowledgeGraphRoute
+  '/orb/synaptic-lab': typeof AuthenticatedOrbSynapticLabRoute
   '/orb/unassigned': typeof AuthenticatedOrbUnassignedRoute
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
@@ -723,6 +732,7 @@ export interface FileRoutesById {
   '/_authenticated/market/new': typeof AuthenticatedMarketNewRoute
   '/_authenticated/market/orders': typeof AuthenticatedMarketOrdersRoute
   '/_authenticated/orb/knowledge-graph': typeof AuthenticatedOrbKnowledgeGraphRoute
+  '/_authenticated/orb/synaptic-lab': typeof AuthenticatedOrbSynapticLabRoute
   '/_authenticated/orb/unassigned': typeof AuthenticatedOrbUnassignedRoute
   '/_authenticated/p/$postId': typeof AuthenticatedPPostIdRoute
   '/_authenticated/profile/$username': typeof AuthenticatedProfileUsernameRoute
@@ -805,6 +815,7 @@ export interface FileRouteTypes {
     | '/market/new'
     | '/market/orders'
     | '/orb/knowledge-graph'
+    | '/orb/synaptic-lab'
     | '/orb/unassigned'
     | '/p/$postId'
     | '/profile/$username'
@@ -883,6 +894,7 @@ export interface FileRouteTypes {
     | '/market/new'
     | '/market/orders'
     | '/orb/knowledge-graph'
+    | '/orb/synaptic-lab'
     | '/orb/unassigned'
     | '/p/$postId'
     | '/profile/$username'
@@ -964,6 +976,7 @@ export interface FileRouteTypes {
     | '/_authenticated/market/new'
     | '/_authenticated/market/orders'
     | '/_authenticated/orb/knowledge-graph'
+    | '/_authenticated/orb/synaptic-lab'
     | '/_authenticated/orb/unassigned'
     | '/_authenticated/p/$postId'
     | '/_authenticated/profile/$username'
@@ -1458,6 +1471,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrbUnassignedRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/orb/synaptic-lab': {
+      id: '/_authenticated/orb/synaptic-lab'
+      path: '/orb/synaptic-lab'
+      fullPath: '/orb/synaptic-lab'
+      preLoaderRoute: typeof AuthenticatedOrbSynapticLabRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/orb/knowledge-graph': {
       id: '/_authenticated/orb/knowledge-graph'
       path: '/orb/knowledge-graph'
@@ -1609,6 +1629,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMarketNewRoute: typeof AuthenticatedMarketNewRoute
   AuthenticatedMarketOrdersRoute: typeof AuthenticatedMarketOrdersRoute
   AuthenticatedOrbKnowledgeGraphRoute: typeof AuthenticatedOrbKnowledgeGraphRoute
+  AuthenticatedOrbSynapticLabRoute: typeof AuthenticatedOrbSynapticLabRoute
   AuthenticatedOrbUnassignedRoute: typeof AuthenticatedOrbUnassignedRoute
   AuthenticatedPPostIdRoute: typeof AuthenticatedPPostIdRoute
   AuthenticatedProfileUsernameRoute: typeof AuthenticatedProfileUsernameRoute
@@ -1639,6 +1660,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMarketNewRoute: AuthenticatedMarketNewRoute,
   AuthenticatedMarketOrdersRoute: AuthenticatedMarketOrdersRoute,
   AuthenticatedOrbKnowledgeGraphRoute: AuthenticatedOrbKnowledgeGraphRoute,
+  AuthenticatedOrbSynapticLabRoute: AuthenticatedOrbSynapticLabRoute,
   AuthenticatedOrbUnassignedRoute: AuthenticatedOrbUnassignedRoute,
   AuthenticatedPPostIdRoute: AuthenticatedPPostIdRoute,
   AuthenticatedProfileUsernameRoute: AuthenticatedProfileUsernameRoute,
