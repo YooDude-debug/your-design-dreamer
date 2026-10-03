@@ -94,7 +94,12 @@ import {
 } from "@/orb-core/memory-usage";
 import { correctedTerm, isStorableStatement, selectReliableMemories } from "@/orb-core/eligibility";
 import { PROACTIVE_SCOPE, stripFakePauseClaim, type ProactiveMemory } from "@/orb-core/presence";
-import { decideConversationMode, type ConversationMode } from "@/orb-core/conversation";
+import {
+  decideConversationMode,
+  isShortReply,
+  pendingOrbQuestion,
+  type ConversationMode,
+} from "@/orb-core/conversation";
 
 import {
   CURIOSITY_SCOPE,
@@ -1327,6 +1332,9 @@ export async function processInput(
    * (Recall-Rang, Konfidenz, Themen, Zustand, offener Faden). Es entstehen
    * keine neuen Gedächtnisformeln und keine zusätzliche Abfrage.
    */
+  // P0: letzte offene ORB-Frage im Gesprächsfenster (bereits geladen, keine Abfrage).
+  const pendingQuestionForReply = pendingOrbQuestion(recentMessages);
+  const replyTo = pendingQuestionForReply && isShortReply(text) ? pendingQuestionForReply : null;
   const conversationStrands = reliableRecalled.map((r) => ({
     id: r.node.id, // P5-A: nur interne Nachverfolgung
     content: r.node.content,
@@ -1347,6 +1355,7 @@ export async function processInput(
     contextMessages: recentMessages.length,
     resumeThread: resumeThreadForMode,
     explicitLearning: resolvedContextFact !== null,
+    pendingQuestion: pendingQuestionForReply,
   };
   let conversationPlan = decideConversationMode({ ...conversationBase, impulseAllowed: false });
 
@@ -1584,6 +1593,7 @@ export async function processInput(
       mode: conversationPlan.mode,
       modeReason: conversationPlan.reason,
       ownQuestion,
+      replyTo,
       visualHint: true,
       imageState,
       inferredMemories,
