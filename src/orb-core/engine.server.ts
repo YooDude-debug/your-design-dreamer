@@ -271,6 +271,8 @@ function toThreadView(thread: ThoughtThread, now: number, relevance: number): Or
 }
 
 export type OrbSnapshot = {
+  /** P2: optionale Teile, die diesmal nicht geladen werden konnten. */
+  unavailable?: string[];
   state: OrbState;
   goals: string[];
   cracks: number;
@@ -516,7 +518,7 @@ export async function getSnapshot(
       .eq("user_id", userId);
   }
 
-  const suggestions: OrbSuggestion[] = suggRes.data.map((s) => {
+  const suggestions: OrbSuggestion[] = (suggRes.data ?? []).map((s) => {
     const post = s.posts as { title: string | null } | null;
     return {
       id: s.id,
@@ -529,9 +531,9 @@ export async function getSnapshot(
     };
   });
 
-  const interests = mapInterests(interestRes.data);
-  const conversationTopics = msgRes.data.flatMap((m) => topicsOf(m.body));
-  const threads = threadRes.data
+  const interests = mapInterests(interestRes.data ?? []);
+  const conversationTopics = msgRes.data!.flatMap((m) => topicsOf(m.body));
+  const threads = threadRes.data!
     .map((row) => projectThread(mapThread(row), now))
     .map((thread) =>
       toThreadView(thread, now, threadRelevance(thread, { conversationTopics, interests, now })),
@@ -560,13 +562,13 @@ export async function getSnapshot(
     state: toState(stateRow),
     goals: Array.isArray(stateRow.goals) ? (stateRow.goals as string[]) : ["help_user"],
     cracks: stateRow.cracks,
-    nodes: mapNodes(nodesRes.data),
+    nodes: mapNodes(nodesRes.data!),
     connections,
     interests,
     suggestions,
     threads,
     style: styleTraits(styleProfile),
-    messages: msgRes.data
+    messages: msgRes.data!
       .slice()
       .reverse()
       .map((m) => ({
@@ -578,7 +580,7 @@ export async function getSnapshot(
         completion: m.role === "orb" ? readCompletion(m.state_snapshot) : null,
       })),
     metrics: {
-      nodeCount: nodesRes.data.length,
+      nodeCount: nodesRes.data!.length,
       connectionCount: connections.length,
       reactivationCount: stateRow.reactivation_count,
       decayComputations: stateRow.decay_computations + connections.length,
@@ -588,6 +590,7 @@ export async function getSnapshot(
       suggestionsRejected: rejectedRes.count ?? 0,
     },
     perf,
+    ...(unavailable.length ? { unavailable } : {}),
   };
 }
 
