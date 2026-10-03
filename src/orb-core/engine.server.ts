@@ -491,7 +491,12 @@ export async function getSnapshot(
   // Nachrichten. Anmeldefehler → klare Neuanmeldung (nie für andere DB-Fehler).
   // Optional (Interessen, Vorschläge, Zählwerte, Stil) → als `unavailable`
   // markiert, Ursache bleibt serverseitig protokolliert (nur Code/Tabelle).
-  const required = { orb_nodes: nodesRes, orb_threads: threadRes, orb_connections: connRes, orb_messages: msgRes };
+  const required = {
+    orb_nodes: nodesRes,
+    orb_threads: threadRes,
+    orb_connections: connRes,
+    orb_messages: msgRes,
+  };
   const optional = {
     orb_interests: interestRes,
     orb_suggestions: suggRes,
@@ -544,8 +549,8 @@ export async function getSnapshot(
 
   const interests = mapInterests(interestRes.data ?? []);
   const conversationTopics = msgRes.data!.flatMap((m) => topicsOf(m.body));
-  const threads = threadRes.data!
-    .map((row) => projectThread(mapThread(row), now))
+  const threads = threadRes
+    .data!.map((row) => projectThread(mapThread(row), now))
     .map((thread) =>
       toThreadView(thread, now, threadRelevance(thread, { conversationTopics, interests, now })),
     );
@@ -579,8 +584,8 @@ export async function getSnapshot(
     suggestions,
     threads,
     style: styleTraits(styleProfile),
-    messages: msgRes.data!
-      .slice()
+    messages: msgRes
+      .data!.slice()
       .reverse()
       .map((m) => ({
         id: m.id,
@@ -1037,7 +1042,10 @@ export async function touchConnection(
   );
   for (const o of owned) if (o.error) throw internalError(o.error);
   if (owned.some((o) => !o.data)) {
-    console.warn("[orb] connection_skipped", { reason: "node_missing_or_foreign", origin: input.origin });
+    console.warn("[orb] connection_skipped", {
+      reason: "node_missing_or_foreign",
+      origin: input.origin,
+    });
     return "skipped";
   }
 
@@ -1396,7 +1404,8 @@ export async function processInput(
    * P5: Bildstatus nur bei Bildbezug (Anhang, Bildwort in der Eingabe oder
    * Bild-Erinnerung im Abruf) – sonst bleibt der Prompt unverändert.
    */
-  const IMAGE_REF_RE = /\b(bild\w*|foto\w*|selfie\w*|aussehen|aussehe|siehst|zeig\w*|bart|gesicht)\b/i;
+  const IMAGE_REF_RE =
+    /\b(bild\w*|foto\w*|selfie\w*|aussehen|aussehe|siehst|zeig\w*|bart|gesicht)\b/i;
   const imageState =
     images.length > 0 ||
     IMAGE_REF_RE.test(text) ||

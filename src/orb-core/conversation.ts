@@ -219,7 +219,10 @@ export function decideConversationMode(input: ConversationInput): ConversationPl
   // 1b. Kurze Antwort auf ORBs eigene offene Frage: inhaltlich anschliessen,
   // nie generisch „zuhören“.
   if (input.pendingQuestion && isShortReply(input.text)) {
-    return plan("DIRECT_ANSWER", "Kurze Antwort auf deine letzte Frage – inhaltlich daran anknüpfen.");
+    return plan(
+      "DIRECT_ANSWER",
+      "Kurze Antwort auf deine letzte Frage – inhaltlich daran anknüpfen.",
+    );
   }
 
   // 2. Ausdrückliche Merk-Aufforderung: knapp bestätigen, nicht nachfragen.

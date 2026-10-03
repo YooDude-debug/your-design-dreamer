@@ -309,16 +309,16 @@ export function deriveKnowledgeGaps(input: GapInput & { curiosity: number }): Kn
  * Innerhalb der Stufe Score, dann Knoten-ID. Schwellen bleiben unverändert –
  * eine Lücke ohne Bezug darf weiter fragen, wenn keine passende existiert.
  */
-export function conversationTier(gap: Pick<KnowledgeGap, "conversationalFit" | "anchored">): number {
+export function conversationTier(
+  gap: Pick<KnowledgeGap, "conversationalFit" | "anchored">,
+): number {
   if (gap.anchored) return 2;
   return gap.conversationalFit >= 1 ? 1 : 0;
 }
 
 export function compareGaps(a: KnowledgeGap, b: KnowledgeGap): number {
   return (
-    conversationTier(b) - conversationTier(a) ||
-    b.score - a.score ||
-    compareIds(a.nodeId, b.nodeId)
+    conversationTier(b) - conversationTier(a) || b.score - a.score || compareIds(a.nodeId, b.nodeId)
   );
 }
 

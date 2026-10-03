@@ -494,7 +494,10 @@ function contentTokenPairs(text: string): { word: string; stem: string }[] {
  * Falsche Freunde: Wörter, die mit einem Schlüsselwort beginnen, aber ein
  * anderes Gebiet benennen („Backend“ ist kein „backen“).
  */
-const TOPIC_FALSE_FRIENDS: Record<string, readonly string[]> = { backen: ["backend"], backe: ["backend"] };
+const TOPIC_FALSE_FRIENDS: Record<string, readonly string[]> = {
+  backen: ["backend"],
+  backe: ["backend"],
+};
 
 function matchesKeyword(pair: { word: string; stem: string }, key: string): boolean {
   const friends = TOPIC_FALSE_FRIENDS[key];
@@ -547,7 +550,9 @@ export function isOccupationStatement(text: string): boolean {
 }
 
 function withoutOccupation(text: string): string {
-  return (text ?? "").replace(OCCUPATION_RE, (all, word: string) => all.slice(0, all.length - word.length));
+  return (text ?? "").replace(OCCUPATION_RE, (all, word: string) =>
+    all.slice(0, all.length - word.length),
+  );
 }
 
 export function semanticTopicOf(text: string): string | null {

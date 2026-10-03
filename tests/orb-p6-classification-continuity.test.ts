@@ -44,7 +44,9 @@ describe("P6 Klassifikation", () => {
   });
 
   it("tatsächliche Gespräche über Essen bleiben Essen", () => {
-    expect(semanticTopicOf("Ich backe gerne Pizza und sonst gerne griechisches Essen")).toBe("essen");
+    expect(semanticTopicOf("Ich backe gerne Pizza und sonst gerne griechisches Essen")).toBe(
+      "essen",
+    );
     expect(semanticTopicOf("Ich bin Koch und koche gern Pasta")).toBe("essen");
   });
 
