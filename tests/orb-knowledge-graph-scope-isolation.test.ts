@@ -66,7 +66,7 @@ describe("P4 Tab-Signale", () => {
   });
   it("Hülle enthält nur Nutzer-ID, Bereich, Nutzlast", () => {
     expect(Object.keys(wrapTabSignal("u", "normal", 1)).sort()).toEqual(["kind", "payload", "scope", "userId"]);
-    expect(chat.match(/postMessage\(wrapTabSignal\(/g)).toHaveLength(1);
+    expect(chat.match(/postMessage\(wrapTabSignal\(/g)).toHaveLength(2);
     expect(chat).toContain("ch.postMessage(wrapTabSignal(userId, scope, view))");
     expect(chat).not.toMatch(/postMessage\((view|turn\.retrievalEvent)\)/);
   });
