@@ -87,7 +87,8 @@ export function userSignalsFrom(texts: string[]): UserSignals {
     temporaryOnly: TODAY_ONLY_RE.test(joined),
     forget: FORGET_RE.test(joined),
     change: CHANGE_RE.test(joined),
-    confirmed: USER_CONFIRM_RE.test(joined),
+    // Nur bei ausdrücklicher Bestätigung gesetzt (Form bleibt sonst gleich).
+    ...(USER_CONFIRM_RE.test(joined) ? { confirmed: true } : {}),
   };
 }
 
