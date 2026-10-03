@@ -178,7 +178,10 @@ export function recoverEnergy(stored: number, updatedAtMs: number, nowMs: number
   if (restMin === 0) return base;
   let energy = base;
   if (energy < ENERGY_RECOVERY_THRESHOLD) {
-    const lowMin = Math.min(restMin, (ENERGY_RECOVERY_THRESHOLD - energy) / ENERGY_RECOVERY_LOW_PER_MIN);
+    const lowMin = Math.min(
+      restMin,
+      (ENERGY_RECOVERY_THRESHOLD - energy) / ENERGY_RECOVERY_LOW_PER_MIN,
+    );
     energy += lowMin * ENERGY_RECOVERY_LOW_PER_MIN;
     restMin -= lowMin;
   }

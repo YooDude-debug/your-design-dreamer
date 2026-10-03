@@ -20,7 +20,14 @@ const group = (over: Partial<SentImageGroup> = {}): SentImageGroup => ({
 
 describe("bindSentImages", () => {
   it("bindet ein Bild an die neue eigene Nachricht", () => {
-    const out = bindSentImages([group()], [{ id: "m1", role: "user" }, { id: "m2", role: "user" }], true);
+    const out = bindSentImages(
+      [group()],
+      [
+        { id: "m1", role: "user" },
+        { id: "m2", role: "user" },
+      ],
+      true,
+    );
     expect(out[0]).toMatchObject({ status: "sent", messageId: "m2" });
   });
 
@@ -49,7 +56,10 @@ describe("bindSentImages", () => {
   it("zwei Gruppen bekommen verschiedene Nachrichten", () => {
     const out = bindSentImages(
       [group(), group({ key: "g2" })],
-      [{ id: "m2", role: "user" }, { id: "m3", role: "user" }],
+      [
+        { id: "m2", role: "user" },
+        { id: "m3", role: "user" },
+      ],
       false,
     );
     expect(out.map((g) => g.messageId)).toEqual(["m2", "m3"]);

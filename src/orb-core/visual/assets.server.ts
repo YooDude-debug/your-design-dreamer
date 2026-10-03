@@ -69,7 +69,12 @@ export async function storeImageAsset(
     return { ok: false, reason: "invalid_image" };
   }
   const sha256 = await sha256Hex(bytes);
-  const path = storagePathFor({ userId: input.userId, scope: input.scope, sha256, mimeType: sniffed });
+  const path = storagePathFor({
+    userId: input.userId,
+    scope: input.scope,
+    sha256,
+    mimeType: sniffed,
+  });
 
   const existing = await t(db, "orb_visual_assets")
     .select("id, origin_status")
@@ -110,7 +115,10 @@ export async function storeImageAsset(
     cacheControl: "3600",
   });
   if (up.error) {
-    const del = await t(db, "orb_visual_assets").delete().eq("id", assetId).eq("user_id", input.userId);
+    const del = await t(db, "orb_visual_assets")
+      .delete()
+      .eq("id", assetId)
+      .eq("user_id", input.userId);
     if (del.error) {
       await t(db, "orb_visual_assets").update({ origin_status: "failed" }).eq("id", assetId);
     }
@@ -162,7 +170,9 @@ export async function loadTranscriptImages(
   }));
 }
 
-export type LinkResult = { ok: true; created: boolean } | { ok: false; reason: "rejected" | "db_failed" };
+export type LinkResult =
+  | { ok: true; created: boolean }
+  | { ok: false; reason: "rejected" | "db_failed" };
 
 /** Ausdrückliche Verknüpfung Erinnerung ↔ Bild (Trigger prüft Besitzer, Scope, Status). */
 export async function linkMemoryImage(
@@ -232,12 +242,10 @@ async function sign(db: DB, rows: AssetRow[]): Promise<VisualAssetView[]> {
   const stored = rows.filter((r) => r.origin_status === "stored");
   const urls = new Map<string, string>();
   if (stored.length > 0) {
-    const s = await (db as any).storage
-      .from(BUCKET)
-      .createSignedUrls(
-        stored.map((r) => r.storage_path),
-        VISUAL_SIGNED_URL_TTL,
-      );
+    const s = await (db as any).storage.from(BUCKET).createSignedUrls(
+      stored.map((r) => r.storage_path),
+      VISUAL_SIGNED_URL_TTL,
+    );
     for (const item of (s.data ?? []) as { path: string | null; signedUrl: string | null }[]) {
       if (item.path && item.signedUrl) urls.set(item.path, item.signedUrl);
     }

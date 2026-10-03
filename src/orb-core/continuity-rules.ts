@@ -53,9 +53,7 @@ export function isAnsweredInConversation(
 export function pendingOrbQuestions(messages: readonly { role: string; body: string }[]): string[] {
   const last = messages[messages.length - 1];
   if (!last || last.role !== "orb" || !last.body.includes("?")) return [];
-  return (last.body.match(/[^.!?]*\?/g) ?? [])
-    .map((s) => s.trim().slice(0, 300))
-    .filter(Boolean);
+  return (last.body.match(/[^.!?]*\?/g) ?? []).map((s) => s.trim().slice(0, 300)).filter(Boolean);
 }
 
 /** Mehrere offene Fragen ⇒ eine Kurzantwort wie „Ja“ ist nicht eindeutig. */
@@ -63,7 +61,9 @@ export function ambiguousReplyHint(questions: readonly string[]): string {
   if (questions.length < 2) return "";
   return `Die kurze Eingabe antwortet auf eine Nachricht mit ${questions.length} Fragen (${questions
     .map((q) => `„${q}“`)
-    .join(", ")}). Es ist nicht eindeutig, welche gemeint ist: frage kurz nach, statt eine Zustimmung zu einer bestimmten Frage anzunehmen.`;
+    .join(
+      ", ",
+    )}). Es ist nicht eindeutig, welche gemeint ist: frage kurz nach, statt eine Zustimmung zu einer bestimmten Frage anzunehmen.`;
 }
 
 /** Inhalte, die erst innerhalb des aktuellen Gesprächsfensters entstanden sind. */

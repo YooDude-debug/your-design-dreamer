@@ -48,7 +48,11 @@ export function OrbVisualMessage({ item }: { item: OrbVisualItem }) {
         {item.status === "ok" && item.src && (
           <img
             src={item.src}
-            alt={item.kind === "memory" ? "Gespeichertes Bild einer Erinnerung" : "Von ORB erstelltes Bild"}
+            alt={
+              item.kind === "memory"
+                ? "Gespeichertes Bild einer Erinnerung"
+                : "Von ORB erstelltes Bild"
+            }
             className="mt-1 w-full max-w-sm rounded-lg border border-border"
           />
         )}

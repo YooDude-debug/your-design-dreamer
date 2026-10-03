@@ -44,7 +44,9 @@ export function isCampaignCta(value: unknown): value is CampaignCta {
 }
 
 export type CampaignCtaTarget =
-  { kind: "listen" } | { kind: "slangtag"; name: string } | { kind: "profile"; username: string };
+  | { kind: "listen" }
+  | { kind: "slangtag"; name: string }
+  | { kind: "profile"; username: string };
 
 /**
  * Ermittelt das konkrete Ziel eines CTA. Fehlt das nötige Asset (z. B. der

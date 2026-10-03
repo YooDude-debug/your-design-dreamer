@@ -42,7 +42,13 @@ const clamp = { extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as 
 /** Demo-Beispielinhalte – keine echten Nutzer, keine Likes, keine Zahlen. */
 const DEMOS = [
   { flag: "🇬🇷", region: "Griechenland", place: "Athen · GR", tag: "Έλα ρε!", image: "athens.jpg" },
-  { flag: "🇩🇪", region: "Deutschland", place: "Berlin · DE", tag: "Was geht?", image: "berlin.jpg" },
+  {
+    flag: "🇩🇪",
+    region: "Deutschland",
+    place: "Berlin · DE",
+    tag: "Was geht?",
+    image: "berlin.jpg",
+  },
   { flag: "🇬🇧", region: "UK", place: "London · UK", tag: "You good?", image: "london.jpg" },
   { flag: "🇮🇹", region: "Italien", place: "Rom · IT", tag: "Come va?", image: "rome.jpg" },
 ] as const;
@@ -312,12 +318,10 @@ export const SocialShortVideo: React.FC = () => {
         <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
           <div
             style={{
-              transform: `translateY(${interpolate(
-                frame,
-                [T.feed[0], T.feed[0] + 16],
-                [220, 0],
-                { ...clamp, easing: Easing.out(Easing.cubic) },
-              )}px) scale(${interpolate(frame, [T.feed[0], T.feed[1]], [0.92, 1], clamp)})`,
+              transform: `translateY(${interpolate(frame, [T.feed[0], T.feed[0] + 16], [220, 0], {
+                ...clamp,
+                easing: Easing.out(Easing.cubic),
+              })}px) scale(${interpolate(frame, [T.feed[0], T.feed[1]], [0.92, 1], clamp)})`,
               opacity: interpolate(frame, [T.feed[1] - 8, T.feed[1]], [1, 0], clamp),
               display: "flex",
               flexDirection: "column",

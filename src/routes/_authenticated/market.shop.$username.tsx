@@ -40,7 +40,6 @@ export const Route = createFileRoute("/_authenticated/market/shop/$username")({
   component: MarketShopPage,
 });
 
-
 function useShopImages(items: MarketItemSummary[], avatarPath: string | null) {
   const [urls, setUrls] = useState<Record<string, string>>({});
   const key = `${avatarPath ?? ""}|${items.map((item) => `${item.id}:${item.coverPath ?? ""}`).join("|")}`;

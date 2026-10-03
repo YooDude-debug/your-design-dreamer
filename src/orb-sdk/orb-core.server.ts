@@ -125,7 +125,9 @@ export function createOrbCore(session: OrbSession) {
             sourceType: "user_upload",
             sourceMessageId: messageId,
           });
-          out.push(r.ok ? { status: "stored", assetId: r.assetId } : { status: "failed", assetId: null });
+          out.push(
+            r.ok ? { status: "stored", assetId: r.assetId } : { status: "failed", assetId: null },
+          );
         } catch {
           out.push({ status: "failed", assetId: null });
         }

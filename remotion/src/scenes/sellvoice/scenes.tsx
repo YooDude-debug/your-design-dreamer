@@ -145,7 +145,14 @@ export const SceneSellVoice: React.FC<{ frame: number; fps: number }> = ({ frame
           transform: `scale(${interpolate(chip, [0, 1], [0.86, 1])})`,
         }}
       >
-        <SlangChip label="moin-vibe" kind="creator" frame={frame} playing scale={1.5} meta="Hamburg · DE" />
+        <SlangChip
+          label="moin-vibe"
+          kind="creator"
+          frame={frame}
+          playing
+          scale={1.5}
+          meta="Hamburg · DE"
+        />
       </div>
 
       <Statement frame={frame} start={30} top={880} size={112} letter={-4}>

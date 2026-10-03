@@ -20,7 +20,9 @@ describe("BUG 4 – Developer-Intent", () => {
   const server = readFileSync("src/lib/orb-chat-bridge.functions.ts", "utf8");
   const page = readFileSync("src/routes/_authenticated/channels.orb.$scope.tsx", "utf8");
   it("5 Nicht-Admin: Gates im Browser und auf dem Server unverändert", () => {
-    expect(page).toMatch(/isAdmin && detectDeveloperDiagnosticIntent\(text\)\.kind === "diagnostic"/);
+    expect(page).toMatch(
+      /isAdmin && detectDeveloperDiagnosticIntent\(text\)\.kind === "diagnostic"/,
+    );
     expect(server).toMatch(/kind: "unauthorized"/);
     expect(server).toMatch(/isAdmin/);
   });

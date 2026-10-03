@@ -212,7 +212,6 @@ export function ProfileEditDialog({
     }
   };
 
-
   const save = async () => {
     // Komfortprüfung; die endgültige Entscheidung trifft die Datenbank.
     if (

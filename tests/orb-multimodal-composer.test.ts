@@ -159,7 +159,9 @@ describe("ORB Multimodal Composer – Server- und Core-Grenze", () => {
   });
 
   it("behält den vollständigen Fallback auf die bestehende Sprachschicht", () => {
-    expect(select).toMatch(/speakViaLovableGateway\(\s*input\.system,\s*input\.text,\s*input\.obs,\s*input\.images/);
+    expect(select).toMatch(
+      /speakViaLovableGateway\(\s*input\.system,\s*input\.text,\s*input\.obs,\s*input\.images/,
+    );
     expect(select).toContain('provider: "local"');
   });
 

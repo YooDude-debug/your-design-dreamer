@@ -78,9 +78,9 @@ describe("P3 Bereichsprüfung", () => {
     for (const s of allowedScopes) {
       expect(scopeCheckOf({ allowedScopes, runtimeScope: s, explicit: false }).result).toBe("pass");
     }
-    expect(
-      scopeCheckOf({ allowedScopes, runtimeScope: "unassigned", explicit: true }).result,
-    ).toBe("explicit_request");
+    expect(scopeCheckOf({ allowedScopes, runtimeScope: "unassigned", explicit: true }).result).toBe(
+      "explicit_request",
+    );
   });
 
   it("feste Beschriftungen erscheinen nicht mehr als Prüfergebnis", () => {

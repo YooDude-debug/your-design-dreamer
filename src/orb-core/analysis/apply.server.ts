@@ -217,9 +217,7 @@ export async function analyzeAndPersist(db: DB, userId: string): Promise<Analysi
     transcript,
     knownMemories: existing.map((e) => e.content),
     allowedNodeIds: existing.map((e) => e.id),
-    ...(transcriptImages.length > 0
-      ? { imageLabels: transcriptImages.map((i) => i.label) }
-      : {}),
+    ...(transcriptImages.length > 0 ? { imageLabels: transcriptImages.map((i) => i.label) } : {}),
   });
   const analysisMs = Date.now() - aiStart;
   const analysisRun = {

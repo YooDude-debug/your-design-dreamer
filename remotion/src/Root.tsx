@@ -57,7 +57,6 @@ export const RemotionRoot: React.FC = () => (
     {/* "Verkaufe deine Stimme." – 20 s ruhiger Creator-Promo (9:16) */}
     <Composition
       id="sell-voice"
-
       component={SellVoiceVideo}
       durationInFrames={600}
       fps={30}

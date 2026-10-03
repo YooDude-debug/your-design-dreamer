@@ -53,7 +53,11 @@ function UnassignedPageView() {
   const [kind, setKind] = useState<UnassignedKind>("memories");
   const [page, setPage] = useState(0);
 
-  const access = useQuery({ queryKey: ["admin-check-access"], queryFn: () => check(), staleTime: 300_000 });
+  const access = useQuery({
+    queryKey: ["admin-check-access"],
+    queryFn: () => check(),
+    staleTime: 300_000,
+  });
   const isAdmin = !!access.data?.isAdmin;
   const q = useQuery({
     queryKey: ["orb", "unassigned", kind, page],
@@ -74,8 +78,8 @@ function UnassignedPageView() {
         <h1 className="text-lg font-bold">Nicht zugeordnet – historische Daten</h1>
       </div>
       <p className="mt-1 text-sm text-muted-foreground">
-        Nur lesend. Diese Daten stammen aus der Zeit vor den Bereichen Normal, ORB Core und
-        Y-Dude, sind keinem Bereich zugeordnet und fließen in keinen Chat ein.
+        Nur lesend. Diese Daten stammen aus der Zeit vor den Bereichen Normal, ORB Core und Y-Dude,
+        sind keinem Bereich zugeordnet und fließen in keinen Chat ein.
       </p>
 
       {access.isPending && <p className="mt-6 text-sm text-muted-foreground">Prüfe Zugriff …</p>}
@@ -111,7 +115,9 @@ function UnassignedPageView() {
 
           {q.isPending && <p className="mt-4 text-sm text-muted-foreground">Lade …</p>}
           {q.isError && (
-            <p className="mt-4 text-sm text-muted-foreground">Daten konnten nicht geladen werden.</p>
+            <p className="mt-4 text-sm text-muted-foreground">
+              Daten konnten nicht geladen werden.
+            </p>
           )}
 
           {rows.length > 0 && (
@@ -133,7 +139,9 @@ function UnassignedPageView() {
                         <td
                           key={c}
                           className={`px-2 py-1.5 ${
-                            c === "content" || c === "body" ? "min-w-[18rem] whitespace-pre-wrap" : "whitespace-nowrap"
+                            c === "content" || c === "body"
+                              ? "min-w-[18rem] whitespace-pre-wrap"
+                              : "whitespace-nowrap"
                           } ${c.endsWith("id") ? "font-mono text-[10px] text-muted-foreground" : ""}`}
                         >
                           {fmt(r[c])}

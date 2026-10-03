@@ -21,13 +21,20 @@ const bridge = read("src/lib/orb-chat-bridge.functions.ts");
 const engine = read("src/orb-core/engine.server.ts");
 const provider = read("src/orb-core/llm/provider.server.ts");
 
-const PNG = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
-const JPEG = btoa(String.fromCharCode(0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46, 0, 1, 1, 0, 0, 1));
+const PNG =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+const JPEG = btoa(
+  String.fromCharCode(0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46, 0, 1, 1, 0, 0, 1),
+);
 const GIF = btoa("GIF89a\x01\x00\x01\x00\x00\x00\x00;xxxxxx");
 const WEBP = btoa("RIFF\x1a\x00\x00\x00WEBPVP8 xxxxxxxx");
 
 function sse(text: string): Response {
-  const body = [`data: ${JSON.stringify({ type: "response.output_text.delta", delta: text })}`, "data: [DONE]", ""].join("\n");
+  const body = [
+    `data: ${JSON.stringify({ type: "response.output_text.delta", delta: text })}`,
+    "data: [DONE]",
+    "",
+  ].join("\n");
   return new Response(body, { status: 200, headers: { "content-type": "text/event-stream" } });
 }
 
@@ -62,7 +69,9 @@ describe("P0 Text – eine gemeinsame Grenze", () => {
     expect(chat).toContain('data-testid="orb-char-count"');
     expect(adapter).toContain("z.string().max(ORB_MESSAGE_MAX_CHARS, ORB_MESSAGE_TOO_LONG)");
     expect(bridge).toContain("z.string().min(1).max(ORB_MESSAGE_MAX_CHARS)");
-    expect(engine).toContain("if (text.length > ORB_MESSAGE_MAX_CHARS) throw new Error(ORB_MESSAGE_TOO_LONG)");
+    expect(engine).toContain(
+      "if (text.length > ORB_MESSAGE_MAX_CHARS) throw new Error(ORB_MESSAGE_TOO_LONG)",
+    );
     expect(engine).not.toContain("rawText.trim().slice(0, MAX_INPUT_CHARS)");
   });
 
@@ -81,7 +90,9 @@ describe("P0 Bilder – Validierung bleibt", () => {
     expect(validateImageAttachment({ mimeType, dataBase64 }).ok).toBe(true);
   });
   it("ungültiger MIME-Typ wird abgelehnt", () => {
-    expect(validateImageAttachment({ mimeType: "application/pdf", dataBase64: PNG }).ok).toBe(false);
+    expect(validateImageAttachment({ mimeType: "application/pdf", dataBase64: PNG }).ok).toBe(
+      false,
+    );
   });
   it("manipulierte Endung (JPEG-Typ, PNG-Inhalt) wird abgelehnt", () => {
     expect(validateImageAttachment({ mimeType: "image/jpeg", dataBase64: PNG }).ok).toBe(false);
@@ -122,7 +133,10 @@ describe("P0 Bilder – Übergabe an den aktiven Modellaufruf", () => {
     const content = body.input[0].content;
     expect(content[0]).toEqual({ type: "input_text", text: "Was siehst du?" });
     expect(content[1]).toEqual({ type: "input_image", image_url: `data:image/png;base64,${PNG}` });
-    expect(content[2]).toEqual({ type: "input_image", image_url: `data:image/jpeg;base64,${JPEG}` });
+    expect(content[2]).toEqual({
+      type: "input_image",
+      image_url: `data:image/jpeg;base64,${JPEG}`,
+    });
     expect(r.meta.imagesSent).toBe(2);
     expect(r.meta.imageContextProcessed).toBe(true);
   });
@@ -142,8 +156,15 @@ describe("P0 Bilder – Übergabe an den aktiven Modellaufruf", () => {
     ["Quota 402", () => new Response("x", { status: 402 })],
     ["leere Antwort", () => sse("")],
   ])("%s → Bild gilt als nicht verarbeitet", async (_n, make) => {
-    vi.stubGlobal("fetch", vi.fn(async () => make()));
-    const r = await generateReply({ system: "S", text: "t", images: [{ mimeType: "image/png", dataBase64: PNG }] });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => make()),
+    );
+    const r = await generateReply({
+      system: "S",
+      text: "t",
+      images: [{ mimeType: "image/png", dataBase64: PNG }],
+    });
     expect(r.meta.imagesSent).toBe(0);
     expect(r.meta.imageContextProcessed).toBe(false);
   });

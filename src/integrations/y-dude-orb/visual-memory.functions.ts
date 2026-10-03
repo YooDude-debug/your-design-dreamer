@@ -94,5 +94,9 @@ export const deleteOrbVisualAsset = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const v = await import("@/orb-core/visual/assets.server");
-    return v.deleteVisualAsset(await scoped(context.supabase, data.scope), context.userId, data.assetId);
+    return v.deleteVisualAsset(
+      await scoped(context.supabase, data.scope),
+      context.userId,
+      data.assetId,
+    );
   });

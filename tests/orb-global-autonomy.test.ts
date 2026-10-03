@@ -66,7 +66,14 @@ function fakeDb() {
   return { db, calls };
 }
 
-const SCOPED = new Set(["orb_messages", "orb_nodes", "orb_connections", "orb_threads", "orb_questions", "orb_interests"]);
+const SCOPED = new Set([
+  "orb_messages",
+  "orb_nodes",
+  "orb_connections",
+  "orb_threads",
+  "orb_questions",
+  "orb_interests",
+]);
 
 describe("Globale Gesprächsautonomie", () => {
   for (const scope of ["normal", "orb_core", "y_dude"] as const) {
@@ -124,7 +131,13 @@ describe("Globale Gesprächsautonomie", () => {
     const gate = finalAutonomyGate({
       energy: AUTONOMY_MIN_ENERGY - 0.01,
       curiosity: { action: "ASK", gap: { nodeId: "m1" }, reason: "r", score: 1 } as never,
-      impulse: { action: "WAIT", impulse: null, suppressed: false, reason: "", candidates: [] } as never,
+      impulse: {
+        action: "WAIT",
+        impulse: null,
+        suppressed: false,
+        reason: "",
+        candidates: [],
+      } as never,
     });
     expect(gate.allowed).toBe(false);
     expect(gate.gate).toBe("energy");

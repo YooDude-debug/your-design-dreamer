@@ -180,7 +180,10 @@ export function isLongResponse(text: string): boolean {
 
 /** Kurze Vorschau: erste ~30 Wörter ohne Markdown-Zeichen. */
 export function longResponsePreview(text: string, words = 30): string {
-  const clean = text.replace(/[#*_>`]+/g, " ").split(/\s+/).filter(Boolean);
+  const clean = text
+    .replace(/[#*_>`]+/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
   const head = clean.slice(0, words).join(" ");
   return clean.length > words ? `${head} …` : head;
 }

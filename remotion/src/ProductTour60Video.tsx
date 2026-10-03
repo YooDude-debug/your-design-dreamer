@@ -150,34 +150,40 @@ const Caption: React.FC<{
           textAlign: "center",
         }}
       >
-
-      {kicker && (
+        {kicker && (
+          <div
+            style={{
+              color: C.muted,
+              fontSize: 30,
+              letterSpacing: 7,
+              textTransform: "uppercase",
+              fontWeight: 600,
+              marginBottom: 12,
+            }}
+          >
+            {kicker}
+          </div>
+        )}
         <div
           style={{
-            color: C.muted,
-            fontSize: 30,
-            letterSpacing: 7,
-            textTransform: "uppercase",
-            fontWeight: 600,
-            marginBottom: 12,
+            color: C.ink,
+            fontSize: 62,
+            fontWeight: 800,
+            letterSpacing: -1.6,
+            lineHeight: 1.1,
           }}
         >
-          {kicker}
+          {main}
+          {accent && (
+            <>
+              <br />
+              <span style={{ color: C.green }}>{accent}</span>
+            </>
+          )}
         </div>
-      )}
-      <div style={{ color: C.ink, fontSize: 62, fontWeight: 800, letterSpacing: -1.6, lineHeight: 1.1 }}>
-        {main}
-        {accent && (
-          <>
-            <br />
-            <span style={{ color: C.green }}>{accent}</span>
-          </>
-        )}
-      </div>
       </div>
     </>
   );
-
 };
 
 /* ------------------------------- 0–7 s ---------------------------------- */
@@ -245,7 +251,6 @@ const SceneIntro: React.FC = () => {
     </AbsoluteFill>
   );
 };
-
 
 /* ------------------------------- 7–17 s --------------------------------- */
 
@@ -319,9 +324,15 @@ const SceneCampaign: React.FC = () => {
         </Phone>
       )}
 
-      <Caption local={local} from={8} to={100} kicker="Für Unternehmen" main="Kampagne anlegen." accent="Live im echten Feed." />
+      <Caption
+        local={local}
+        from={8}
+        to={100}
+        kicker="Für Unternehmen"
+        main="Kampagne anlegen."
+        accent="Live im echten Feed."
+      />
       <Caption local={local} from={124} to={288} main="Werbung wird" accent="zur Interaktion." />
-
     </AbsoluteFill>
   );
 };
@@ -335,9 +346,23 @@ const SceneAnalytics: React.FC = () => {
       <Backdrop local={local} />
       <Phone local={local}>
         {local < 150 ? (
-          <Screen src="posts.png" from={-120} to={-430} local={local} duration={150} zoom={[1.02, 1.08]} />
+          <Screen
+            src="posts.png"
+            from={-120}
+            to={-430}
+            local={local}
+            duration={150}
+            zoom={[1.02, 1.08]}
+          />
         ) : (
-          <Screen src="feed2.png" from={-300} to={-520} local={local - 150} duration={150} zoom={[1.04, 1.12]} />
+          <Screen
+            src="feed2.png"
+            from={-300}
+            to={-520}
+            local={local - 150}
+            duration={150}
+            zoom={[1.04, 1.12]}
+          />
         )}
       </Phone>
 
@@ -366,7 +391,14 @@ const SceneSlangQr: React.FC = () => {
     <AbsoluteFill>
       <Backdrop local={local} />
       <Phone local={local} scale={interpolate(qrUp, [0, 1], [1, 0.82])}>
-        <Screen src="manager-qr.png" from={-330} to={-470} local={local} duration={300} zoom={[1.12, 1.2]} />
+        <Screen
+          src="manager-qr.png"
+          from={-330}
+          to={-470}
+          local={local}
+          duration={300}
+          zoom={[1.12, 1.2]}
+        />
       </Phone>
 
       {qrUp > 0 && (
@@ -389,7 +421,10 @@ const SceneSlangQr: React.FC = () => {
               overflow: "hidden",
             }}
           >
-            <Img src={staticFile("tour60/qr-miesebrise.png")} style={{ width: 460, display: "block" }} />
+            <Img
+              src={staticFile("tour60/qr-miesebrise.png")}
+              style={{ width: 460, display: "block" }}
+            />
             {/* Scan-Linie */}
             <div
               style={{
@@ -419,9 +454,21 @@ const SceneSlangQr: React.FC = () => {
         </AbsoluteFill>
       )}
 
-      <Caption local={local} from={10} to={120} kicker="SlangTag" main="Online trifft" accent="Offline." />
-      <Caption local={local} from={186} to={318} main="SlangTags verbinden reale Orte" accent="mit deiner Community." />
-
+      <Caption
+        local={local}
+        from={10}
+        to={120}
+        kicker="SlangTag"
+        main="Online trifft"
+        accent="Offline."
+      />
+      <Caption
+        local={local}
+        from={186}
+        to={318}
+        main="SlangTags verbinden reale Orte"
+        accent="mit deiner Community."
+      />
     </AbsoluteFill>
   );
 };
@@ -434,7 +481,14 @@ const SceneMessenger: React.FC = () => {
     <AbsoluteFill>
       <Backdrop local={local} />
       <Phone local={local}>
-        <Screen src="messenger.png" from={-30} to={-190} local={local} duration={260} zoom={[1.06, 1.16]} />
+        <Screen
+          src="messenger.png"
+          from={-30}
+          to={-190}
+          local={local}
+          duration={260}
+          zoom={[1.06, 1.16]}
+        />
       </Phone>
       <Caption
         local={local}
@@ -459,10 +513,24 @@ const SceneMarket: React.FC = () => {
         {local < 96 ? (
           <Screen src="market.png" from={-20} to={-260} local={local} duration={96} />
         ) : (
-          <Screen src="marketitem.png" from={-60} to={-330} local={local - 96} duration={114} zoom={[1.05, 1.14]} />
+          <Screen
+            src="marketitem.png"
+            from={-60}
+            to={-330}
+            local={local - 96}
+            duration={114}
+            zoom={[1.05, 1.14]}
+          />
         )}
       </Phone>
-      <Caption local={local} from={10} to={200} kicker="Y-Dude Market" main="Entdecken. Verbinden." accent="Kaufen." />
+      <Caption
+        local={local}
+        from={10}
+        to={200}
+        kicker="Y-Dude Market"
+        main="Entdecken. Verbinden."
+        accent="Kaufen."
+      />
     </AbsoluteFill>
   );
 };
@@ -554,7 +622,9 @@ const SceneOutro: React.FC = () => {
     <AbsoluteFill>
       <Backdrop local={local} />
       <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", zIndex: 6 }}>
-        <div style={{ transform: `scale(${interpolate(brand, [0, 1], [0.94, 1])})`, opacity: brand }}>
+        <div
+          style={{ transform: `scale(${interpolate(brand, [0, 1], [0.94, 1])})`, opacity: brand }}
+        >
           <BrandLockup
             frame={local}
             markWidth={300}
@@ -604,13 +674,15 @@ const S = {
   outro: { from: 1722, dur: 78 },
 };
 
-
 export const ProductTour60Video: React.FC = () => {
   const frame = useCurrentFrame();
   // Kurze, harte Blenden zwischen den Kapiteln (kein Schwarz-Fade).
   const cutFlash = Object.values(S)
     .slice(1)
-    .reduce((acc, s) => acc + interpolate(frame, [s.from - 4, s.from, s.from + 5], [0, 0.5, 0], clamp), 0);
+    .reduce(
+      (acc, s) => acc + interpolate(frame, [s.from - 4, s.from, s.from + 5], [0, 0.5, 0], clamp),
+      0,
+    );
 
   return (
     <AbsoluteFill style={{ background: "#000", fontFamily: FONT }}>
@@ -638,7 +710,6 @@ export const ProductTour60Video: React.FC = () => {
       <Sequence from={S.outro.from} durationInFrames={S.outro.dur}>
         <SceneOutro />
       </Sequence>
-
 
       <AbsoluteFill
         style={{ background: "#fff", opacity: Math.min(0.5, cutFlash), pointerEvents: "none" }}
