@@ -55,7 +55,8 @@ const TEXTS = {
     nameLabel: "SlangTag-Text",
     sttFailed: "Text konnte nicht erkannt werden.",
     verify: "Sicherheitsprüfung nicht bestätigt – bitte kurz bestätigen und erneut aufnehmen.",
-    verifyUnavailable: "Die Sicherheitsprüfung konnte nicht geladen werden. Ohne sie ist die Texterkennung der Demo nicht möglich – bitte Seite neu laden.",
+    verifyUnavailable:
+      "Die Sicherheitsprüfung konnte nicht geladen werden. Ohne sie ist die Texterkennung der Demo nicht möglich – bitte Seite neu laden.",
     busy: "Gerade zu viele Versuche – bitte in ein paar Minuten erneut probieren.",
     imageAlt: "Beispielbild des SlangTag-Testers mit platziertem SlangTag",
   },
@@ -84,7 +85,8 @@ const TEXTS = {
     nameLabel: "SlangTag text",
     sttFailed: "Could not recognise the text.",
     verify: "Security check not confirmed – please confirm it and record again.",
-    verifyUnavailable: "The security check could not be loaded. Text recognition in the demo needs it – please reload the page.",
+    verifyUnavailable:
+      "The security check could not be loaded. Text recognition in the demo needs it – please reload the page.",
     busy: "Too many attempts right now – please try again in a few minutes.",
     imageAlt: "Example image of the SlangTag tester with a placed SlangTag",
   },
@@ -113,7 +115,8 @@ const TEXTS = {
     nameLabel: "Κείμενο SlangTag",
     sttFailed: "Δεν αναγνωρίστηκε κείμενο.",
     verify: "Ο έλεγχος ασφαλείας δεν επιβεβαιώθηκε – επιβεβαίωσέ τον και ηχογράφησε ξανά.",
-    verifyUnavailable: "Ο έλεγχος ασφαλείας δεν φορτώθηκε. Η αναγνώριση κειμένου της δοκιμής τον χρειάζεται – φόρτωσε ξανά τη σελίδα.",
+    verifyUnavailable:
+      "Ο έλεγχος ασφαλείας δεν φορτώθηκε. Η αναγνώριση κειμένου της δοκιμής τον χρειάζεται – φόρτωσε ξανά τη σελίδα.",
     busy: "Πάρα πολλές προσπάθειες – δοκίμασε ξανά σε λίγα λεπτά.",
     imageAlt: "Δείγμα εικόνας του SlangTag tester με τοποθετημένο SlangTag",
   },
