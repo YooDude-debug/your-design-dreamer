@@ -1011,11 +1011,13 @@ export async function touchConnection(
   // und (über scopedDb) im aktuellen Bereich liegen. Fehlt einer (z. B. in der
   // Zwischenzeit gelöscht), wird kontrolliert abgebrochen – kein RLS-Fehler.
   // RLS (orb_owns_node) und der Scope-Trigger bleiben unverändert wirksam.
-  const owned = await q.tick(
-    db.from("orb_nodes").select("id").eq("user_id", userId).in("id", [sourceId, targetId]),
+  const owned = await Promise.all(
+    [sourceId, targetId].map((id) =>
+      q.tick(db.from("orb_nodes").select("id").eq("id", id).eq("user_id", userId).maybeSingle()),
+    ),
   );
-  if (owned.error) throw internalError(owned.error);
-  if (((owned.data as { id: string }[] | null) ?? []).length !== 2) {
+  for (const o of owned) if (o.error) throw internalError(o.error);
+  if (owned.some((o) => !o.data)) {
     console.warn("[orb] connection_skipped", { reason: "node_missing_or_foreign", origin: input.origin });
     return "skipped";
   }

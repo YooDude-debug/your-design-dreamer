@@ -24,7 +24,7 @@ export type UnassignedPage = {
   kind: UnassignedKind;
   page: number;
   total: number | null;
-  rows: Record<string, unknown>[];
+  rows: Record<string, string | number | boolean | null | string[]>[];
 };
 
 const SPEC: Record<UnassignedKind, { table: string; columns: string; order: string }> = {
@@ -72,6 +72,6 @@ export const getOrbUnassignedPage = createServerFn({ method: "POST" })
       kind: data.kind,
       page: data.page,
       total: typeof res.count === "number" ? res.count : null,
-      rows: (res.data ?? []) as Record<string, unknown>[],
+      rows: (res.data ?? []) as UnassignedPage["rows"],
     };
   });
