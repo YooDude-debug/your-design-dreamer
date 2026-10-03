@@ -382,6 +382,7 @@ const TOPIC_KEYWORDS: Record<string, string[]> = {
     "programmier",
     "code",
     "softwar",
+    "softwareentwickl",
     "entwickl",
     "javascript",
     "python",
@@ -400,6 +401,13 @@ const TOPIC_KEYWORDS: Record<string, string[]> = {
     "koch",
     "restaurant",
     "backen",
+    "backe",
+    "gebacken",
+    "kuchen",
+    "brot",
+    "essen",
+    "gericht",
+    "rezept",
     "ananas",
     "käs",
     "kaes",
@@ -488,7 +496,7 @@ function contentTokenPairs(text: string): { word: string; stem: string }[] {
  * Falsche Freunde: Wörter, die mit einem Schlüsselwort beginnen, aber ein
  * anderes Gebiet benennen („Backend“ ist kein „backen“).
  */
-const TOPIC_FALSE_FRIENDS: Record<string, readonly string[]> = { backen: ["backend"] };
+const TOPIC_FALSE_FRIENDS: Record<string, readonly string[]> = { backen: ["backend"], backe: ["backend"] };
 
 function matchesKeyword(pair: { word: string; stem: string }, key: string): boolean {
   const friends = TOPIC_FALSE_FRIENDS[key];
