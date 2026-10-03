@@ -40,14 +40,18 @@ export default function AdaptiveLab({ params }: { params: LabParams }) {
   );
 
   return (
-    <section className="space-y-3 rounded-xl border border-border bg-surface p-3" aria-label="Adaptive Aufbewahrung">
+    <section
+      className="space-y-3 rounded-xl border border-border bg-surface p-3"
+      aria-label="Adaptive Aufbewahrung"
+    >
       <h2 className="text-sm font-semibold">
         Adaptive Aufbewahrung D / E / F <span className="text-destructive">SIMULATION</span>
       </h2>
       <p className="text-[11px] text-muted-foreground">
-        Nur synthetischer Laborgraph (40 Punkte), keine ORB-Memories. D: feste Frist ({params.dormantRetention}). E:
-        Relevanz + Wichtigkeit. F: zusätzlich gemessene Wiederverwendung (nur Nutzungsphase, nicht Recall). Ruhe{" "}
-        {ADAPTIVE_REST_STEPS.join(" / ")}, {ADAPTIVE_SEED_COUNT} Seeds, identische Ereignisse je Seed.
+        Nur synthetischer Laborgraph (40 Punkte), keine ORB-Memories. D: feste Frist (
+        {params.dormantRetention}). E: Relevanz + Wichtigkeit. F: zusätzlich gemessene
+        Wiederverwendung (nur Nutzungsphase, nicht Recall). Ruhe {ADAPTIVE_REST_STEPS.join(" / ")},{" "}
+        {ADAPTIVE_SEED_COUNT} Seeds, identische Ereignisse je Seed.
       </p>
       <div className="flex flex-wrap gap-3">
         {FIELDS.map(([k, label, step]) => (
@@ -100,17 +104,23 @@ export default function AdaptiveLab({ params }: { params: LabParams }) {
                         <td className="p-2">{mi === 0 ? r.restSteps : ""}</td>
                         <td className="p-2 font-semibold">{model}</td>
                         <td className="p-2 font-mono">
-                          {pct(avg(ms, (m) => m.retrievabilityAfterRest))} / {pct(avg(ms, (m) => m.retrievabilityEnd))}
+                          {pct(avg(ms, (m) => m.retrievabilityAfterRest))} /{" "}
+                          {pct(avg(ms, (m) => m.retrievabilityEnd))}
                         </td>
                         <td className="p-2 font-mono">
                           {avg(ms, (m) => m.targetReached).toFixed(1)} / {ms[0]!.tracked}
                         </td>
-                        <td className="p-2 font-mono">{ms.reduce((x, m) => x + m.importantLost, 0)}</td>
+                        <td className="p-2 font-mono">
+                          {ms.reduce((x, m) => x + m.importantLost, 0)}
+                        </td>
                         <td className="p-2 font-mono">{ms.reduce((x, m) => x + m.expired, 0)}</td>
                         <td className="p-2 font-mono">{pct(dorm ? rest / dorm : null)}</td>
-                        <td className="p-2 font-mono">{ms.reduce((x, m) => x + m.falseReconstructions, 0)}</td>
                         <td className="p-2 font-mono">
-                          {avg(ms, (m) => m.dormantPeak).toFixed(1)} / {avg(ms, (m) => m.dormantEnd).toFixed(1)}
+                          {ms.reduce((x, m) => x + m.falseReconstructions, 0)}
+                        </td>
+                        <td className="p-2 font-mono">
+                          {avg(ms, (m) => m.dormantPeak).toFixed(1)} /{" "}
+                          {avg(ms, (m) => m.dormantEnd).toFixed(1)}
                         </td>
                         <td className="p-2 font-mono">
                           {(avg(ms, (m) => m.dormantPeakBytes) / 1024).toFixed(1)} /{" "}
@@ -123,7 +133,9 @@ export default function AdaptiveLab({ params }: { params: LabParams }) {
               </tbody>
             </table>
           </div>
-          <h3 className="text-xs font-semibold">Wiederauffindbar am Ende je Profil (D / E / F, Σ über Seeds)</h3>
+          <h3 className="text-xs font-semibold">
+            Wiederauffindbar am Ende je Profil (D / E / F, Σ über Seeds)
+          </h3>
           <div className="overflow-x-auto">
             <table className="w-full text-[11px]">
               <thead>
@@ -131,7 +143,9 @@ export default function AdaptiveLab({ params }: { params: LabParams }) {
                   <th className="p-1.5">Profil</th>
                   <th className="p-1.5">Frist D / E / F</th>
                   {result.map((r) => (
-                    <th key={r.restSteps} className="p-1.5">Ruhe {r.restSteps}</th>
+                    <th key={r.restSteps} className="p-1.5">
+                      Ruhe {r.restSteps}
+                    </th>
                   ))}
                 </tr>
               </thead>
@@ -140,13 +154,21 @@ export default function AdaptiveLab({ params }: { params: LabParams }) {
                   <tr key={pr.id} className="border-t border-border">
                     <td className="p-1.5">{pr.label}</td>
                     <td className="p-1.5 font-mono">
-                      {result[0]!.seeds[0]!.metrics.map((m) => m.perProfile[pr.id]?.retention ?? "–").join(" / ")}
+                      {result[0]!.seeds[0]!.metrics.map(
+                        (m) => m.perProfile[pr.id]?.retention ?? "–",
+                      ).join(" / ")}
                     </td>
                     {result.map((r) => (
                       <td key={r.restSteps} className="p-1.5 font-mono">
                         {ADAPTIVE_MODELS.map((_, mi) => {
-                          const v = r.seeds.reduce((x, s) => x + (s.metrics[mi]!.perProfile[pr.id]?.retrievable ?? 0), 0);
-                          const n = r.seeds.reduce((x, s) => x + (s.metrics[mi]!.perProfile[pr.id]?.n ?? 0), 0);
+                          const v = r.seeds.reduce(
+                            (x, s) => x + (s.metrics[mi]!.perProfile[pr.id]?.retrievable ?? 0),
+                            0,
+                          );
+                          const n = r.seeds.reduce(
+                            (x, s) => x + (s.metrics[mi]!.perProfile[pr.id]?.n ?? 0),
+                            0,
+                          );
                           return `${v}/${n}`;
                         }).join(" · ")}
                       </td>
@@ -157,8 +179,9 @@ export default function AdaptiveLab({ params }: { params: LabParams }) {
             </table>
           </div>
           <p className="text-[11px] text-muted-foreground">
-            Gemessen wird nur der Zustand nach dem Recall; Wichtigkeit zählt nie als Erfolg. Rekonstruktion aus
-            „dormant“ ist keine Reaktivierung; expired ist nicht wiederherstellbar.
+            Gemessen wird nur der Zustand nach dem Recall; Wichtigkeit zählt nie als Erfolg.
+            Rekonstruktion aus „dormant“ ist keine Reaktivierung; expired ist nicht
+            wiederherstellbar.
           </p>
         </>
       )}

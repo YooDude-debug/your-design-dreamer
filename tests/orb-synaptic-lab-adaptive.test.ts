@@ -24,7 +24,8 @@ const snap = syntheticSnapshot();
 
 describe("P12 adaptive Aufbewahrung", () => {
   it("D bleibt feste Frist; Profile ordnen E/F-Fristen erwartungsgemäß", () => {
-    for (const id of ["hr_lu", "lr_lu"]) expect(retentionFor("D", attr(id, 0), A, P)).toBe(P.dormantRetention);
+    for (const id of ["hr_lu", "lr_lu"])
+      expect(retentionFor("D", attr(id, 0), A, P)).toBe(P.dormantRetention);
     const E = (id: string, r: number) => retentionFor("E", attr(id, r), A, P);
     const F = (id: string, r: number) => retentionFor("F", attr(id, r), A, P);
     // hohe Relevanz selten > niedrige Relevanz häufig (E ignoriert Nutzung)
@@ -51,9 +52,13 @@ describe("P12 adaptive Aufbewahrung", () => {
   it("Wiederverwendung nur aus Nutzungsphase, nie aus Recall", () => {
     const plan = planAdaptive(snap, P, A, 20);
     const k = plan.tracked[0]!;
-    const buildActs = plan.events.filter((e) => e.phase === "build" && e.activate.includes(k)).length;
+    const buildActs = plan.events.filter(
+      (e) => e.phase === "build" && e.activate.includes(k),
+    ).length;
     expect(plan.attrs.get(k)!.reuse).toBe(buildActs);
-    expect(plan.events.filter((e) => e.phase === "recall" && e.activate.includes(k)).length).toBe(A.recallSteps);
+    expect(plan.events.filter((e) => e.phase === "recall" && e.activate.includes(k)).length).toBe(
+      A.recallSteps,
+    );
   });
 
   it("identische Ereignisfolge für D/E/F, deterministisch", () => {
@@ -83,7 +88,8 @@ describe("P12 adaptive Aufbewahrung", () => {
     const p = { ...P, decay: 0.5 };
     const opt = { retention: () => 3 };
     let s = stepModel(initModel("D"), { grow: [k], activate: [] }, pm, p, opt);
-    while (s.candidates.get(k)!.lifecycle !== "dormant") s = stepModel(s, { grow: [], activate: [] }, pm, p, opt);
+    while (s.candidates.get(k)!.lifecycle !== "dormant")
+      s = stepModel(s, { grow: [], activate: [] }, pm, p, opt);
     for (let i = 0; i < 4; i++) s = stepModel(s, { grow: [], activate: [] }, pm, p, opt);
     expect(s.candidates.get(k)!.lifecycle).toBe("expired");
     s = stepModel(s, { grow: [k], activate: [k] }, pm, p, opt);
@@ -101,7 +107,10 @@ describe("P12 adaptive Aufbewahrung", () => {
   });
 
   it("nur synthetische Daten, kein Schreib-/Netzweg", () => {
-    for (const f of ["src/orb-core/synaptic-lab/adaptive.ts", "src/components/orb-synaptic-lab/AdaptiveLab.tsx"])
+    for (const f of [
+      "src/orb-core/synaptic-lab/adaptive.ts",
+      "src/components/orb-synaptic-lab/AdaptiveLab.tsx",
+    ])
       expect(readFileSync(f, "utf8")).not.toMatch(
         /\.(insert|update|upsert|delete)\(|supabase|localStorage|BroadcastChannel|createServerFn|fetch\(|getOrbKnowledgeGraph/,
       );
