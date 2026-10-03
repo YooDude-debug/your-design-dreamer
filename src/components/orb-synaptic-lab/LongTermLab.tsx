@@ -273,12 +273,16 @@ function LtTable(props: {
       (m) => gate(done, `${m.reactivated} / ${pct(m.reactivationRate)}`),
     ],
     [
-      "Ø Abruf-Schritte bis Zielstärke",
+      "Zielstärke: vor Ruhe erreicht & gehalten / nach Wiederaktivierung / nicht erreicht",
+      (m) => gate(done, `${m.targetHeld} / ${m.recovered} / ${m.targetNotReached}`),
+    ],
+    [
+      "Ø Abruf-Schritte bis Zielstärke (nur nach Wiederaktivierung)",
       (m) =>
         gate(
           done,
           m.meanStepsToRecovery === null
-            ? "nie erreicht"
+            ? "–"
             : `${m.meanStepsToRecovery.toFixed(1)} (${m.recovered}×)`,
         ),
     ],
