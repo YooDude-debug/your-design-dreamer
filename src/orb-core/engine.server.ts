@@ -725,6 +725,8 @@ export async function speak(input: {
   modeReason?: string | null;
   /** Offene eigene ORB-Frage, auf die der Benutzer gerade reagiert. */
   ownQuestion?: { question: string; gap: string | null } | null;
+  /** P0: Kurzantwort auf diese letzte ORB-Frage. */
+  replyTo?: string | null;
   /** P3 Observability: Ereigniskontext, ausschliesslich zur Korrelation. */
   obs?: OrbEventContext;
   /** P22: nur für ausdrückliche, admingeprüfte Codeanalyse-Anforderungen. */
