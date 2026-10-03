@@ -2587,6 +2587,7 @@ async function loadCuriosityContext(
               .select("body, role")
               .eq("user_id", userId)
               .order("created_at", { ascending: false })
+              .order("id", { ascending: false })
               .limit(PROACTIVE_CONTEXT_MESSAGES),
           )
           .then((res) => {
