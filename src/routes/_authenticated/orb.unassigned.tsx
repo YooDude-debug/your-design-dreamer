@@ -53,8 +53,8 @@ function UnassignedPageView() {
   const [kind, setKind] = useState<UnassignedKind>("memories");
   const [page, setPage] = useState(0);
 
-  const access = useQuery({ queryKey: ["admin", "access"], queryFn: () => check() });
-  const isAdmin = !!(access.data as { isAdmin?: boolean } | undefined)?.isAdmin;
+  const access = useQuery({ queryKey: ["admin-check-access"], queryFn: () => check(), staleTime: 300_000 });
+  const isAdmin = !!access.data?.isAdmin;
   const q = useQuery({
     queryKey: ["orb", "unassigned", kind, page],
     queryFn: () => load({ data: { kind, page } }),
