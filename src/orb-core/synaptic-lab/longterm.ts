@@ -145,8 +145,7 @@ export type LtTrace = {
 
 function sampleOf(s: ModelState, key: string, p: LabParams): TrackedSample {
   const c = s.candidates.get(key);
-  if (!c || !isLive(c))
-    return { present: false, strength: null, lifecycle: c?.lifecycle ?? null };
+  if (!c || !isLive(c)) return { present: false, strength: null, lifecycle: c?.lifecycle ?? null };
   return {
     present: true,
     strength: strengthAt(c, s.step, s.model, p.decay),

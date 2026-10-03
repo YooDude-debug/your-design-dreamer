@@ -152,9 +152,9 @@ export default function ValidationLab({
             {result
               .map((r) => `Ruhe ${r.restSteps}: ${r.dBetterSeeds.length}/${r.dWorseSeeds.length}`)
               .join(", ")}
-            . Rekonstruktion aus „dormant“ zählt nicht als Reaktivierung.
-            „Gehalten“ zählt nicht als Wiederherstellung. Kontrollpaare werden nie als Reaktivierung
-            gezählt. Modelle: {LAB_MODELS.join(", ")}.
+            . Rekonstruktion aus „dormant“ zählt nicht als Reaktivierung. „Gehalten“ zählt nicht als
+            Wiederherstellung. Kontrollpaare werden nie als Reaktivierung gezählt. Modelle:{" "}
+            {LAB_MODELS.join(", ")}.
           </p>
         </>
       )}

@@ -316,10 +316,10 @@ function ModelPanel(props: {
               : dormant
                 ? "stroke-muted-foreground"
                 : c.lifecycle === "reactivated" || restoredNow
-                ? "stroke-accent-foreground"
-                : c.status === "confirmed"
-                  ? "stroke-foreground"
-                  : "stroke-primary";
+                  ? "stroke-accent-foreground"
+                  : c.status === "confirmed"
+                    ? "stroke-foreground"
+                    : "stroke-primary";
           return (
             <line
               key={c.key}

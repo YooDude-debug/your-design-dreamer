@@ -103,7 +103,7 @@ export function runValidation(
     });
     const cWorseSeeds = rows
       .filter((r) => {
-        const [a, b, c] = r.metrics.map((m) => m.retrievabilityEnd ?? 0);  // A, B, C (D separat)
+        const [a, b, c] = r.metrics.map((m) => m.retrievabilityEnd ?? 0); // A, B, C (D separat)
         return c! < a! || c! < b!;
       })
       .map((r) => r.seed);
