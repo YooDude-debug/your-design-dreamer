@@ -186,6 +186,7 @@ export function planAdaptive(
   p: LabParams,
   a: AdaptiveParams,
   restSteps: number,
+  profiles: readonly Profile[] = PROFILES,
 ): AdaptivePlan {
   const pool = buildPool(snapshot);
   const rnd = prng(p.seed);
@@ -194,7 +195,7 @@ export function planAdaptive(
     const j = Math.floor(rnd() * (i + 1));
     [order[i], order[j]] = [order[j]!, order[i]!];
   }
-  const nTracked = Math.min(order.length, PROFILES.length * PER_PROFILE);
+  const nTracked = Math.min(order.length, profiles.length * PER_PROFILE);
   const tracked = order.slice(0, nTracked);
   const background = order.slice(nTracked, nTracked + p.growthRate * a.buildSteps);
   const controls = order.slice(
@@ -203,7 +204,7 @@ export function planAdaptive(
   );
   const attrs = new Map<string, Attr>();
   tracked.forEach((k, i) => {
-    const pr = PROFILES[Math.floor(i / PER_PROFILE)]!;
+    const pr = profiles[Math.floor(i / PER_PROFILE)]!;
     attrs.set(k, { relevance: pr.relevance, importance: pr.importance, reuse: 0, profile: pr.id });
   });
   const events: AdaptivePlan["events"] = [];
@@ -214,7 +215,7 @@ export function planAdaptive(
       grow.push(background[cursor++]!);
     const activate: string[] = [];
     tracked.forEach((k, i) => {
-      if (s > 0 && s % PROFILES[Math.floor(i / PER_PROFILE)]!.usageEvery === 0) {
+      if (s > 0 && s % profiles[Math.floor(i / PER_PROFILE)]!.usageEvery === 0) {
         activate.push(k);
         attrs.get(k)!.reuse++; // Wiederverwendung: nur Nutzungsphase, nie Recall
       }
@@ -234,7 +235,7 @@ export function planAdaptive(
 }
 
 export type AdaptiveMetrics = {
-  model: AdaptiveModelId;
+  model: string;
   tracked: number;
   retrievabilityAfterRest: number;
   retrievabilityEnd: number;
@@ -251,6 +252,15 @@ export type AdaptiveMetrics = {
   dormantEnd: number;
   dormantPeakBytes: number;
   activeEndBytes: number;
+  /** P13: Σ über Schritte der ruhenden Verbindungen (Speicher × Zeit). */
+  dormantStepSum: number;
+  /** P13: beobachtete Verbindungen, die mindestens einmal reaktiviert wurden. */
+  reactivated: number;
+  importantRetrievable: number;
+  unimportant: number;
+  unimportantLost: number;
+  /** P13: Ø zugewiesene Frist über beobachtete Verbindungen. */
+  avgRetention: number;
   perProfile: Record<
     string,
     {
@@ -274,12 +284,17 @@ export function runAdaptiveModel(
   snapshot: LabSnapshot,
   p: LabParams,
   a: AdaptiveParams,
+  /** P13: optionale Frist je Attribut (Modelle G/H); Default retentionFor(model). */
+  retentionOf?: (attr: Attr) => number,
+  label: string = model,
 ): AdaptiveMetrics {
+  const retOf = retentionOf ?? ((at: Attr) => retentionFor(model, at, a, p));
   const poolMap = new Map(buildPool(snapshot).map((e) => [e.key, e]));
   const none: Attr = { relevance: 0, importance: 0, reuse: 0, profile: null };
-  const ret = (c: LabCandidate) => retentionFor(model, plan.attrs.get(c.key) ?? none, a, p);
+  const ret = (c: LabCandidate) => retOf(plan.attrs.get(c.key) ?? none);
   let s: ModelState = initModel("D");
   let dormantPeak = 0;
+  let dormantStepSum = 0;
   const everDormant = new Set<string>();
   let afterRest: ModelState | null = null;
   plan.events.forEach((ev, i) => {
@@ -291,6 +306,7 @@ export function runAdaptiveModel(
         if (plan.attrs.has(c.key)) everDormant.add(c.key);
       }
     dormantPeak = Math.max(dormantPeak, d);
+    dormantStepSum += d;
     if (ev.phase === "rest" && plan.events[i + 1]?.phase !== "rest") afterRest = s;
     if (ev.phase === "build" && plan.events[i + 1]?.phase === "recall") afterRest = s;
   });
@@ -304,14 +320,19 @@ export function runAdaptiveModel(
     importantLost = 0,
     expired = 0,
     restored = 0,
-    targetReached = 0;
+    targetReached = 0,
+    reactivated = 0,
+    importantRetrievable = 0,
+    unimportant = 0,
+    unimportantLost = 0,
+    retSum = 0;
   for (const k of plan.tracked) {
     const at = plan.attrs.get(k)!;
     const c = s.candidates.get(k);
     const pp = (perProfile[at.profile!] ??= {
       retrievable: 0,
       n: 0,
-      retention: retentionFor(model, at, a, p),
+      retention: retOf(at),
       reuse: 0,
       plannedRecalls: 0,
       dormant: 0,
@@ -332,9 +353,15 @@ export function runAdaptiveModel(
     if (c && c.restoredCount > 0) restored++;
     if (c && isLive(c) && strengthAt(c, s.step, "D", p.decay) >= a.recoveryStrength)
       targetReached++;
+    retSum += retOf(at);
+    if (c?.everReactivated) reactivated++;
     if (at.importance >= IMPORTANT_THRESHOLD) {
       important++;
       if (c?.lifecycle === "expired") importantLost++;
+      if (retrievable(s, k)) importantRetrievable++;
+    } else {
+      unimportant++;
+      if (c?.lifecycle === "expired") unimportantLost++;
     }
   }
   // Falsche Rekonstruktion: Kontrollpaar vorhanden/rekonstruiert oder expired wieder belebt.
@@ -348,7 +375,7 @@ export function runAdaptiveModel(
   }
   const ar = afterRest ?? s;
   return {
-    model,
+    model: label,
     tracked: n,
     retrievabilityAfterRest: n ? plan.tracked.filter((k) => retrievable(ar, k)).length / n : 0,
     retrievabilityEnd: n ? plan.tracked.filter((k) => retrievable(s, k)).length / n : 0,
@@ -364,6 +391,12 @@ export function runAdaptiveModel(
     dormantEnd,
     dormantPeakBytes: dormantPeak * BYTES_PER_CANDIDATE,
     activeEndBytes: live * BYTES_PER_CANDIDATE,
+    dormantStepSum,
+    reactivated,
+    importantRetrievable,
+    unimportant,
+    unimportantLost,
+    avgRetention: n ? retSum / n : 0,
     perProfile,
   };
 }

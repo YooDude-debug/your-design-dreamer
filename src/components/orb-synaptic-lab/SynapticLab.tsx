@@ -33,6 +33,7 @@ import {
 import LongTermLab from "./LongTermLab";
 import ValidationLab from "./ValidationLab";
 import AdaptiveLab from "./AdaptiveLab";
+import ProtectionLab from "./ProtectionLab";
 
 const MAX_STEPS = 400;
 const VIEW_NODES = 80;
@@ -255,6 +256,7 @@ export default function SynapticLab({ scope }: { scope: OrbDataScope }) {
 
       <ValidationLab snapshot={snapshot} params={params} />
       <AdaptiveLab params={params} />
+      <ProtectionLab params={params} />
     </div>
   );
 }
