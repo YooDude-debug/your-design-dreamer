@@ -532,12 +532,12 @@ export function topicOf(text: string): string | null {
  * entfernt; deterministisch, kein Modell.
  */
 const OCCUPATION_RE =
-  /\b(?:bin|bist|ist|sind|war|arbeite(?:t|n)?\s+als|von\s+beruf|beruflich)\s+(?:ein(?:e|en)?\s+|gelernte[rn]?\s+)?(\p{Lu}[\p{L}-]+)/gu;
+  /(?:\b(?:bin|bist|arbeite(?:t|n)?\s+als|von\s+beruf|beruflich)|^\s*\p{Lu}[\p{L}-]+\s+ist|\b(?:er|sie)\s+ist)\s+(?:ein(?:e|en)?\s+|gelernte[rn]?\s+)?(\p{Lu}[\p{L}-]+)/gmu;
 
 export function isOccupationStatement(text: string): boolean {
   OCCUPATION_RE.lastIndex = 0;
   const m = OCCUPATION_RE.exec(text ?? "");
-  return m !== null && /^\p{Lu}/u.test(m[1] ?? "") && !/\bName\b/.test(text);
+  return m !== null && !/\b(?:Vor)?[Nn]ame\b/.test(text);
 }
 
 function withoutOccupation(text: string): string {

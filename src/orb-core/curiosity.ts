@@ -25,6 +25,7 @@ import {
   semanticTopicOf,
   similarity,
   type InterestRow,
+  isOccupationStatement,
 } from "@/orb-core/memory";
 import {
   PROACTIVE_COOLDOWN_MS,
