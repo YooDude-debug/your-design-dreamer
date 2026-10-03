@@ -148,26 +148,42 @@ export function shouldPersist(importance: number): boolean {
 
 /* --------------------------------------------------------- Energie-Erholung */
 
-/** Erholung pro Minute Ruhezeit. Bestehende Verbräuche bleiben unverändert. */
-export const ENERGY_RECOVERY_PER_MIN = 0.03;
-/** Obergrenze der Erholung. Höher steigt Energie durch Ruhe nie. */
-export const ENERGY_RECOVERY_CAP = 0.3;
+/** Erholung pro Minute Ruhezeit unterhalb der Schwelle. */
+export const ENERGY_RECOVERY_LOW_PER_MIN = 0.03;
+/** Erholung pro Minute Ruhezeit ab der Schwelle. */
+export const ENERGY_RECOVERY_HIGH_PER_MIN = 0.02;
+/** Schwelle der zweistufigen Erholung (50 %). */
+export const ENERGY_RECOVERY_THRESHOLD = 0.5;
+/** Maximale Energie (100 %). Erholung steigt nie darüber. */
+export const ENERGY_MAX = 1;
 
 /**
- * Zeitbasierte Energie-Erholung – reine Funktion, ohne Zustand und ohne I/O.
+ * Zeitbasierte, zweistufige Energie-Erholung – reine Funktion, ohne Zustand
+ * und ohne I/O.
  *
- *   E = min(CAP, E₀ + Δt_min · RATE),  nur solange E₀ < CAP
+ *   unter 50 %:  +3 Prozentpunkte pro Minute
+ *   ab 50 %:     +2 Prozentpunkte pro Minute
+ *   Maximum:     100 % (nie mehr, nie weniger als der Ausgangswert)
  *
+ * Liegt der 50-%-Übergang innerhalb des Intervalls, wird die Zeit exakt
+ * aufgeteilt: erst mit 3 %/min bis 50 %, der Rest mit 2 %/min.
  * Das Ergebnis hängt ausschliesslich von gespeichertem Wert und verstrichener
- * Zeit ab, nicht von der Anzahl der Aufrufe. Ein Wert über dem Cap (etwa aus
- * dem Startwert der Zustandszeile) bleibt unverändert – die Erholung senkt nie.
+ * Zeit ab, nicht von der Anzahl der Aufrufe (Polling, UI-Updates).
  */
 export function recoverEnergy(stored: number, updatedAtMs: number, nowMs: number): number {
   const base = clamp01(stored);
-  if (base >= ENERGY_RECOVERY_CAP) return base;
+  if (base >= ENERGY_MAX) return base;
   if (!Number.isFinite(updatedAtMs) || !Number.isFinite(nowMs)) return base;
-  const elapsedMin = Math.max(0, nowMs - updatedAtMs) / 60_000;
-  return Math.min(ENERGY_RECOVERY_CAP, base + elapsedMin * ENERGY_RECOVERY_PER_MIN);
+  let restMin = Math.max(0, nowMs - updatedAtMs) / 60_000;
+  if (restMin === 0) return base;
+  let energy = base;
+  if (energy < ENERGY_RECOVERY_THRESHOLD) {
+    const lowMin = Math.min(restMin, (ENERGY_RECOVERY_THRESHOLD - energy) / ENERGY_RECOVERY_LOW_PER_MIN);
+    energy += lowMin * ENERGY_RECOVERY_LOW_PER_MIN;
+    restMin -= lowMin;
+  }
+  if (restMin > 0) energy += restMin * ENERGY_RECOVERY_HIGH_PER_MIN;
+  return Math.min(ENERGY_MAX, energy);
 }
 
 /**

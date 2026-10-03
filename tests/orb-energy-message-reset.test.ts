@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { ENERGY_RECOVERY_CAP, nextState, recoverEnergy } from "@/orb-core/core";
+import { ENERGY_MAX, nextState, recoverEnergy } from "@/orb-core/core";
 
 const ENGINE = readFileSync("src/orb-core/engine.server.ts", "utf8");
 const MIN = 60_000;
@@ -64,7 +64,8 @@ describe("Energie: normale Nachricht setzt den Zustand nicht auf 0", () => {
     expect(later).toBeCloseTo(0.27, 10);
   });
 
-  it("E) Obergrenze liegt bei 0.30", () => {
-    expect(recoverEnergy(0.29, 0, 60 * MIN)).toBe(ENERGY_RECOVERY_CAP);
+  it("E) Obergrenze liegt bei 1.00 (100 %)", () => {
+    expect(recoverEnergy(0.29, 0, 60 * MIN)).toBe(ENERGY_MAX);
+    expect(recoverEnergy(0.99, 0, 60 * MIN)).toBe(ENERGY_MAX);
   });
 });
