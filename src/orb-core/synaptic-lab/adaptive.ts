@@ -264,7 +264,6 @@ export function runAdaptiveModel(
   // Falsche Rekonstruktion: Kontrollpaar vorhanden/rekonstruiert oder expired wieder belebt.
   let falseRec = 0;
   for (const k of plan.controls) if (s.candidates.get(k)) falseRec++;
-  for (const c of s.candidates.values()) if (c.lifecycle === "expired" && c.restoredStep !== null && c.dormantSince === null && false) falseRec++;
   let dormantEnd = 0,
     live = 0;
   for (const c of s.candidates.values()) {
