@@ -116,3 +116,32 @@ describe("P12 adaptive Aufbewahrung", () => {
       );
   });
 });
+
+describe("P12.2 Reuse-Transparenz", () => {
+  it("Reuse nur aus Nutzungsphase; Recall separat und ohne Einfluss", () => {
+    const plan = planAdaptive(snap, P, A, 40);
+    const before = plan.tracked.map((k) => plan.attrs.get(k)!.reuse);
+    for (const m of ADAPTIVE_MODELS) {
+      const r = runAdaptiveModel(m, plan, snap, P, A);
+      for (const pr of PROFILES) {
+        const keys = plan.tracked.filter((k) => plan.attrs.get(k)!.profile === pr.id);
+        const usage = keys.reduce(
+          (x, k) =>
+            x + plan.events.filter((e) => e.phase === "build" && e.activate.includes(k)).length,
+          0,
+        );
+        expect(r.perProfile[pr.id]!.reuse).toBe(usage);
+        expect(r.perProfile[pr.id]!.plannedRecalls).toBe(keys.length * A.recallSteps);
+      }
+    }
+    expect(plan.tracked.map((k) => plan.attrs.get(k)!.reuse)).toEqual(before);
+    const longer = planAdaptive(snap, P, { ...A, recallSteps: 30 }, 40);
+    expect(longer.tracked.map((k) => longer.attrs.get(k)!.reuse)).toEqual(before);
+  });
+
+  it("gleiche Eingaben → identische Profilwerte", () => {
+    expect(JSON.stringify(runAdaptiveValidation(P, A, [80], 3))).toBe(
+      JSON.stringify(runAdaptiveValidation(P, A, [80], 3)),
+    );
+  });
+});

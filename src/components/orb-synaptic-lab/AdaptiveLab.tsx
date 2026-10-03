@@ -33,6 +33,7 @@ const FIELDS: [keyof AdaptiveParams, string, number][] = [
 export default function AdaptiveLab({ params }: { params: LabParams }) {
   const [a, setA] = useState<AdaptiveParams>(DEFAULT_ADAPTIVE_PARAMS);
   const [requested, setRequested] = useState<string | null>(null);
+  const [reuseRest, setReuseRest] = useState<number>(80);
   const key = JSON.stringify([params, a]);
   const result = useMemo(
     () => (requested === key ? runAdaptiveValidation(params, clampAdaptiveParams(a)) : null),
@@ -178,6 +179,65 @@ export default function AdaptiveLab({ params }: { params: LabParams }) {
               </tbody>
             </table>
           </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-xs font-semibold">
+              Wiederverwendung je Profil (Σ über Seeds) – Ruhe
+            </h3>
+            <select
+              aria-label="Ruhephase für Wiederverwendung"
+              className="rounded border border-border bg-background px-2 py-0.5 text-xs"
+              value={reuseRest}
+              onChange={(e) => setReuseRest(Number(e.target.value))}
+            >
+              {result.map((r) => (
+                <option key={r.restSteps} value={r.restSteps}>
+                  {r.restSteps}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-[11px]">
+              <thead>
+                <tr className="text-left text-muted-foreground">
+                  <th className="p-1.5">Profil</th>
+                  <th className="p-1.5">Tatsächliche Nutzung (Nutzungsphase)</th>
+                  <th className="p-1.5">Geplanter Recall (separat)</th>
+                  {ADAPTIVE_MODELS.map((m) => (
+                    <th key={m} className="p-1.5">
+                      {m}: Frist · dormant / rekonstr. / expired
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {PROFILES.map((pr) => {
+                  const r = result.find((x) => x.restSteps === reuseRest) ?? result[0]!;
+                  const sum = (
+                    mi: number,
+                    f: "reuse" | "plannedRecalls" | "dormant" | "restored" | "expired",
+                  ) => r.seeds.reduce((x, s) => x + (s.metrics[mi]!.perProfile[pr.id]?.[f] ?? 0), 0);
+                  return (
+                    <tr key={pr.id} className="border-t border-border">
+                      <td className="p-1.5">{pr.label}</td>
+                      <td className="p-1.5 font-mono">{sum(0, "reuse")}</td>
+                      <td className="p-1.5 font-mono">{sum(0, "plannedRecalls")}</td>
+                      {ADAPTIVE_MODELS.map((m, mi) => (
+                        <td key={m} className="p-1.5 font-mono">
+                          {r.seeds[0]!.metrics[mi]!.perProfile[pr.id]?.retention ?? "–"} ·{" "}
+                          {sum(mi, "dormant")} / {sum(mi, "restored")} / {sum(mi, "expired")}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            Nutzung und geplanter Recall sind für D/E/F identisch (gleiche Ereignisfolge). Nur F
+            verwendet die Nutzung für die Frist; geplanter Recall zählt nie als Wiederverwendung.
+          </p>
           <p className="text-[11px] text-muted-foreground">
             Gemessen wird nur der Zustand nach dem Recall; Wichtigkeit zählt nie als Erfolg.
             Rekonstruktion aus „dormant“ ist keine Reaktivierung; expired ist nicht
