@@ -60,15 +60,13 @@ describe("Retrieval-Puls → einzelne Memory-Nodes", () => {
     expect(engineSrc).toContain("PULSE_COLOR");
   });
 
-  it("G) autonome Wissenslücke erzeugt weiterhin kein Retrieval-Event", () => {
-    // pulseRetrieval wird nur hinter isRetrievalEvent aufgerufen; das Event
-    // entsteht ausschliesslich in processInput (siehe orb-retrieval-event.test.ts).
-    const i = stageSrc.indexOf("pulseRetrieval(");
+  it("G) Aktivierung nur hinter isRetrievalEvent (Antwort oder gestellte autonome Frage)", () => {
+    const i = stageSrc.indexOf("queueRetrieval(");
     expect(stageSrc.slice(i - 400, i)).toContain("isRetrievalEvent(ev)");
   });
 
   it("H) Stage übergibt memory_ids und model_visible_ids des Events", () => {
-    expect(stageSrc).toContain("pulseRetrieval(ev.memory_ids, ev.model_visible_ids)");
+    expect(stageSrc).toContain("queueRetrieval(ev.memory_ids, ev.event_id, ev.model_visible_ids)");
     // Kein globaler Puls mehr: Kanten bekommen keine Retrieval-Färbung.
     expect(engineSrc).not.toContain("this.retrievalPulse *= k;");
     const edgeLoop = engineSrc.slice(engineSrc.indexOf("const col = this.lines.geometry"));
