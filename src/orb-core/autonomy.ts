@@ -103,7 +103,7 @@ export type OrbAutonomyAttempt = {
   result: "asked" | "silent";
   curiosityAction: CuriosityDecision["action"];
   impulseAction: ImpulseDecision["action"];
-  gate: AutonomyGate | "formulation" | "duplicate" | "fidelity";
+  gate: AutonomyGate | "formulation" | "duplicate" | "fidelity" | "answered";
   reason: string;
   energy: number;
   curiosity: number;

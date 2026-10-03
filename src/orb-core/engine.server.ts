@@ -13,6 +13,11 @@
  * durch Verfall oder durch negatives Feedback.
  */
 
+import {
+  conversationOriginContents,
+  isAnsweredInConversation,
+  pendingOrbQuestions,
+} from "@/orb-core/continuity-rules";
 import { isLongFormRequest, readCompletion, type ReplyCompletion } from "@/orb-core/long-form";
 import { isConceptRow } from "@/orb-core/analysis/concepts";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -746,6 +751,12 @@ export async function speak(input: {
   imageState?: { attached: number; generationAvailable: boolean } | null;
   /** P6: aktive Erinnerungen, die ORB selbst abgeleitet hat. */
   inferredMemories?: readonly string[];
+  /** P7: Erinnerungen aus dem aktuellen Gesprächsfenster. */
+  conversationMemories?: readonly string[];
+  /** P7: mehrere offene ORB-Fragen bei Kurzantwort. */
+  ambiguousReplyTo?: readonly string[];
+  /** P7: Benutzereingabe für Zuordnungs-/Spekulationshinweise (nur Nutzerpfad). */
+  userText?: string | null;
 }): Promise<{
   reply: string;
   status: "ok" | "quota" | "unavailable";
@@ -1222,12 +1233,15 @@ export async function processInput(
   const ctxRes = await q.tick(
     db
       .from("orb_messages")
-      .select("role, body")
+      .select("role, body, created_at")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(CONTEXT_WINDOW_MESSAGES),
   );
   if (ctxRes.error) throw internalError(ctxRes.error);
+  // P7: Beginn des Gesprächsfensters (älteste geladene Nachricht).
+  const contextWindowStart: string | null =
+    ctxRes.data.length > 0 ? (ctxRes.data[ctxRes.data.length - 1]!.created_at ?? null) : null;
   const recentMessages: ConversationMessage[] = contextWindow(
     [...ctxRes.data]
       .reverse()
@@ -1348,7 +1362,14 @@ export async function processInput(
    */
   // P0: letzte offene ORB-Frage im Gesprächsfenster (bereits geladen, keine Abfrage).
   const pendingQuestionForReply = pendingOrbQuestion(recentMessages);
-  const replyTo = pendingQuestionForReply && isShortReply(text) ? pendingQuestionForReply : null;
+  // P7: mehrere Fragen in ORBs letzter Nachricht ⇒ Kurzantwort nicht an eine binden.
+  const pendingQuestionsForReply = pendingOrbQuestions(recentMessages);
+  const ambiguousReplyTo =
+    isShortReply(text) && pendingQuestionsForReply.length > 1 ? pendingQuestionsForReply : [];
+  const replyTo =
+    pendingQuestionForReply && isShortReply(text) && ambiguousReplyTo.length === 0
+      ? pendingQuestionForReply
+      : null;
   const conversationStrands = reliableRecalled.map((r) => ({
     id: r.node.id, // P5-A: nur interne Nachverfolgung
     content: r.node.content,
@@ -1404,6 +1425,11 @@ export async function processInput(
   const inferredMemories = reliableRecalled
     .filter((r) => r.node.source === "inferred")
     .map((r) => r.node.content);
+  /** P7: Erinnerungen aus diesem Gespräch nicht als „früher erwähnt“ ausgeben. */
+  const conversationMemories = conversationOriginContents(
+    reliableRecalled.map((r) => ({ content: r.node.content, createdAt: r.node.createdAt ?? null })),
+    contextWindowStart,
+  );
   /**
    * P5: Bildstatus nur bei Bildbezug (Anhang, Bildwort in der Eingabe oder
    * Bild-Erinnerung im Abruf) – sonst bleibt der Prompt unverändert.
@@ -1564,6 +1590,8 @@ export async function processInput(
         visualHint: true,
         imageState,
         inferredMemories,
+        conversationMemories,
+        userText: text,
       });
     }
   } else {
@@ -1609,9 +1637,12 @@ export async function processInput(
       modeReason: conversationPlan.reason,
       ownQuestion,
       replyTo,
+      ambiguousReplyTo,
       visualHint: true,
       imageState,
       inferredMemories,
+      conversationMemories,
+      userText: text,
     });
   }
   const aiMs = Date.now() - aiStart;
@@ -3215,6 +3246,16 @@ export async function askProactively(
     });
     if (!fidelity.ok) {
       return silent(`Formulierung verworfen: ${fidelity.reason}`, { gate: "fidelity" });
+    }
+    // P7: bereits in diesem Gespräch beantwortet (Inhalt, nicht Wortlaut) ⇒ still.
+    if (
+      isAnsweredInConversation(
+        spoken.question,
+        (ctx.recentMessages ?? []).map((m) => ({ role: m.role, body: m.body })),
+        ctx.nameTokens,
+      )
+    ) {
+      return silent("Im aktuellen Gespräch bereits beantwortet.", { gate: "answered" });
     }
   }
 
