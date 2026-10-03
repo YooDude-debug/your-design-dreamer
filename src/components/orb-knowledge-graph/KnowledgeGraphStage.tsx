@@ -124,6 +124,7 @@ export default function KnowledgeGraphStage({ scope }: { scope: OrbDataScope }) 
     if (!hostRef.current) return;
     const engine = new KnowledgeGraphEngine(hostRef.current, setSelected);
     engineRef.current = engine;
+    (window as unknown as { __kgDbg?: unknown }).__kgDbg = engine;
     // Neu erzeugte Engine: aktuellen Ebenen-/Cognitive-Zustand einmal anwenden
     // (die Effekte oben liefen vor der Erzeugung ins Leere).
     engine.setLayers(layerOnRef.current, layerFocusRef.current);
