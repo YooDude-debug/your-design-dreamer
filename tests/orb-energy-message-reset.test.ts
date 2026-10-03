@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { ENERGY_RECOVERY_CAP, nextState, recoverEnergy } from "@/orb-core/core";
+import { ENERGY_MAX, nextState, recoverEnergy } from "@/orb-core/core";
 
 const ENGINE = readFileSync("src/orb-core/engine.server.ts", "utf8");
 const MIN = 60_000;
