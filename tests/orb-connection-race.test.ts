@@ -137,7 +137,7 @@ describe("touchConnection – 23505-Rennen", () => {
       onInsert: (r) => r.push(conn()),
     });
     await expect(run(db)).rejects.toThrow();
-    expect(calls.selects).toBe(1); // nur die erste Existenzprüfung
+    expect(calls.selects).toBe(3); // 1 Existenzprüfung + 2 P3-Knotenprüfungen, kein Nachlesen
   });
 
   it("P3 gelöschter Zielknoten: kontrolliert übersprungen, kein Insert", async () => {
