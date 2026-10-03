@@ -23,7 +23,7 @@ test.describe("Feed", () => {
     // zusätzlich muss mindestens ein Beitrag tatsächlich geladen sein.
     const feedTab = page.getByRole("button", { name: /^feed$/i }).first();
     await expect(feedTab).toBeVisible({ timeout: 30_000 });
-    await expect(page.locator('a[href^="/p/"]').first()).toBeAttached({ timeout: 30_000 });
+    await expect(page.locator("article[data-post-id]").first()).toBeVisible({ timeout: 30_000 });
 
     const before = await page.evaluate(() => document.body.innerText.length);
     expect(before, "Feedinhalt vorhanden").toBeGreaterThan(200);
@@ -38,7 +38,7 @@ test.describe("Feed", () => {
     await expect(page.getByRole("button", { name: /^feed$/i }).first()).toBeVisible({
       timeout: 30_000,
     });
-    await expect(page.locator('a[href^="/p/"]').first()).toBeAttached({ timeout: 30_000 });
+    await expect(page.locator("article[data-post-id]").first()).toBeVisible({ timeout: 30_000 });
     errors.assertClean();
   });
 
