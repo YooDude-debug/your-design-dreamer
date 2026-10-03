@@ -44,7 +44,12 @@ describe("A/P0 – Kurzantwort auf offene ORB-Frage", () => {
   it("letzte ORB-Frage wird erkannt", () => {
     expect(pending).toContain("Caching oder persistente Serverprozesse");
     expect(pendingOrbQuestion([{ role: "orb", body: "Ich höre zu." }])).toBeNull();
-    expect(pendingOrbQuestion([{ role: "orb", body: "A?" }, { role: "user", body: "x" }])).toBeNull();
+    expect(
+      pendingOrbQuestion([
+        { role: "orb", body: "A?" },
+        { role: "user", body: "x" },
+      ]),
+    ).toBeNull();
   });
 
   it("1. Offene Frage → „Ja“ → kein LISTEN, inhaltlicher Anschluss", () => {
@@ -62,7 +67,11 @@ describe("A/P0 – Kurzantwort auf offene ORB-Frage", () => {
   it("Kurzantwort-Erkennung: knapp ja, lang/Frage nein", () => {
     for (const t of ["Ja", "nein", "Genau.", "Stimmt", "Alle 3 Punkte von dir genannt", "Beides"])
       expect(isShortReply(t), t).toBe(true);
-    for (const t of ["Ja?", "Ich war heute arbeiten", "Ja und dann habe ich noch sehr viel mehr erzählt"])
+    for (const t of [
+      "Ja?",
+      "Ich war heute arbeiten",
+      "Ja und dann habe ich noch sehr viel mehr erzählt",
+    ])
       expect(isShortReply(t), t).toBe(false);
   });
 
@@ -77,7 +86,8 @@ describe("A/P0 – Kurzantwort auf offene ORB-Frage", () => {
   });
 
   it("6. mehrere bestätigte Probleme → Fortschritt statt Wiederholung verlangt", () => {
-    const q = "Was fehlt dir im Moment am meisten: Nutzer, Einnahmen oder ein klarer nächster Schritt?";
+    const q =
+      "Was fehlt dir im Moment am meisten: Nutzer, Einnahmen oder ein klarer nächster Schritt?";
     expect(isShortReply("Alle 3 Punkte von dir genannt")).toBe(true);
     expect(replyBindingHint(q)).toMatch(/Priorisierung|konkreten nächsten Schritt/);
   });
@@ -172,7 +182,13 @@ describe("C/P1 – autonome Impulse", () => {
     const d = decideImpulse(
       input({
         conversationTopics: ["gaming"],
-        gaps: [gap({ topic: "gaming", relatedNodes: ["neu"], suggestedQuestion: "Gaming taucht oft auf." })],
+        gaps: [
+          gap({
+            topic: "gaming",
+            relatedNodes: ["neu"],
+            suggestedQuestion: "Gaming taucht oft auf.",
+          }),
+        ],
         recentlyAskedTopics: new Set(["gaming"]),
       }),
     );
