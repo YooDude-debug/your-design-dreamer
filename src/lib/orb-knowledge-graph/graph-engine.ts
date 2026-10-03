@@ -292,13 +292,20 @@ export class KnowledgeGraphEngine {
    * Suchfokus (nur Darstellung): nicht enthaltene Nodes/Kanten werden
    * abgedunkelt. null = alles normal. Setzt keine Aktivierung.
    */
-  setFocus(nodeIds: string[] | null, edgeIds: string[] | null): void {
+  setFocus(
+    nodeIds: string[] | null,
+    edgeIds: string[] | null,
+    opts: { reframe?: boolean } = {},
+  ): void {
     this.focusNodes = nodeIds ? new Set(nodeIds) : null;
     this.focusEdges = edgeIds ? new Set(edgeIds) : null;
     this.pathQueue = [];
+    // Kamera nur bei ausdrücklicher Neuausrichtung (neue Suche/Moduswechsel
+    // mit Treffern). Highlight entfernen oder Live-Aktualisierung lässt
+    // manuellen Zoom und Abstand unverändert.
+    if (!opts.reframe || !nodeIds || nodeIds.length === 0) return;
     this.userZoomed = false;
-    this.distance =
-      nodeIds && nodeIds.length ? Math.min(this.framingDistance, 22) : this.framingDistance;
+    this.distance = Math.min(this.framingDistance, 22);
   }
   /** Spielt einen Suchpfad Schritt für Schritt ab (Farbe getrennt vom Live-Puls). */
   playPath(steps: ({ node: string } | { edge: string; to: string })[], stepMs = 450): void {

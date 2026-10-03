@@ -16,7 +16,7 @@
 import { isLongFormRequest, readCompletion, type ReplyCompletion } from "@/orb-core/long-form";
 import { isConceptRow } from "@/orb-core/analysis/concepts";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { internalError } from "@/orb-core/internal-error";
+import { internalError, isAuthReadError, reauthRequired } from "@/orb-core/internal-error";
 import {
   buildAutonomyTrace,
   compareIds,
@@ -271,6 +271,8 @@ function toThreadView(thread: ThoughtThread, now: number, relevance: number): Or
 }
 
 export type OrbSnapshot = {
+  /** P2: optionale Teile, die diesmal nicht geladen werden konnten. */
+  unavailable?: string[];
   state: OrbState;
   goals: string[];
   cracks: number;
@@ -474,17 +476,32 @@ export async function getSnapshot(
       .limit(12),
     db.from("orb_style").select("*").eq("user_id", userId).maybeSingle(),
   ]);
-  if (nodesRes.error) throw internalError(nodesRes.error);
-  if (threadRes.error) throw internalError(threadRes.error);
-  if (styleRes.error) throw internalError(styleRes.error);
-  if (connRes.error) throw internalError(connRes.error);
-  if (msgRes.error) throw internalError(msgRes.error);
-  if (interestRes.error) throw internalError(interestRes.error);
-  if (suggRes.error) throw internalError(suggRes.error);
-  if (acceptedRes.error) throw internalError(acceptedRes.error);
-  if (rejectedRes.error) throw internalError(rejectedRes.error);
+  // P2 Fehlerisolierung. Erforderlich: Erinnerungen, Fäden, Verbindungen,
+  // Nachrichten. Anmeldefehler → klare Neuanmeldung (nie für andere DB-Fehler).
+  // Optional (Interessen, Vorschläge, Zählwerte, Stil) → als `unavailable`
+  // markiert, Ursache bleibt serverseitig protokolliert (nur Code/Tabelle).
+  const required = { orb_nodes: nodesRes, orb_threads: threadRes, orb_connections: connRes, orb_messages: msgRes };
+  const optional = {
+    orb_interests: interestRes,
+    orb_suggestions: suggRes,
+    suggestions_accepted: acceptedRes,
+    suggestions_rejected: rejectedRes,
+    orb_style: styleRes,
+  };
+  for (const [part, r] of Object.entries({ ...required, ...optional })) {
+    if (r.error) {
+      const e = r.error as { code?: unknown };
+      console.error("[orb] snapshot_part_failed", { part, code: e.code ?? null });
+    }
+  }
+  const failed = [...Object.values(required), ...Object.values(optional)].map((r) => r.error);
+  if (failed.some((e) => e && isAuthReadError(e))) throw reauthRequired();
+  for (const r of Object.values(required)) if (r.error) throw internalError(r.error);
+  const unavailable = Object.entries(optional)
+    .filter(([, r]) => r.error)
+    .map(([part]) => part);
 
-  const connections = mapConnections(connRes.data, now);
+  const connections = mapConnections(connRes.data!, now);
 
   // Jede Momentaufnahme berechnet den Verfall neu – als Kennzahl gezählt,
   // ohne dabei irgendetwas zu entfernen.
@@ -501,7 +518,7 @@ export async function getSnapshot(
       .eq("user_id", userId);
   }
 
-  const suggestions: OrbSuggestion[] = suggRes.data.map((s) => {
+  const suggestions: OrbSuggestion[] = (suggRes.data ?? []).map((s) => {
     const post = s.posts as { title: string | null } | null;
     return {
       id: s.id,
@@ -514,9 +531,9 @@ export async function getSnapshot(
     };
   });
 
-  const interests = mapInterests(interestRes.data);
-  const conversationTopics = msgRes.data.flatMap((m) => topicsOf(m.body));
-  const threads = threadRes.data
+  const interests = mapInterests(interestRes.data ?? []);
+  const conversationTopics = msgRes.data!.flatMap((m) => topicsOf(m.body));
+  const threads = threadRes.data!
     .map((row) => projectThread(mapThread(row), now))
     .map((thread) =>
       toThreadView(thread, now, threadRelevance(thread, { conversationTopics, interests, now })),
@@ -545,13 +562,13 @@ export async function getSnapshot(
     state: toState(stateRow),
     goals: Array.isArray(stateRow.goals) ? (stateRow.goals as string[]) : ["help_user"],
     cracks: stateRow.cracks,
-    nodes: mapNodes(nodesRes.data),
+    nodes: mapNodes(nodesRes.data!),
     connections,
     interests,
     suggestions,
     threads,
     style: styleTraits(styleProfile),
-    messages: msgRes.data
+    messages: msgRes.data!
       .slice()
       .reverse()
       .map((m) => ({
@@ -563,7 +580,7 @@ export async function getSnapshot(
         completion: m.role === "orb" ? readCompletion(m.state_snapshot) : null,
       })),
     metrics: {
-      nodeCount: nodesRes.data.length,
+      nodeCount: nodesRes.data!.length,
       connectionCount: connections.length,
       reactivationCount: stateRow.reactivation_count,
       decayComputations: stateRow.decay_computations + connections.length,
@@ -573,6 +590,7 @@ export async function getSnapshot(
       suggestionsRejected: rejectedRes.count ?? 0,
     },
     perf,
+    ...(unavailable.length ? { unavailable } : {}),
   };
 }
 
@@ -933,7 +951,7 @@ export async function touchConnection(
   },
   q: QueryCounter,
   now: number,
-): Promise<"created" | "reactivated"> {
+): Promise<"created" | "reactivated" | "skipped"> {
   if (sourceId === targetId) return "reactivated";
   const existing = input.targetIsNew
     ? { data: null, error: null as { message: string } | null }
@@ -987,6 +1005,21 @@ export async function touchConnection(
     );
     if (res.error) throw internalError(res.error);
     return "reactivated";
+  }
+
+  // P3: Vor dem Anlegen müssen beide Knoten existieren, dem Benutzer gehören
+  // und (über scopedDb) im aktuellen Bereich liegen. Fehlt einer (z. B. in der
+  // Zwischenzeit gelöscht), wird kontrolliert abgebrochen – kein RLS-Fehler.
+  // RLS (orb_owns_node) und der Scope-Trigger bleiben unverändert wirksam.
+  const owned = await Promise.all(
+    [sourceId, targetId].map((id) =>
+      q.tick(db.from("orb_nodes").select("id").eq("id", id).eq("user_id", userId).maybeSingle()),
+    ),
+  );
+  for (const o of owned) if (o.error) throw internalError(o.error);
+  if (owned.some((o) => !o.data)) {
+    console.warn("[orb] connection_skipped", { reason: "node_missing_or_foreign", origin: input.origin });
+    return "skipped";
   }
 
   const res = await q.tick(

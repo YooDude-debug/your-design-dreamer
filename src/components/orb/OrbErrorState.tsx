@@ -1,3 +1,5 @@
+import { Link } from "@tanstack/react-router";
+import { ORB_REAUTH_REQUIRED } from "@/orb-core/internal-error";
 /**
  * Eigene Fehleranzeige für ORB Core.
  *
@@ -21,6 +23,29 @@ export function OrbErrorState({
   useEffect(() => {
     if (error) console.error("[orb] Fehler in ORB Core:", error);
   }, [error]);
+
+  const message = error instanceof Error ? error.message : typeof error === "string" ? error : "";
+  // P2: nur ausdrückliche Anmeldefehler (Server-Kennung oder 401) – andere
+  // Datenbankfehler bleiben die allgemeine Meldung.
+  const reauth = message.includes(ORB_REAUTH_REQUIRED) || message === "Unauthorized";
+  if (reauth) {
+    return (
+      <div
+        role="alert"
+        className="mx-auto my-6 w-full max-w-2xl rounded-2xl border border-border bg-background p-5 text-center"
+      >
+        <AlertTriangle className="mx-auto mb-3 h-6 w-6 text-muted-foreground" aria-hidden="true" />
+        <p className="text-sm font-semibold">Deine Anmeldung ist abgelaufen.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Bitte melde dich erneut an.</p>
+        <Link
+          to="/auth"
+          className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-xs font-bold text-primary-foreground"
+        >
+          Erneut anmelden
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div

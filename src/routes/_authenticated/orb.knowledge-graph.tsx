@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { ClientOnly, createFileRoute, useRouter } from "@tanstack/react-router";
+import { ClientOnly, createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { BrainCircuit } from "lucide-react";
@@ -55,6 +55,14 @@ function KnowledgeGraphPage() {
       <div className="absolute left-3 top-3 z-20 hidden rounded-full border border-border/60 sm:block bg-surface/80 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground backdrop-blur-md">
         ORB Knowledge Graph · Experiment · nur Lesen
       </div>
+      {access.data?.isAdmin && (
+        <Link
+          to="/orb/unassigned"
+          className="absolute right-3 top-14 z-20 rounded-full border border-border/60 bg-surface/80 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground backdrop-blur-md"
+        >
+          Nicht zugeordnet – historische Daten
+        </Link>
+      )}
       {/* Rein erklärend: Cognitive-Daten sind transient (nur Live-Broadcast). */}
       <p className="pointer-events-none absolute inset-x-3 top-[10rem] z-10 text-center text-[11px] leading-snug text-muted-foreground lg:inset-x-auto lg:left-3 lg:top-12 lg:text-left">
         <span className="font-semibold text-foreground/80">Cognitive-Ebenen</span> erscheinen live
