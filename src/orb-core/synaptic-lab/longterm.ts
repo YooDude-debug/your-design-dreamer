@@ -18,6 +18,8 @@
 import {
   LAB_MODELS,
   BYTES_PER_CANDIDATE,
+  BYTES_PER_TOMBSTONE,
+  isLive,
   S_INITIAL,
   WEAK_THRESHOLD,
   buildPool,
@@ -143,7 +145,7 @@ export type LtTrace = {
 
 function sampleOf(s: ModelState, key: string, p: LabParams): TrackedSample {
   const c = s.candidates.get(key);
-  if (!c || c.lifecycle === "removed")
+  if (!c || !isLive(c))
     return { present: false, strength: null, lifecycle: c?.lifecycle ?? null };
   return {
     present: true,
@@ -181,8 +183,23 @@ export type LtMetrics = {
   weakShareAfterRest: number | null;
   /** Vorhanden + schwach/inaktiv nach der Ruhe (Basis der Reaktivierungsquote). */
   weakPresentAfterRest: number;
-  /** Nach der Ruhe experimentell entfernt. */
+  /** Nach der Ruhe experimentell entfernt (inkl. dormant/expired). */
   removedAfterRest: number;
+  /** Modell D: beobachtete Verbindungen nach der Ruhe ruhend (dormant). */
+  dormantAfterRest: number;
+  /** Modell D: aus dormant rekonstruiert (Zustandsänderung, kein Reaktivierungserfolg). */
+  restored: number;
+  /** Modell D: rekonstruiert UND danach Zielstärke erreicht. */
+  restoredReachedTarget: number;
+  /** Modell D: beobachtete Verbindungen wegen abgelaufener Aufbewahrung endgültig verloren. */
+  expired: number;
+  /** Am Ende: aktive Verbindungen gesamt / schwach (vorhanden) gesamt / dormant gesamt. */
+  activeEnd: number;
+  weakEnd: number;
+  dormantEnd: number;
+  activeBytes: number;
+  dormantBytes: number;
+  tombstoneBytes: number;
   reactivated: number;
   reactivationRate: number | null;
   /** Ø Abrufschritte – nur über „nach Wiederaktivierung erreicht“. */
@@ -227,6 +244,8 @@ export function ltMetrics(
   // P10: Zielstärke-Klassifikation – „bereits erreicht“ ist KEIN Wiederherstellungserfolg.
   let targetHeld = 0; // vor der Ruhe erreicht und bis Abrufbeginn nie darunter gefallen
   let targetNotReached = 0;
+  let restored = 0;
+  let restoredReachedTarget = 0;
   plan.tracked.forEach((key, i) => {
     let firstRecovery: number | null = null;
     let didReactivate = false;
@@ -248,6 +267,18 @@ export function ltMetrics(
         firstRecovery = s - recallStart + 1;
     }
     if (didReactivate) reactivated++;
+    const lastState = trace.states[trace.states.length - 1]?.candidates.get(key);
+    const restoreStep = lastState?.restoredStep ?? null;
+    if (restoreStep !== null && restoreStep > recallStart - 1) {
+      restored++;
+      for (let s = restoreStep - 1; s < trace.samples.length; s++) {
+        const x = trace.samples[s]![i]!;
+        if (x.present && x.strength! >= lt.recoveryStrength) {
+          restoredReachedTarget++;
+          break;
+        }
+      }
+    }
     if (heldThroughRest) targetHeld++;
     else if (firstRecovery !== null) {
       recovered++;
@@ -275,6 +306,11 @@ export function ltMetrics(
     weakShareAfterRest: endRest ? share(weakPresent, n) : null,
     weakPresentAfterRest: weakPresent,
     removedAfterRest: endRest ? endRest.filter((x) => !x.present).length : 0,
+    dormantAfterRest: endRest ? endRest.filter((x) => x.lifecycle === "dormant").length : 0,
+    restored,
+    restoredReachedTarget,
+    expired: last ? last.filter((x) => x.lifecycle === "expired").length : 0,
+    ...endCounts(final, p),
     reactivated,
     reactivationRate: share(reactivated, weakPresent),
     meanStepsToRecovery: recovered ? recoverySum / recovered : null,
@@ -286,6 +322,23 @@ export function ltMetrics(
     hypothesesCreated: final ? final.candidates.size : 0,
     approxBytes: (final ? final.candidates.size : 0) * BYTES_PER_CANDIDATE,
     ops: final?.ops ?? 0,
+  };
+}
+
+function endCounts(final: ModelState | undefined, p: LabParams) {
+  const all = final ? [...final.candidates.values()] : [];
+  const live = all.filter(isLive);
+  const weak = live.filter(
+    (c) => strengthAt(c, final!.step, final!.model, p.decay) < WEAK_THRESHOLD,
+  ).length;
+  const dormant = all.filter((c) => c.lifecycle === "dormant").length;
+  return {
+    activeEnd: live.length - weak,
+    weakEnd: weak,
+    dormantEnd: dormant,
+    activeBytes: live.length * BYTES_PER_CANDIDATE,
+    dormantBytes: dormant * BYTES_PER_CANDIDATE,
+    tombstoneBytes: (all.length - live.length - dormant) * BYTES_PER_TOMBSTONE,
   };
 }
 
