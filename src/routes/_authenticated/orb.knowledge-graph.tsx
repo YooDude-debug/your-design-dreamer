@@ -88,7 +88,7 @@ function KnowledgeGraphPage() {
               search={{ scope: s }}
               aria-current={s === scope ? "page" : undefined}
               className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                s === scope ? "bg-brand text-brand-foreground" : "text-muted-foreground"
+                s === scope ? "bg-primary text-primary-foreground" : "text-muted-foreground"
               }`}
             >
               {SCOPE_LABEL[s]}
