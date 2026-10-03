@@ -248,7 +248,8 @@ export function stepModel(
   p: LabParams,
   opts?: StepOptions,
 ): ModelState {
-  const retentionOf = (c: LabCandidate) => (opts?.retention ? opts.retention(c) : p.dormantRetention);
+  const retentionOf = (c: LabCandidate) =>
+    opts?.retention ? opts.retention(c) : p.dormantRetention;
   const step = prev.step + 1;
   const cands = new Map<string, LabCandidate>();
   for (const [k, c] of prev.candidates) cands.set(k, { ...c });

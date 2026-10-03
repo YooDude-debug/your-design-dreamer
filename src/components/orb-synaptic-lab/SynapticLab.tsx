@@ -32,6 +32,7 @@ import {
 } from "@/orb-core/synaptic-lab/simulation";
 import LongTermLab from "./LongTermLab";
 import ValidationLab from "./ValidationLab";
+import AdaptiveLab from "./AdaptiveLab";
 
 const MAX_STEPS = 400;
 const VIEW_NODES = 80;
@@ -253,6 +254,7 @@ export default function SynapticLab({ scope }: { scope: OrbDataScope }) {
       <LongTermLab snapshot={snapshot} params={params} />
 
       <ValidationLab snapshot={snapshot} params={params} />
+      <AdaptiveLab params={params} />
     </div>
   );
 }

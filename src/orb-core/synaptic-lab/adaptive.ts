@@ -91,12 +91,48 @@ export type Profile = {
   usageEvery: number;
 };
 export const PROFILES: readonly Profile[] = [
-  { id: "hr_lu", label: "Hohe Relevanz, seltene Nutzung", relevance: 0.9, importance: 0.9, usageEvery: 6 },
-  { id: "lr_hu", label: "Niedrige Relevanz, häufige Nutzung", relevance: 0.1, importance: 0.1, usageEvery: 1 },
-  { id: "hr_hu", label: "Hohe Relevanz, häufige Nutzung", relevance: 0.9, importance: 0.9, usageEvery: 1 },
-  { id: "lr_lu", label: "Niedrige Relevanz, seltene Nutzung", relevance: 0.1, importance: 0.1, usageEvery: 6 },
-  { id: "mr_hu", label: "Gleiche Relevanz 0,5, häufige Nutzung", relevance: 0.5, importance: 0.5, usageEvery: 1 },
-  { id: "mr_lu", label: "Gleiche Relevanz 0,5, seltene Nutzung", relevance: 0.5, importance: 0.5, usageEvery: 6 },
+  {
+    id: "hr_lu",
+    label: "Hohe Relevanz, seltene Nutzung",
+    relevance: 0.9,
+    importance: 0.9,
+    usageEvery: 6,
+  },
+  {
+    id: "lr_hu",
+    label: "Niedrige Relevanz, häufige Nutzung",
+    relevance: 0.1,
+    importance: 0.1,
+    usageEvery: 1,
+  },
+  {
+    id: "hr_hu",
+    label: "Hohe Relevanz, häufige Nutzung",
+    relevance: 0.9,
+    importance: 0.9,
+    usageEvery: 1,
+  },
+  {
+    id: "lr_lu",
+    label: "Niedrige Relevanz, seltene Nutzung",
+    relevance: 0.1,
+    importance: 0.1,
+    usageEvery: 6,
+  },
+  {
+    id: "mr_hu",
+    label: "Gleiche Relevanz 0,5, häufige Nutzung",
+    relevance: 0.5,
+    importance: 0.5,
+    usageEvery: 1,
+  },
+  {
+    id: "mr_lu",
+    label: "Gleiche Relevanz 0,5, seltene Nutzung",
+    relevance: 0.5,
+    importance: 0.5,
+    usageEvery: 6,
+  },
 ];
 export const PER_PROFILE = 2;
 
@@ -161,7 +197,10 @@ export function planAdaptive(
   const nTracked = Math.min(order.length, PROFILES.length * PER_PROFILE);
   const tracked = order.slice(0, nTracked);
   const background = order.slice(nTracked, nTracked + p.growthRate * a.buildSteps);
-  const controls = order.slice(nTracked + background.length, nTracked + background.length + nTracked);
+  const controls = order.slice(
+    nTracked + background.length,
+    nTracked + background.length + nTracked,
+  );
   const attrs = new Map<string, Attr>();
   tracked.forEach((k, i) => {
     const pr = PROFILES[Math.floor(i / PER_PROFILE)]!;
@@ -171,7 +210,8 @@ export function planAdaptive(
   let cursor = 0;
   for (let s = 0; s < a.buildSteps; s++) {
     const grow = s === 0 ? [...tracked] : [];
-    for (let g = 0; g < p.growthRate && cursor < background.length; g++) grow.push(background[cursor++]!);
+    for (let g = 0; g < p.growthRate && cursor < background.length; g++)
+      grow.push(background[cursor++]!);
     const activate: string[] = [];
     tracked.forEach((k, i) => {
       if (s > 0 && s % PROFILES[Math.floor(i / PER_PROFILE)]!.usageEvery === 0) {
@@ -185,7 +225,11 @@ export function planAdaptive(
   }
   for (let s = 0; s < restSteps; s++) events.push({ phase: "rest", grow: [], activate: [] });
   for (let s = 0; s < a.recallSteps; s++)
-    events.push({ phase: "recall", grow: [], activate: s === 0 ? [...tracked, ...controls] : [...tracked] });
+    events.push({
+      phase: "recall",
+      grow: [],
+      activate: s === 0 ? [...tracked, ...controls] : [...tracked],
+    });
   return { events, tracked, controls, attrs };
 }
 
@@ -250,12 +294,17 @@ export function runAdaptiveModel(
   for (const k of plan.tracked) {
     const at = plan.attrs.get(k)!;
     const c = s.candidates.get(k);
-    const pp = (perProfile[at.profile!] ??= { retrievable: 0, n: 0, retention: retentionFor(model, at, a, p) });
+    const pp = (perProfile[at.profile!] ??= {
+      retrievable: 0,
+      n: 0,
+      retention: retentionFor(model, at, a, p),
+    });
     pp.n++;
     if (retrievable(s, k)) pp.retrievable++;
     if (c?.lifecycle === "expired") expired++;
     if (c && c.restoredCount > 0) restored++;
-    if (c && isLive(c) && strengthAt(c, s.step, "D", p.decay) >= a.recoveryStrength) targetReached++;
+    if (c && isLive(c) && strengthAt(c, s.step, "D", p.decay) >= a.recoveryStrength)
+      targetReached++;
     if (at.importance >= IMPORTANT_THRESHOLD) {
       important++;
       if (c?.lifecycle === "expired") importantLost++;
@@ -311,7 +360,10 @@ export function runAdaptiveValidation(
       const seed = p.seed + i;
       const ps = { ...p, seed };
       const plan = planAdaptive(snapshot, ps, ac, restSteps);
-      return { seed, metrics: ADAPTIVE_MODELS.map((m) => runAdaptiveModel(m, plan, snapshot, ps, ac)) };
+      return {
+        seed,
+        metrics: ADAPTIVE_MODELS.map((m) => runAdaptiveModel(m, plan, snapshot, ps, ac)),
+      };
     }),
   }));
 }
