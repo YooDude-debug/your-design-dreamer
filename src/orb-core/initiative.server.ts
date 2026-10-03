@@ -20,6 +20,7 @@ import { decideCuriosity, isDuplicateQuestion, type KnowledgeGap } from "@/orb-c
 import type { decideImpulse } from "@/orb-core/impulse";
 import { orbBuildId, scopeCheckOf } from "@/orb-core/decision-trace";
 import { scopeOf } from "@/orb-core/scope";
+import { ORB_CHAT_SCOPES } from "@/orb-core/scope-values";
 import { PROACTIVE_SCOPE } from "@/orb-core/presence";
 import { topicsOf } from "@/orb-core/memory";
 import { logEventSummary, type OrbEventContext } from "@/orb-core/observability.server";
@@ -178,7 +179,7 @@ export async function tryExtendedInitiative(input: {
         declared_scope: PROACTIVE_SCOPE,
         build_id: orbBuildId(),
         scope_check: scopeCheckOf({
-          declaredAllowed: "orb_core",
+          allowedScopes: ORB_CHAT_SCOPES,
           runtimeScope: scopeOf(db),
           explicit: input.explicit,
         }),

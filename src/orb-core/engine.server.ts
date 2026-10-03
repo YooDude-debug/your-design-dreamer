@@ -2414,8 +2414,13 @@ function asGapKind(value: string): KnowledgeGapKind | null {
 
 /** Wie viele vergangene eigene Fragen für Duplikatprüfung geladen werden. */
 const QUESTION_HISTORY_LIMIT = 30;
-/** Einziger Bereich, in dem ORB autonom eigene Fragen stellt. */
-export const AUTONOMOUS_QUESTION_SCOPE = "orb_core" as const;
+/**
+ * Bereiche, in denen ORB autonom eigene Fragen stellt: alle Chat-Bereiche
+ * (auch künftige, über ORB_CHAT_SCOPES). `unassigned` (Feed/Altdaten) und
+ * fehlende Bereichsbindung bleiben ausgeschlossen. Daten bleiben über
+ * `scopedDb` an Benutzer + Bereich gebunden.
+ */
+export const AUTONOMOUS_QUESTION_SCOPES = ORB_CHAT_SCOPES;
 /** Obergrenze der Sperr-Abfrage (7 Tage); liegt weit über dem beobachteten Aufkommen. */
 const QUESTION_LOCK_LIMIT = 500;
 /** Obergrenze der gezielten Verbindungs-Nachladung für die Lückenerkennung. */
@@ -2903,16 +2908,16 @@ export async function askProactively(
   const obs = newEventContext({ path: "proactive_question", callType: "user_visible" });
   const q = new QueryCounter();
   const now = Date.now();
-  // Autonome eigene Fragen ausschliesslich im ORB-Core-Chat. Andere Bereiche
-  // (normal, y_dude, unassigned) bleiben ohne Laden, Modellaufruf oder Eintrag
-  // still. Ausdrückliche Aufforderungen (explicit) sind keine autonomen Fragen.
+  // Autonome eigene Fragen in jedem Chat-Bereich des Benutzers. `unassigned`
+  // und Aufrufe ohne Bereichsbindung bleiben ohne Laden, Modellaufruf oder
+  // Eintrag still. Ausdrückliche Aufforderungen (explicit) sind keine autonomen Fragen.
   const scopeCheck = scopeCheckOf({
-    declaredAllowed: AUTONOMOUS_QUESTION_SCOPE,
+    allowedScopes: AUTONOMOUS_QUESTION_SCOPES,
     runtimeScope: scopeOf(db),
     explicit: options.explicit === true,
   });
   if (scopeCheck.result === "blocked") {
-    const reason = "Eigene Fragen stellt ORB nur im ORB-Core-Chat.";
+    const reason = "Eigene Fragen stellt ORB nur in einem Chat-Bereich.";
     console.info(
       "[orb.autonomy]",
       JSON.stringify({

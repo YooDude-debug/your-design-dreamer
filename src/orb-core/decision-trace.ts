@@ -41,7 +41,7 @@ export function compareIds(a: string | null | undefined, b: string | null | unde
 export type ScopeCheckResult = "pass" | "blocked" | "explicit_request";
 
 export type ScopeCheck = {
-  /** Fest deklarierter, einzig zulässiger Bereich für autonome Fragen. */
+  /** Fest deklarierte, zulässige Bereiche für autonome Fragen ("a|b|c"). */
   declared_allowed: string;
   /** Bereich, in dem der Aufruf tatsächlich lief (aus dem Datenzugang). */
   requested: string | null;
@@ -52,20 +52,21 @@ export type ScopeCheck = {
 
 /**
  * Bildet genau die serverseitige Bereichsprüfung ab: ausdrückliche Aufforderung
- * ist keine autonome Frage; sonst nur der deklarierte Bereich.
+ * ist keine autonome Frage; sonst nur einer der deklarierten Chat-Bereiche.
+ * Ohne Bereichsbindung (null) oder `unassigned` bleibt ORB still.
  */
 export function scopeCheckOf(input: {
-  declaredAllowed: string;
+  allowedScopes: readonly string[];
   runtimeScope: string | null;
   explicit: boolean;
 }): ScopeCheck {
   const result: ScopeCheckResult = input.explicit
     ? "explicit_request"
-    : input.runtimeScope === input.declaredAllowed
+    : input.runtimeScope !== null && input.allowedScopes.includes(input.runtimeScope)
       ? "pass"
       : "blocked";
   return {
-    declared_allowed: input.declaredAllowed,
+    declared_allowed: input.allowedScopes.join("|"),
     requested: input.runtimeScope,
     checked: input.runtimeScope,
     result,
