@@ -12,6 +12,13 @@ export type OrbChatScope = (typeof ORB_CHAT_SCOPES)[number];
 /** Alle gespeicherten Bereiche; `unassigned` nur für Altdaten und Feed. */
 export type OrbDataScope = OrbChatScope | "unassigned";
 
+/** Alle Bereiche für reine Lese-Ansichten (Knowledge Globe); ohne Voreinstellung. */
+export const ORB_DATA_SCOPES = [...ORB_CHAT_SCOPES, "unassigned"] as const;
+export const orbDataScopeSchema = z.enum(ORB_DATA_SCOPES);
+export function isOrbDataScope(value: unknown): value is OrbDataScope {
+  return typeof value === "string" && (ORB_DATA_SCOPES as readonly string[]).includes(value);
+}
+
 /** Feed-Beobachtung bleibt ohne Bereichszuordnung. */
 export const ORB_FEED_SCOPE: OrbDataScope = "unassigned";
 
