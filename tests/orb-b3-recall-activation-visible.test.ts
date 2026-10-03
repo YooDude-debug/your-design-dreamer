@@ -90,7 +90,7 @@ describe("B3 – Recall-Aktivierung nur für model-visible Memories", () => {
 
   it("5./6. Auswahl, P2-V2, B2, Modus: Quelltext unverändert verdrahtet", () => {
     expect(src).toContain(
-      'plan.mode === "DIRECT_ANSWER" ? directAnswerItems : plan.relevantStrandRefs;',
+      '(plan.mode === "DIRECT_ANSWER" ? directAnswerItems : plan.relevantStrandRefs).filter(',
     );
     expect(src).toContain("promptMemoryRefs(plan).map((r) => r.id),");
     // Ausschluss sitzt nach speak() und vor dem Aktivierungs-Write
