@@ -2787,6 +2787,17 @@ async function loadCuriosityContext(
         now - new Date(row.asked_at).getTime() < ANSWER_WINDOW_MS,
     ) ?? null;
 
+  // P1: Themen eigener Fragen innerhalb der bestehenden Sperrfrist (bereits geladen).
+  const recentlyAskedTopics = new Set(
+    questions
+      .filter((r) => r.asked_at && now - new Date(r.asked_at).getTime() < QUESTION_MEMORY_LOCK_MS)
+      .map((r) => r.topic)
+      .filter((t): t is string => typeof t === "string" && t.length > 0),
+  );
+  // P0: neueste Nachricht ist eine noch unbeantwortete ORB-Frage → offener Dialog.
+  const newest = messageRows[0];
+  const openDialog = Boolean(newest && newest.role === "orb" && newest.body.includes("?"));
+
   return {
     stateRow,
     state,
@@ -2801,6 +2812,8 @@ async function loadCuriosityContext(
     gaps: mergedGaps,
     detectedGaps,
     recentlyAskedMemoryIds: recentlyAsked,
+    recentlyAskedTopics,
+    openDialog,
     recentUserTexts: messageRows.filter((m) => m.role === "user").map((m) => m.body),
     // PoC 1: bereits geladene Daten, nur weitergereicht (0 zusätzliche Abfragen).
     recentMessages: messageRows,
@@ -3010,7 +3023,7 @@ export async function askProactively(
     energy: ctx.state.energy,
     gaps: ctx.gaps,
     lastQuestionAt: ctx.lastQuestionAt,
-    openQuestion: ctx.openQuestion !== null,
+    openQuestion: ctx.openQuestion !== null || ctx.openDialog,
     now,
   });
 
@@ -3025,7 +3038,8 @@ export async function askProactively(
     previousImpulses: ctx.questions.map((row) => row.question),
     knownAnswers: ctx.memories.map((m) => m.content),
     recentlyAskedMemoryIds: ctx.recentlyAskedMemoryIds,
-    openQuestion: ctx.openQuestion !== null,
+    openQuestion: ctx.openQuestion !== null || ctx.openDialog,
+    recentlyAskedTopics: ctx.recentlyAskedTopics,
     lastImpulseAt: ctx.lastQuestionAt,
     now,
   });
@@ -3047,7 +3061,7 @@ export async function askProactively(
       buildId: orbBuildId(),
       scopeCheck,
       gate,
-      openQuestion: ctx.openQuestion !== null,
+      openQuestion: ctx.openQuestion !== null || ctx.openDialog,
       thresholds: {
         min_energy: AUTONOMY_MIN_ENERGY,
         impulse_min_score: IMPULSE_MIN_SCORE,

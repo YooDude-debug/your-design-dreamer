@@ -152,6 +152,12 @@ export type ImpulseDecisionInput = {
   recentlyAskedMemoryIds?: ReadonlySet<string>;
   /** Eine eigene Frage ist noch unbeantwortet. */
   openQuestion?: boolean;
+  /**
+   * Themen, zu denen ORB innerhalb der bestehenden Sperrfrist bereits selbst
+   * gefragt hat. Wirkt nur auf Themen-Beobachtungen (`repeated_topic`), deren
+   * Gegenstand das Thema selbst ist – andere Wortwahl, gleiche Lücke.
+   */
+  recentlyAskedTopics?: ReadonlySet<string>;
   /** Zeitpunkt des letzten eigenen Impulses (ms) oder null. */
   lastImpulseAt: number | null;
   now: number;
@@ -191,6 +197,12 @@ export function decideImpulse(input: ImpulseDecisionInput): ImpulseDecision {
       continue;
     }
     const conversationalFit = gap.topic && topics.has(gap.topic) ? 1 : 0.6;
+    // Themen-Beobachtung: nur mit Bezug zum laufenden Gespräch und nicht erneut
+    // zum selben Thema innerhalb der Sperrfrist.
+    if (gap.type === "repeated_topic") {
+      if (conversationalFit < 1) continue;
+      if (gap.topic && input.recentlyAskedTopics?.has(gap.topic)) continue;
+    }
     const score = impulseScore({
       gapImportance: gap.importance,
       confidence: gap.confidence,
