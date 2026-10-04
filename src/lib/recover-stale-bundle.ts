@@ -100,6 +100,13 @@ function installStaleServerFnDetection(): void {
 export function installStaleBundleRecovery(): void {
   if (typeof window === "undefined") return;
   installStaleServerFnDetection();
+  // Vite meldet fehlgeschlagene Chunk-Ladevorgänge über ein eigenes Ereignis.
+  // Ohne diesen Listener wirft der Router den Fehler in die Fehlergrenze,
+  // bevor ein globaler Listener greift (leere Seite nach einem Deploy).
+  window.addEventListener("vite:preloadError", (event) => {
+    event.preventDefault();
+    void performRecovery();
+  });
   window.addEventListener("error", (event) => {
     void recoverFromStaleBundle(event.error ?? event.message);
   });
