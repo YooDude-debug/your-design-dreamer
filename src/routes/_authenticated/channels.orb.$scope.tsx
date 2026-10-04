@@ -7,7 +7,7 @@
  * und schlägt vor – likt, kommentiert, folgt und schreibt aber nichts.
  */
 
-import { ClientOnly, createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
+import { ClientOnly, createFileRoute, Link, redirect, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
@@ -60,7 +60,7 @@ import {
 import { orbChatRequestDiagnostic, type ChatBridgeView } from "@/lib/orb-chat-bridge.functions";
 import { detectDeveloperDiagnosticIntent } from "@/orb-dev/chat-bridge";
 import { adminCheckAccess } from "@/lib/admin.functions";
-import { ORB_SCOPE_LABEL, RETRIEVAL_CHANNEL, isOrbChatScope, type OrbChatScope } from "@/orb-sdk";
+import { RETRIEVAL_CHANNEL, isOrbChatScope, type OrbChatScope } from "@/orb-sdk";
 import { COGNITIVE_CHANNEL, toCognitiveView } from "@/lib/orb-knowledge-graph/cognitive-layers";
 import { wrapTabSignal } from "@/lib/orb-knowledge-graph/tab-signal";
 import { useSession } from "@/lib/use-session";
