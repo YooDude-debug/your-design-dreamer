@@ -30,3 +30,14 @@ describe("Phase 2A – Lifecycle im Abruf", () => {
     expect((fn.match(/\.eq\("user_id", userId\)/g) ?? []).length).toBe(5);
   });
 });
+
+import { memoryLevel } from "@/orb-core/memory";
+describe("Phase 2B – Wichtigkeit ≠ Häufigkeit", () => {
+  const now = 1_000 * 3_600_000;
+  it("häufig, aber unwichtig → nicht B", () => {
+    expect(memoryLevel({ importance: 0.2, activationCount: 9, lastAccessedAt: now - 50 * 3_600_000 }, now)).toBe("C");
+  });
+  it("selten, aber wichtig → B", () => {
+    expect(memoryLevel({ importance: 0.8, activationCount: 0, lastAccessedAt: now - 900 * 3_600_000 }, now)).toBe("B");
+  });
+});
