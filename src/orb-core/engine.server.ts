@@ -13,6 +13,7 @@
  * durch Verfall oder durch negatives Feedback.
  */
 
+import { isRecallableLifecycle } from "@/orb-core/memory-lifecycle";
 import {
   conversationOriginContents,
   isAnsweredInConversation,
@@ -918,8 +919,12 @@ async function retrieveCandidates(
     // nicht in den Erinnerungsabruf.
     for (const row of r.data ?? []) if (!isConceptRow(row)) byId.set(row.id, row);
   }
+  // `exact` bleibt zustandsunabhängig: gleicher Schlüssel = dieselbe Erinnerung
+  // (Verstärkung/Reaktivierung statt Duplikat, Unique-Index norm_key).
   const exact = key ? ([...byId.values()].find((n) => n.norm_key === key) ?? null) : null;
-  return { nodes: mapNodes([...byId.values()]), exact };
+  // Phase 2A: vergessene/archivierte Erinnerungen nie als aktive Fakten abrufen.
+  const recallable = [...byId.values()].filter((n) => isRecallableLifecycle(n.lifecycle));
+  return { nodes: mapNodes(recallable), exact };
 }
 
 /* -------------------------------------------------------------- Verarbeitung */

@@ -70,3 +70,15 @@ export function analysisLifecycleUpdate(
   });
   return next === row.lifecycle ? null : next;
 }
+
+/**
+ * Phase 2A: Zustände, die im Antwort-Abruf nicht als aktive Fakten erscheinen.
+ * forgotten = ausdrücklich vergessen; archived = Zeitbezug abgelaufen.
+ * weak/stale bleiben abrufbar (nur schwächer). Unbekannte Werte bleiben
+ * abrufbar – kein erfundener Zustand. Ändert keinen gespeicherten Wert.
+ */
+export const NON_RECALLABLE_LIFECYCLES: readonly Lifecycle[] = ["archived", "forgotten"];
+
+export function isRecallableLifecycle(lifecycle: string | null | undefined): boolean {
+  return !NON_RECALLABLE_LIFECYCLES.includes(lifecycle as Lifecycle);
+}
