@@ -16,14 +16,16 @@ import type { ProtectionCategory } from "@/orb-core/reversible-lifecycle";
  * Immer `confirmed: false`: Eine Analyse-Ableitung ist nie automatisch
  * bestätigte dauerhafte Information; Schutz verlangt Nutzerbestätigung.
  */
-export function protectionGroupCandidate(
-  c: Pick<MemoryCandidate, "category" | "temporalScope">,
-): { group: ProtectionCategory | null; confirmed: false } {
+export function protectionGroupCandidate(c: Pick<MemoryCandidate, "category" | "temporalScope">): {
+  group: ProtectionCategory | null;
+  confirmed: false;
+} {
   const lasting = c.temporalScope === "persistent" || c.temporalScope === "long_term";
   let group: ProtectionCategory | null = null;
   if (c.category === "identity") group = "identity";
   else if (!lasting) group = null;
-  else if (c.category === "preference" || c.category === "address_preference") group = "long_term_preference";
+  else if (c.category === "preference" || c.category === "address_preference")
+    group = "long_term_preference";
   else if (c.category === "project" || c.category === "goal") group = "long_term_project";
   else if (c.category === "decision") group = "important_decision";
   return { group, confirmed: false };
@@ -39,7 +41,14 @@ export function planCandidateContradiction(
   c: Pick<MemoryCandidate, "key" | "value" | "sourceReference">,
 ): PreservationPlan {
   return planContradiction(
-    { id: existing.id, subject: "user", predicate: c.key, value: existing.content, source: "user_stated", observedAt: null },
+    {
+      id: existing.id,
+      subject: "user",
+      predicate: c.key,
+      value: existing.content,
+      source: "user_stated",
+      observedAt: null,
+    },
     {
       subject: "user",
       predicate: c.key,

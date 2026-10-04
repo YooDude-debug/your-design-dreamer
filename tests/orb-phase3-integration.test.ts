@@ -12,14 +12,25 @@ describe("Phase 3 integration", () => {
   });
 
   it("Schutzgruppe aus Analyse ist nie bestätigt", () => {
-    expect(protectionGroupCandidate({ category: "identity", temporalScope: "persistent" })).toEqual({ group: "identity", confirmed: false });
-    expect(protectionGroupCandidate({ category: "preference", temporalScope: "long_term" }).group).toBe("long_term_preference");
-    expect(protectionGroupCandidate({ category: "preference", temporalScope: "temporary" }).group).toBeNull();
-    expect(protectionGroupCandidate({ category: "fact", temporalScope: "persistent" }).group).toBeNull();
+    expect(protectionGroupCandidate({ category: "identity", temporalScope: "persistent" })).toEqual(
+      { group: "identity", confirmed: false },
+    );
+    expect(
+      protectionGroupCandidate({ category: "preference", temporalScope: "long_term" }).group,
+    ).toBe("long_term_preference");
+    expect(
+      protectionGroupCandidate({ category: "preference", temporalScope: "temporary" }).group,
+    ).toBeNull();
+    expect(
+      protectionGroupCandidate({ category: "fact", temporalScope: "persistent" }).group,
+    ).toBeNull();
   });
 
   it("Korrektur ohne Beleg ist Vermutung und überschreibt nie", () => {
-    const p = planCandidateContradiction({ id: "n1", content: "Firmaalpha" }, { key: "arbeitgeber", value: "Firmabeta", sourceReference: "" });
+    const p = planCandidateContradiction(
+      { id: "n1", content: "Firmaalpha" },
+      { key: "arbeitgeber", value: "Firmabeta", sourceReference: "" },
+    );
     expect(p.overwriteExisting).toBe(false);
     expect(p.newClass).toBe("inferred");
     expect(p.current).not.toBe("new");
@@ -28,7 +39,11 @@ describe("Phase 3 integration", () => {
   it("belegte Zeitänderung wird als zeitliche Veränderung erkannt", () => {
     const p = planCandidateContradiction(
       { id: "n1", content: "Firmaalpha" },
-      { key: "arbeitgeber", value: "Firmabeta", sourceReference: "ich arbeite jetzt bei Firmabeta" },
+      {
+        key: "arbeitgeber",
+        value: "Firmabeta",
+        sourceReference: "ich arbeite jetzt bei Firmabeta",
+      },
     );
     expect(p.kind).toBe("temporal_change");
     expect(p.overwriteExisting).toBe(false);
