@@ -79,6 +79,10 @@ export function analysisLifecycleUpdate(
  */
 export const NON_RECALLABLE_LIFECYCLES: readonly Lifecycle[] = ["archived", "forgotten"];
 
+/** Phase 3: logische Zustände aus 2F (noch ohne DB-Spalte) – nie aktive Fakten. */
+export const NON_RECALLABLE_BRAIN_STATES: readonly string[] = ["dormant", "expired"];
+
 export function isRecallableLifecycle(lifecycle: string | null | undefined): boolean {
+  if (lifecycle && NON_RECALLABLE_BRAIN_STATES.includes(lifecycle)) return false;
   return !NON_RECALLABLE_LIFECYCLES.includes(lifecycle as Lifecycle);
 }

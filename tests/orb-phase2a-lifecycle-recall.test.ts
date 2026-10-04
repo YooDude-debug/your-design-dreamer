@@ -17,7 +17,7 @@ describe("Phase 2A – Lifecycle im Abruf", () => {
   it("unbekannte/fehlende Werte werden nicht erfunden und bleiben abrufbar", () => {
     expect(isRecallableLifecycle(null)).toBe(true);
     expect(isRecallableLifecycle(undefined)).toBe(true);
-    expect(isRecallableLifecycle("dormant")).toBe(true);
+    expect(isRecallableLifecycle("some_unknown_state")).toBe(true);
   });
   it("nutzt nur vorhandene Zustände", () => {
     for (const l of NON_RECALLABLE_LIFECYCLES) expect(LIFECYCLE_ORDER).toContain(l);

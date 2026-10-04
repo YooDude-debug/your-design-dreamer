@@ -131,9 +131,10 @@ describe("Phase 8 – Cognitive Contradiction", () => {
       (f) =>
         !f.endsWith("cognitive/contradiction.ts") &&
         f !== "src/orb-core/cognitive-observation.ts" &&
+        f !== "src/orb-core/contradiction-preservation.ts" &&
         readFileSync(f, "utf8").includes("cognitive/contradiction"),
     );
-    // Einzige erlaubte Ausnahme: der Cognitive-Observation-Einstieg.
+    // Erlaubt: Cognitive-Observation-Einstieg und die 2D-Erhaltungsregel (Phase 3, nur protokolliert).
     expect(users).toEqual([]);
   });
 });

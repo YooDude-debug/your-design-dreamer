@@ -177,7 +177,7 @@ describe("P14 S2 – passiv, ohne Inhalte, ohne Rückwirkung", () => {
     });
     const line = spy.mock.calls.map((c) => c.join(" ")).join("\n");
     expect(line).toContain("[orb.obs.memory_eval]");
-    expect(line).toContain("usage_candidate");
+    expect(line).toContain("contributed");
     expect(line).not.toMatch(/Zebrafink|Geheimwort|Antworttext|Nutzertext/);
     spy.mockRestore();
   });

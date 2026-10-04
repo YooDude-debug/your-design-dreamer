@@ -43,6 +43,7 @@ import {
   type ValidatedCandidate,
 } from "@/orb-core/analysis/validate";
 import { analysisLifecycleUpdate, weaken, type Lifecycle } from "@/orb-core/memory-lifecycle";
+import { planCandidateContradiction, protectionGroupCandidate } from "@/orb-core/brain-integration";
 
 /** Wie viele Nachrichten die Analyse betrachtet (mehr als das Chatfenster). */
 export const ANALYSIS_TRANSCRIPT_MESSAGES = 24;
@@ -506,6 +507,28 @@ async function applyOne(
   }
 
   if ((v.decision === "update" || v.decision === "contradiction") && row) {
+    // Phase 3: 2D-Entscheidung + Schutzgruppen-Kandidat nur protokolliert
+    // (IDs/Status, keine Inhalte). Der bestehende Schreibpfad bleibt unverändert,
+    // bis die getrennte Testdatenbank existiert.
+    if (v.decision === "contradiction") {
+      try {
+        const plan = planCandidateContradiction(row, v.candidate);
+        console.info(
+          "[orb.obs.contradiction_plan]",
+          JSON.stringify({
+            node_id: row.id,
+            kind: plan.kind,
+            relation: plan.relation,
+            current: plan.current,
+            new_class: plan.newClass,
+            protection_group: protectionGroupCandidate(v.candidate).group,
+            applied: false,
+          }),
+        );
+      } catch {
+        // Beobachtung darf die Analyse nie beeinflussen.
+      }
+    }
     const res = await q.tick(
       db
         .from("orb_nodes")
