@@ -497,17 +497,18 @@ export async function getSnapshot(
       .limit(12),
     db.from("orb_style").select("*").eq("user_id", userId).maybeSingle(),
   ]);
-  // P2 Fehlerisolierung. Erforderlich: Erinnerungen, Fäden, Verbindungen,
-  // Nachrichten. Anmeldefehler → klare Neuanmeldung (nie für andere DB-Fehler).
-  // Optional (Interessen, Vorschläge, Zählwerte, Stil) → als `unavailable`
-  // markiert, Ursache bleibt serverseitig protokolliert (nur Code/Tabelle).
+  // P2 Fehlerisolierung. Erforderlich: Erinnerungen, Verbindungen, Nachrichten.
+  // Anmeldefehler (auch bei optionalen Teilen) → klare Neuanmeldung, nie für
+  // andere DB-Fehler. Optional (Fäden, Interessen, Vorschläge, Zählwerte, Stil)
+  // → als `unavailable` markiert, Ursache serverseitig protokolliert (nur
+  // Code/Tabelle). Block 2: ein Faden-Lesefehler blockiert Chat/Globe nicht.
   const required = {
     orb_nodes: nodesRes,
-    orb_threads: threadRes,
     orb_connections: connRes,
     orb_messages: msgRes,
   };
   const optional = {
+    orb_threads: threadRes,
     orb_interests: interestRes,
     orb_suggestions: suggRes,
     suggestions_accepted: acceptedRes,
@@ -559,8 +560,8 @@ export async function getSnapshot(
 
   const interests = mapInterests(interestRes.data ?? []);
   const conversationTopics = msgRes.data!.flatMap((m) => topicsOf(m.body));
-  const threads = threadRes
-    .data!.map((row) => projectThread(mapThread(row), now))
+  const threads = (threadRes.data ?? [])
+    .map((row) => projectThread(mapThread(row), now))
     .map((thread) =>
       toThreadView(thread, now, threadRelevance(thread, { conversationTopics, interests, now })),
     );

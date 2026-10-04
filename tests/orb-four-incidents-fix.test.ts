@@ -51,9 +51,27 @@ describe("P2 – Fehlerisolierung der ORB-Übersicht", () => {
     await expect(p).rejects.toThrow();
     await expect(p).rejects.not.toThrow(ORB_REAUTH_REQUIRED);
   });
-  it("Threads bleiben erforderlich", async () => {
+  it("Faden-Lesefehler blockiert die Übersicht nicht (Block 2)", async () => {
+    const snap = await getSnapshot(
+      snapDb({ orb_threads: { code: "XX000", message: "boom" } }),
+      USER,
+    );
+    expect(snap.unavailable).toContain("orb_threads");
+    expect(snap.threads).toEqual([]);
+  });
+  it("Faden-Anmeldefehler → weiterhin klare Neuanmeldung, keine stille Leere", async () => {
     await expect(
-      getSnapshot(snapDb({ orb_threads: { code: "XX000", message: "boom" } }), USER),
+      getSnapshot(
+        snapDb({
+          orb_threads: { code: "42501", message: "permission denied for table orb_threads" },
+        }),
+        USER,
+      ),
+    ).rejects.toThrow(ORB_REAUTH_REQUIRED);
+  });
+  it("Verbindungen bleiben erforderlich", async () => {
+    await expect(
+      getSnapshot(snapDb({ orb_connections: { code: "XX000", message: "boom" } }), USER),
     ).rejects.toThrow();
   });
   it("fehlende Anmeldung (anon, 42501 Tabellenrecht) → klare Neuanmeldung", async () => {
