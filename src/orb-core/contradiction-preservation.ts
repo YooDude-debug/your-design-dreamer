@@ -91,20 +91,48 @@ export function planContradiction(
   };
   const det = detectContradiction(toStatement(existing), toStatement(incoming));
   if (det.type === "unknown") {
-    return { ...base, kind: "unknown", keepNew: false, relation: null, current: null, reason: "incomplete_statement" };
+    return {
+      ...base,
+      kind: "unknown",
+      keepNew: false,
+      relation: null,
+      current: null,
+      reason: "incomplete_statement",
+    };
   }
   const sameRef =
     norm(existing.subject) === norm(incoming.subject) &&
     norm(existing.predicate) === norm(incoming.predicate);
   if (!sameRef) {
-    return { ...base, kind: "unrelated", keepNew: true, relation: null, current: null, reason: "different_reference" };
+    return {
+      ...base,
+      kind: "unrelated",
+      keepNew: true,
+      relation: null,
+      current: null,
+      reason: "different_reference",
+    };
   }
   if (!det.detected) {
-    return { ...base, kind: "duplicate", keepNew: false, relation: null, current: null, reason: "same_value" };
+    return {
+      ...base,
+      kind: "duplicate",
+      keepNew: false,
+      relation: null,
+      current: null,
+      reason: "same_value",
+    };
   }
   const text = incoming.text ?? "";
   if (ADDITION_RE.test(text) && !TIME_CHANGE_RE.test(text)) {
-    return { ...base, kind: "supplement", keepNew: true, relation: "supplements", current: null, reason: "explicit_addition" };
+    return {
+      ...base,
+      kind: "supplement",
+      keepNew: true,
+      relation: "supplements",
+      current: null,
+      reason: "explicit_addition",
+    };
   }
   const inferenceVsConfirmed = base.newClass === "inferred" && base.existingClass === "confirmed";
   if (TIME_CHANGE_RE.test(text) && !inferenceVsConfirmed) {
@@ -123,6 +151,8 @@ export function planContradiction(
     keepNew: true,
     relation: "contradicts",
     current: null,
-    reason: inferenceVsConfirmed ? "inference_cannot_supersede_confirmed" : "conflicting_values_kept",
+    reason: inferenceVsConfirmed
+      ? "inference_cannot_supersede_confirmed"
+      : "conflicting_values_kept",
   };
 }
