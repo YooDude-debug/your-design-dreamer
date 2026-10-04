@@ -538,7 +538,7 @@ export class KnowledgeGraphEngine {
     this.renderer.setSize(w, h);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
-    this.updateFraming(true);
+    this.updateFraming(false);
   };
 
   /**
