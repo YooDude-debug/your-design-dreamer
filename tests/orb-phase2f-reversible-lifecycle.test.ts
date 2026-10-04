@@ -20,7 +20,7 @@ describe("Phase 2F reversible lifecycle", () => {
     const d = decideLifecycle({ ...base, state: "dormant", durable: true, dormantSince: 0 }, P, {
       now: 1e9,
     });
-    expect(d).toMatchObject({ next: "protected", reason: "protected_durable" });
+    expect(d).toMatchObject({ next: "protected", reason: "protected_category" });
   });
 
   it("unwichtig, lange ungenutzt → ruhend, danach ausgelaufen", () => {
