@@ -62,7 +62,9 @@ describe("P2 – Fehlerisolierung der ORB-Übersicht", () => {
   it("Faden-Anmeldefehler → weiterhin klare Neuanmeldung, keine stille Leere", async () => {
     await expect(
       getSnapshot(
-        snapDb({ orb_threads: { code: "42501", message: "permission denied for table orb_threads" } }),
+        snapDb({
+          orb_threads: { code: "42501", message: "permission denied for table orb_threads" },
+        }),
         USER,
       ),
     ).rejects.toThrow(ORB_REAUTH_REQUIRED);
