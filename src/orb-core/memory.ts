@@ -624,13 +624,16 @@ export type LeveledMemory = {
 /**
  * Ebene einer Erinnerung:
  *  A – aktiver Kontext (in den letzten Stunden berührt)
- *  B – persönliches Gedächtnis (wichtig oder häufig aktiviert)
- *  C – Langzeitgedächtnis (alt, schwach, selten aktiviert)
+ *  B – persönliches Gedächtnis (wichtig)
+ *  C – Langzeitgedächtnis (übrige; nur bei freiem Platz)
+ *
+ * Phase 2B: Häufigkeit ist nicht Wichtigkeit – activationCount stuft nicht
+ * mehr allein auf B. Häufigkeit wirkt weiterhin nur über memoryRelevance.
  */
 export function memoryLevel(m: LeveledMemory, now: number): MemoryLevel {
   const hours = (now - m.lastAccessedAt) / HOUR_MS;
   if (hours <= 6) return "A";
-  if (m.importance >= 0.5 || m.activationCount >= 3) return "B";
+  if (m.importance >= 0.5) return "B";
   return "C";
 }
 
