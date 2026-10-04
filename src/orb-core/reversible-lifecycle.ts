@@ -82,23 +82,30 @@ export function decideLifecycle(
   });
 
   // Unbekannte/unvollständige Daten: konservativ, keine Änderung, abrufbar bleiben.
-  if (!m.state || !STATES.includes(m.state) || !finite(s.now)) return keep("active", "unknown_data");
+  if (!m.state || !STATES.includes(m.state) || !finite(s.now))
+    return keep("active", "unknown_data");
   const state = m.state;
 
   // Ausgelaufen: nie automatisch zurück; Bestätigung → neue Aussage.
   if (state === "expired") {
-    if (s.userConfirmed) return { ...keep("expired", "expired_needs_new_statement"), requiresNewStatement: true };
+    if (s.userConfirmed)
+      return { ...keep("expired", "expired_needs_new_statement"), requiresNewStatement: true };
     return keep("expired", "expired_final");
   }
 
   // Schutz: nur gespeicherte Wichtigkeit oder ausdrücklich dauerhaft – nie Häufigkeit.
   if (m.durable) return go(state, "protected", "protected_durable");
-  if (finite(m.importance) && finite(p.importanceThreshold) && m.importance >= p.importanceThreshold) {
+  if (
+    finite(m.importance) &&
+    finite(p.importanceThreshold) &&
+    m.importance >= p.importanceThreshold
+  ) {
     return go(state, "protected", "protected_importance");
   }
   if (state === "protected") {
     // Schutzgrund nicht mehr belegbar (z. B. Schwelle fehlt) → konservativ halten.
-    if (!finite(p.importanceThreshold) || !finite(m.importance)) return keep("protected", "parameter_missing");
+    if (!finite(p.importanceThreshold) || !finite(m.importance))
+      return keep("protected", "parameter_missing");
     return go(state, "active", "still_relevant");
   }
 
@@ -116,7 +123,8 @@ export function decideLifecycle(
 
   // active
   if (s.contributedAgain || s.userConfirmed) return keep("active", "still_relevant");
-  if (!finite(p.dormantAfterMs) || !finite(p.importanceThreshold)) return keep("active", "parameter_missing");
+  if (!finite(p.dormantAfterMs) || !finite(p.importanceThreshold))
+    return keep("active", "parameter_missing");
   if (!finite(m.importance)) return keep("active", "unknown_data");
   // Ohne jeden Nutzungsnachweis kann kein Rückgang belegt werden.
   if (!finite(m.lastContributedAt)) return keep("active", "no_usage_evidence_hold");
