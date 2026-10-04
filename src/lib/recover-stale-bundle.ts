@@ -97,8 +97,10 @@ function installStaleServerFnDetection(): void {
 }
 
 /** Globale Listener für Bundle-Ladefehler außerhalb der React-Fehlergrenze. */
+let installed = false;
 export function installStaleBundleRecovery(): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || installed) return;
+  installed = true;
   installStaleServerFnDetection();
   // Vite meldet fehlgeschlagene Chunk-Ladevorgänge über ein eigenes Ereignis.
   // Ohne diesen Listener wirft der Router den Fehler in die Fehlergrenze,

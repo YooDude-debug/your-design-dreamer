@@ -18,6 +18,10 @@ import { useLang } from "@/lib/lang-context";
 import { ThemeProvider } from "@/lib/theme";
 import { supabase } from "@/integrations/supabase/client";
 import { installStaleBundleRecovery, recoverFromStaleBundle } from "@/lib/recover-stale-bundle";
+
+// Früh installieren (nur Listener, kein Render-Effekt): Chunk-Ladefehler
+// während der Hydration treten auf, bevor useEffect laufen würde.
+installStaleBundleRecovery();
 import { installGlobalZoomGuards } from "@/lib/no-zoom";
 import { useLastSeenHeartbeat } from "@/lib/use-last-seen-heartbeat";
 import { AppSplash } from "@/components/AppSplash";
