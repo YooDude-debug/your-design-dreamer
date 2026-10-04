@@ -102,7 +102,11 @@ function protectionReason(
   if (s.protectionWithdrawn) return null;
   if (m.category || m.durable) return "protected_category";
   if (s.userMarkedDurable) return "protected_user_confirmed";
-  if (finite(m.importance) && finite(p.importanceThreshold) && m.importance >= p.importanceThreshold) {
+  if (
+    finite(m.importance) &&
+    finite(p.importanceThreshold) &&
+    m.importance >= p.importanceThreshold
+  ) {
     return "protected_importance";
   }
   return null;
@@ -115,18 +119,23 @@ export function decideLifecycle(
 ): LifecycleDecision {
   const make = (from: BrainState, to: BrainState, reason: LifecycleReason): LifecycleDecision => {
     const d: LifecycleDecision = { next: to, changed: from !== to, reason };
-    if (s.possibleChange && (m.category === "medical" || to === "protected")) d.currency = "unresolved";
+    if (s.possibleChange && (m.category === "medical" || to === "protected"))
+      d.currency = "unresolved";
     return d;
   };
 
   // Unbekannte/unvollständige Daten: konservativ, keine Änderung, abrufbar bleiben.
-  if (!m.state || !STATES.includes(m.state) || !finite(s.now)) return make("active", "active", "unknown_data");
+  if (!m.state || !STATES.includes(m.state) || !finite(s.now))
+    return make("active", "active", "unknown_data");
   const state = m.state;
 
   // Ausgelaufen: nie automatisch zurück; Bestätigung → neue Aussage.
   if (state === "expired") {
     if (s.userConfirmed || s.userMarkedDurable) {
-      return { ...make("expired", "expired", "expired_needs_new_statement"), requiresNewStatement: true };
+      return {
+        ...make("expired", "expired", "expired_needs_new_statement"),
+        requiresNewStatement: true,
+      };
     }
     return make("expired", "expired", "expired_final");
   }
@@ -159,7 +168,8 @@ export function decideLifecycle(
       ? make(state, "expired", "retention_elapsed")
       : make(state, state, "dormant_within_retention");
   }
-  if (!finite(p.dormantAfterMs) || !finite(p.importanceThreshold)) return make(state, state, "parameter_missing");
+  if (!finite(p.dormantAfterMs) || !finite(p.importanceThreshold))
+    return make(state, state, "parameter_missing");
   if (!finite(m.importance)) return make(state, state, "unknown_data");
   if (!finite(m.lastContributedAt)) return make(state, state, "no_usage_evidence_hold");
   return s.now - m.lastContributedAt >= p.dormantAfterMs
