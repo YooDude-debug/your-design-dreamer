@@ -85,6 +85,16 @@ export function calculateFramingDistance(
   return (radius / Math.sin(limitingHalfFov)) * 1.08;
 }
 
+/**
+ * Kleinster Kameraabstand zum Zentrum: knapp vor der Oberfläche der
+ * Memory-Kugel (Radius + 8 %, mind. 0,5), damit einzelne vordere Knoten
+ * nah erreichbar sind, die Kamera aber nie in die Kugel fährt.
+ */
+export function memoryMinDistance(memoryCoreRadius: number): number {
+  const r = Number.isFinite(memoryCoreRadius) && memoryCoreRadius > 0 ? memoryCoreRadius : RADIUS;
+  return r + Math.max(0.5, r * 0.08);
+}
+
 /** Zoom-Grenzen: min aus der Memory-Kugel, max aus dem sichtbaren Rahmen. */
 export function clampZoomDistance(d: number, min: number, framing: number): number {
   return Math.min(Math.max(framing, min) * 2.5, Math.max(min, d));
@@ -540,12 +550,7 @@ export class KnowledgeGraphEngine {
     const radius = this.cognitiveScene.framingRadius(this.layerVisible, this.layerFocus);
     const prevFraming = this.framingDistance;
     this.framingDistance = calculateFramingDistance(radius, this.camera.fov, this.camera.aspect);
-    this.minDistance =
-      calculateFramingDistance(
-        this.cognitiveScene.getMemoryCoreRadius(),
-        this.camera.fov,
-        this.camera.aspect,
-      ) * 0.55;
+    this.minDistance = memoryMinDistance(this.cognitiveScene.getMemoryCoreRadius());
     this.camera.far = Math.max(200, this.framingDistance + radius * 2);
     this.camera.updateProjectionMatrix();
     this.distance = nextFramedDistance({
