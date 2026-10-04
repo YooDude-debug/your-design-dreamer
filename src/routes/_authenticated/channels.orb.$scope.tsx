@@ -81,9 +81,13 @@ function broadcastCognitive(obs: unknown, userId: string | null, scope: OrbChatS
 }
 
 export const Route = createFileRoute("/_authenticated/channels/orb/$scope")({
-  // Scope kommt aus der Route; nur die drei festen Bereiche sind gültig.
+  // Es gibt nur den normalen Chat: jede andere Adresse führt dorthin.
+  // Gespeicherte Daten anderer Bereiche bleiben unverändert, werden aber
+  // nicht mehr angezeigt oder vermischt.
   beforeLoad: ({ params }) => {
-    if (!isOrbChatScope(params.scope)) throw notFound();
+    if (params.scope !== "normal") {
+      throw redirect({ to: "/channels/orb/$scope", params: { scope: "normal" }, replace: true });
+    }
   },
   head: () => ({
     meta: [
@@ -752,7 +756,7 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
             <BrainCircuit className="size-5 shrink-0 text-brand" /> ORB Core
           </h1>
           <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
-            Persönlicher Gesprächskern · Bereich {ORB_SCOPE_LABEL[scope]}
+            Persönlicher Gesprächskern
           </p>
         </div>
         <span className="flex shrink-0 items-center gap-1.5">
