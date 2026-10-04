@@ -14,7 +14,11 @@
  */
 import type { PreservationPlan } from "@/orb-core/contradiction-preservation";
 import type { UsageEvidenceEntry } from "@/orb-core/memory-usage-evidence";
-import type { BrainState, LifecycleDecision, ProtectionCategory } from "@/orb-core/reversible-lifecycle";
+import type {
+  BrainState,
+  LifecycleDecision,
+  ProtectionCategory,
+} from "@/orb-core/reversible-lifecycle";
 
 export type MemoryWritePlan =
   | { kind: "reinforce_existing"; existingId: string }
