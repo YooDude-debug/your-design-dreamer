@@ -97,7 +97,9 @@ export function evaluateUsageEvidence(input: UsageEvidenceInput): UsageEvidenceE
       // Kein Merkmal / kein Bezug → bereitgestellt, Beitrag nicht belegt.
       // Echo, geteilte Merkmale → Beitrag möglich, aber nicht zuordenbar.
       const status: UsageEvidenceStatus =
-        reason === "no_distinctive_token" || reason === "no_reference_in_reply" ? "supplied" : "unknown";
+        reason === "no_distinctive_token" || reason === "no_reference_in_reply"
+          ? "supplied"
+          : "unknown";
       return { id: m.id, status, reason };
     }
     const conflicted = (input.contradictions ?? []).some(
