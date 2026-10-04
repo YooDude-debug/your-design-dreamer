@@ -44,6 +44,7 @@ import {
 } from "@/orb-core/analysis/validate";
 import { analysisLifecycleUpdate, weaken, type Lifecycle } from "@/orb-core/memory-lifecycle";
 import { planCandidateContradiction, protectionGroupCandidate } from "@/orb-core/brain-integration";
+import { planMemoryWrite } from "@/orb-core/brain-persistence";
 
 /** Wie viele Nachrichten die Analyse betrachtet (mehr als das Chatfenster). */
 export const ANALYSIS_TRANSCRIPT_MESSAGES = 24;
@@ -522,6 +523,8 @@ async function applyOne(
             current: plan.current,
             new_class: plan.newClass,
             protection_group: protectionGroupCandidate(v.candidate).group,
+            // Phase 4A: geplanter Schreibvorgang (nur Art, keine Inhalte).
+            planned_write: planMemoryWrite(row.id, plan).kind,
             applied: false,
           }),
         );
