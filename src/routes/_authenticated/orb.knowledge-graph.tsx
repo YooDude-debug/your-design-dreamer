@@ -7,14 +7,7 @@ import { BrainCircuit } from "lucide-react";
 import { BackButton } from "@/components/ui/nav-buttons";
 import { adminCheckAccess } from "@/lib/admin.functions";
 import { goBackOr } from "@/lib/back-nav";
-import { ORB_DATA_SCOPES, isOrbDataScope, type OrbDataScope } from "@/orb-core/scope-values";
-
-const SCOPE_LABEL: Record<OrbDataScope, string> = {
-  normal: "Normal",
-  orb_core: "ORB Core",
-  y_dude: "Y-Dude",
-  unassigned: "Nicht zugeordnet",
-};
+import type { OrbDataScope } from "@/orb-core/scope-values";
 
 /**
  * ORB Knowledge Graph – isolierte Experiment-/Debug-Ansicht (nur Admins).
@@ -40,10 +33,8 @@ export const Route = createFileRoute("/_authenticated/orb/knowledge-graph")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  // Bereich sichtbar in der Adresse; ungültig/fehlend → "normal" (immer genau ein Bereich).
-  validateSearch: (s: Record<string, unknown>): { scope: OrbDataScope } => ({
-    scope: isOrbDataScope(s.scope) ? s.scope : "normal",
-  }),
+  // Nur der normale Chat: der Graph zeigt immer dessen Daten (keine Bereichswahl).
+  validateSearch: (_s: Record<string, unknown>): { scope: OrbDataScope } => ({ scope: "normal" }),
   component: KnowledgeGraphPage,
 });
 
@@ -64,26 +55,6 @@ function KnowledgeGraphPage() {
         <div className="hidden rounded-full border border-border/60 bg-surface/80 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground backdrop-blur-md sm:block">
           ORB Knowledge Graph · Experiment · nur Lesen
         </div>
-        {access.data?.isAdmin && (
-          <nav
-            aria-label="Bereich"
-            className="order-3 flex w-full flex-wrap gap-1 rounded-full border border-border/60 bg-surface/80 p-1 backdrop-blur-md sm:order-none sm:w-auto"
-          >
-            {ORB_DATA_SCOPES.map((s) => (
-              <Link
-                key={s}
-                to="/orb/knowledge-graph"
-                search={{ scope: s }}
-                aria-current={s === scope ? "page" : undefined}
-                className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                  s === scope ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-                }`}
-              >
-                {SCOPE_LABEL[s]}
-              </Link>
-            ))}
-          </nav>
-        )}
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
           {access.data?.isAdmin && (
             <Link

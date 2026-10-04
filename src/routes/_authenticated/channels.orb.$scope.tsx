@@ -7,7 +7,7 @@
  * und schlägt vor – likt, kommentiert, folgt und schreibt aber nichts.
  */
 
-import { ClientOnly, createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
+import { ClientOnly, createFileRoute, Link, redirect, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
@@ -60,7 +60,7 @@ import {
 import { orbChatRequestDiagnostic, type ChatBridgeView } from "@/lib/orb-chat-bridge.functions";
 import { detectDeveloperDiagnosticIntent } from "@/orb-dev/chat-bridge";
 import { adminCheckAccess } from "@/lib/admin.functions";
-import { ORB_SCOPE_LABEL, RETRIEVAL_CHANNEL, isOrbChatScope, type OrbChatScope } from "@/orb-sdk";
+import { RETRIEVAL_CHANNEL, isOrbChatScope, type OrbChatScope } from "@/orb-sdk";
 import { COGNITIVE_CHANNEL, toCognitiveView } from "@/lib/orb-knowledge-graph/cognitive-layers";
 import { wrapTabSignal } from "@/lib/orb-knowledge-graph/tab-signal";
 import { useSession } from "@/lib/use-session";
@@ -81,9 +81,13 @@ function broadcastCognitive(obs: unknown, userId: string | null, scope: OrbChatS
 }
 
 export const Route = createFileRoute("/_authenticated/channels/orb/$scope")({
-  // Scope kommt aus der Route; nur die drei festen Bereiche sind gültig.
+  // Es gibt nur den normalen Chat: jede andere Adresse führt dorthin.
+  // Gespeicherte Daten anderer Bereiche bleiben unverändert, werden aber
+  // nicht mehr angezeigt oder vermischt.
   beforeLoad: ({ params }) => {
-    if (!isOrbChatScope(params.scope)) throw notFound();
+    if (params.scope !== "normal") {
+      throw redirect({ to: "/channels/orb/$scope", params: { scope: "normal" }, replace: true });
+    }
   },
   head: () => ({
     meta: [
@@ -752,7 +756,7 @@ function OrbCorePage({ scope }: { scope: OrbChatScope }) {
             <BrainCircuit className="size-5 shrink-0 text-brand" /> ORB Core
           </h1>
           <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
-            Persönlicher Gesprächskern · Bereich {ORB_SCOPE_LABEL[scope]}
+            Persönlicher Gesprächskern
           </p>
         </div>
         <span className="flex shrink-0 items-center gap-1.5">
