@@ -543,8 +543,9 @@ export class KnowledgeGraphEngine {
 
   /**
    * Kamera-Rahmen: max. Abstand folgt den sichtbaren Ebenen, min. Abstand nur
-   * der Memory-Kugel (Memory-Nodes bleiben erreichbar). Ein manueller Zoom
-   * bleibt als Verhältnis zum Rahmen erhalten (Cognitive-Update, Resize).
+   * der Memory-Kugel (Memory-Nodes bleiben erreichbar). Beim Resize bleibt die
+   * aktuelle Distanz erhalten (keepRatio=false) – es passt sich nur die
+   * Projektion. Ein bewusster Reset (Suche/Modus) bleibt erlaubt.
    */
   private updateFraming(keepRatio = false): void {
     const radius = this.cognitiveScene.framingRadius(this.layerVisible, this.layerFocus);
