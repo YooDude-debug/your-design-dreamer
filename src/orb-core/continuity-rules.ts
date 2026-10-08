@@ -9,6 +9,7 @@
  * - Zuordnung und Spekulation: kurze, deterministische Prompt-Hinweise.
  */
 import { contentTokens } from "@/orb-core/memory";
+import { SEMANTIC_ANSWER_RULE } from "@/orb-core/memory-semantics";
 
 /** Immer aktive Gesprächsregeln (Phase 2, Punkte 1–8). */
 export const CONVERSATION_CONTINUITY_RULE = [
@@ -18,6 +19,7 @@ export const CONVERSATION_CONTINUITY_RULE = [
   "Ist unklar, worauf oder auf wen sich etwas bezieht, frage kurz nach, statt einen Bezug zu behaupten.",
   "Sage nur dann „du hattest einmal erwähnt“, wenn es eine ältere Erinnerung ist; was gerade in diesem Gespräch gesagt wurde, benenne als gerade gesagt.",
   "Trenne Fakten, Annahmen und Spekulation; Einschätzungen zu Marktwert, Vergleichen oder Verdienst sind Möglichkeiten, keine Prognosen.",
+  SEMANTIC_ANSWER_RULE,
 ].join(" ");
 
 const MIN_SHARED = 2;
