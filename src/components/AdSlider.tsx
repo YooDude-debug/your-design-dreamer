@@ -268,7 +268,7 @@ export function AdSlider({
             <button
               type="button"
               onClick={() => go(-1)}
-              aria-label="Prev"
+              aria-label="Vorherige Anzeige"
               className="absolute left-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-brand group-hover:opacity-100 [@media(hover:none)]:opacity-100"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -276,7 +276,7 @@ export function AdSlider({
             <button
               type="button"
               onClick={() => go(1)}
-              aria-label="Next"
+              aria-label="Nächste Anzeige"
               className="absolute right-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-brand group-hover:opacity-100 [@media(hover:none)]:opacity-100"
             >
               <ChevronRight className="h-4 w-4" />
@@ -290,7 +290,7 @@ export function AdSlider({
               <button
                 key={a.id}
                 type="button"
-                aria-label={`${i + 1}`}
+                aria-label={`Anzeige ${i + 1}`}
                 onClick={() => {
                   setPlaying(null);
                   setIndex(i);

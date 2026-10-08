@@ -18,18 +18,18 @@ import { postPreviewImage } from "@/lib/media";
 import { formatStat } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/hashtag/$name")({
-  head: () => ({
+  head: ({ params }) => ({
     meta: [
-      { title: "Hashtag — Y-Dude" },
+      { title: `#${params.name} — Hashtag auf Y-Dude` },
       { name: "robots", content: "noindex" },
       {
         name: "description",
-        content: "Alle Beiträge zu einem Hashtag: Thema, Trend und passende Inhalte.",
+        content: `Alle Beiträge zum Hashtag #${params.name} auf Y-Dude: Thema, Trend und passende Inhalte.`,
       },
-      { property: "og:title", content: "Hashtag — Y-Dude" },
+      { property: "og:title", content: `#${params.name} — Hashtag auf Y-Dude` },
       {
         property: "og:description",
-        content: "Entdecke alle Beiträge zu diesem Hashtag und folge dem Thema.",
+        content: `Entdecke alle Beiträge zu #${params.name} und folge dem Thema auf Y-Dude.`,
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
