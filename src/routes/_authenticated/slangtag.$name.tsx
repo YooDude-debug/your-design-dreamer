@@ -29,18 +29,18 @@ import { profileLang, tagMeaning } from "@/lib/globe/tag-meanings";
 import { arenaTexts } from "@/lib/i18n-arena";
 
 export const Route = createFileRoute("/_authenticated/slangtag/$name")({
-  head: () => ({
+  head: ({ params }) => ({
     meta: [
-      { title: "SlangTag — Y-Dude" },
+      { title: `${params.name} — SlangTag auf Y-Dude` },
       { name: "robots", content: "noindex" },
       {
         name: "description",
-        content: "SlangTag Detailseite: Audio, Bedeutung, Region, Beispiele und Beiträge.",
+        content: `SlangTag „${params.name}“: Audio, Bedeutung, Region, Beispiele und Beiträge auf Y-Dude.`,
       },
-      { property: "og:title", content: "SlangTag — Y-Dude" },
+      { property: "og:title", content: `${params.name} — SlangTag auf Y-Dude` },
       {
         property: "og:description",
-        content: "Höre den SlangTag, sieh Bedeutung, Region und alle Beiträge.",
+        content: `Höre „${params.name}“: Bedeutung, Region und alle Beiträge zu diesem SlangTag.`,
       },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },

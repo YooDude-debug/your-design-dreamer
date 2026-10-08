@@ -193,7 +193,7 @@ function Landing() {
         {/* Hero – Marke, Claim und konkreter Nutzen */}
         <section className="px-4 pt-2 text-center sm:px-6 sm:pt-4">
           <div className="mx-auto max-w-[820px]">
-            <h1 className="flex flex-col items-center justify-center">
+            <div className="flex flex-col items-center justify-center">
               <img
                 src={ydudeLogo}
                 alt="Y-Dude – Speak Local. Connect Global."
@@ -202,13 +202,13 @@ function Landing() {
                 decoding="async"
                 className="w-full max-w-[220px] drop-shadow-[0_0_16px_oklch(0.82_0.24_150/0.04)] sm:max-w-[250px] lg:max-w-[280px]"
               />
-              <span className="sr-only">Y-Dude – Speak Local. Connect Global.</span>
-            </h1>
+            </div>
 
             {/* Hauptbotschaft direkt unter dem Logo-Claim */}
-            <p className="mx-auto mt-3 max-w-[560px] text-balance text-xl font-extrabold uppercase leading-tight tracking-tight text-foreground sm:mt-4 sm:text-2xl lg:text-3xl">
+            <h1 className="mx-auto mt-3 max-w-[560px] text-balance text-xl font-extrabold uppercase leading-tight tracking-tight text-foreground sm:mt-4 sm:text-2xl lg:text-3xl">
+              <span className="sr-only">Y-Dude – Speak Local. Connect Global. </span>
               {c.headlineA} <span className="text-brand">{c.headlineB}</span>
-            </p>
+            </h1>
             <p className="mx-auto mt-2 max-w-[420px] text-xs leading-relaxed text-muted-foreground sm:text-sm">
               {c.headlineSub}
             </p>
