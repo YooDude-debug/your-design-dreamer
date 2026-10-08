@@ -40,11 +40,20 @@ const RULES: [Exclude<SemanticType, "unknown" | "episodic">, RegExp][] = [
     "relationship",
     /\b(meine?\s+(frau|ehefrau|mann|ehemann|partner(in)?|freundin|freund|kinder?|sohn|tochter|söhne|töchter|mutter|vater|eltern|familie|bruder|schwester)|ich\s+habe\s+(\w+\s+)?(kinder|kind|söhne|töchter|sohn|tochter))\b/i,
   ],
-  ["project_goal", /\b(orb(\s+core)?|y-?dude|mein\s+(ziel|projekt)|ich\s+(baue|habe\s+.*gebaut|entwickle))\b/i],
-  ["skill_role", /\b(ich\s+bin\s+(\w+\s+)?(koch|köchin|entwickler(in)?|programmierer(in)?|ingenieur(in)?|lehrer(in)?|arzt|ärztin)|ich\s+arbeite\s+als|mein\s+beruf)\b/i],
+  [
+    "project_goal",
+    /\b(orb(\s+core)?|y-?dude|mein\s+(ziel|projekt)|ich\s+(baue|habe\s+.*gebaut|entwickle))\b/i,
+  ],
+  [
+    "skill_role",
+    /\b(ich\s+bin\s+(\w+\s+)?(koch|köchin|entwickler(in)?|programmierer(in)?|ingenieur(in)?|lehrer(in)?|arzt|ärztin)|ich\s+arbeite\s+als|mein\s+beruf)\b/i,
+  ],
   ["life_context", /\b(ich\s+wohne|ich\s+lebe\s+in|wir\s+wohnen|umgezogen)\b/i],
   ["interest", /\b(ich\s+spiele|fortnite|minecraft|zocke|mein\s+hobby|hobbys?)\b/i],
-  ["preference", /\b(ich\s+(esse|trinke|mag|liebe|hasse)\s+gerne?|ich\s+esse\s+gern|lieblings\w+|ich\s+mag)\b/i],
+  [
+    "preference",
+    /\b(ich\s+(esse|trinke|mag|liebe|hasse)\s+gerne?|ich\s+esse\s+gern|lieblings\w+|ich\s+mag)\b/i,
+  ],
 ];
 
 /**
@@ -94,10 +103,9 @@ export function prioritizeBySemantic<T extends { id: string; content: string; re
  * Wählt die Quell-Erinnerung für eine Nachfrage: Gesprächsthema vor Lücke vor
  * Bedeutung. Ohne Themenbezug zum aktuellen Gespräch ⇒ keine Nachfrage (null).
  */
-export function pickFollowUpSource<T extends { id: string; topic: string | null; content: string; gapScore: number }>(
-  conversationTopics: readonly string[],
-  candidates: readonly T[],
-): T | null {
+export function pickFollowUpSource<
+  T extends { id: string; topic: string | null; content: string; gapScore: number },
+>(conversationTopics: readonly string[], candidates: readonly T[]): T | null {
   const topics = new Set(conversationTopics);
   const onTopic = candidates.filter((c) => c.topic !== null && topics.has(c.topic));
   if (onTopic.length === 0) return null;

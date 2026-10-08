@@ -59,6 +59,8 @@ describe("Phase 6 Bedeutungsklassen", () => {
       ],
     );
     expect(pick?.id).toBe("o");
-    expect(pickFollowUpSource(["projekte"], [{ id: "g", topic: "spiele", content: "x", gapScore: 1 }])).toBeNull();
+    expect(
+      pickFollowUpSource(["projekte"], [{ id: "g", topic: "spiele", content: "x", gapScore: 1 }]),
+    ).toBeNull();
   });
 });
