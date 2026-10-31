@@ -1,14 +1,15 @@
-# Roadmap: ORB Core vollständiger Cut
+# Roadmap: Y-Dude Vollständiger Systemaudit (Read-only)
 
-- [x] Phase 1: Bestandsaufnahme — Bericht: /mnt/documents/ORB_Cut_Phase1_Bestandsaufnahme_2026-10-31.md
-- [x] Nebenbefund: Preview-Absturz (lazyRouteComponent ".component" von undefined) durch erweiterte Stale-Bundle-Erkennung in src/lib/recover-stale-bundle.ts behoben
-- [x] Phase 2: ORB in Production deaktiviert (Code entfernt; Staging: kein Zugriff aus dieser Session — separat zu erledigen)
-- [x] Phase 3: Y-Dude bereinigt (Fehlerhelfer nach src/lib/internal-error.ts verschoben, Navigation/Build/Tests ORB-frei)
-- [x] Phase 4: Daten unverändert (20 Tabellen, Migrationen 0041–0056, Storage unberührt); Code-Backup über Lovable-Versionshistorie (Sandbox-Git enthielt ORB nicht)
-- [x] Phase 5: Verifikation — tsgo OK, 688/688 Tests, Lint 0 Fehler, Build OK, Browser-Rundgang (Feed/Channels/Admin/alte ORB-Route) sauber; Abschlussbericht: /mnt/documents/ORB_Cut_Abschlussbericht_2026-10-31.md
+Regeln: keine Fixes, keine Features, keine DB-/Datenänderungen, keine Production-Änderungen. Nur prüfen + dokumentieren. Befunde P0–P3 klassifizieren. Abschluss: PDF-Bericht in /mnt/documents.
 
-Offen (Nutzerentscheidungen):
-- Publish nach y-dude.com (Production-Rollout) — liegt beim Nutzer
-- OPENAI_API_KEY-Secret löschen (ORB-OpenAI-Pfad war unverdrahtet) — Nutzerentscheidung
-- Staging-2.0-Cut — kein Zugriff aus dieser Session
-- Späterer DB-Abbau (Tabellen-Drops) — separater Auftrag, nur nach Abhängigkeitsprüfung
+## Aufgaben
+- [ ] 1. Projekt-/Architekturprüfung (Struktur, Deps, tote Dateien/Routen, Env-Trennung)
+- [ ] 2. Build & Tests: tsgo, lint, production build, vitest (Zahlen dokumentieren)
+- [ ] 3. Funktionaler E2E-Test (Auth, Feed, SlangTags, Channels, Globe, Suche, Admin, Uploads) via Playwright
+- [ ] 4. Datenbank & Datenintegrität (read-only Queries: Constraints, RLS, Policies, Konsistenz)
+- [ ] 5. Sicherheit (Scan-Ergebnisse zusammenfassen, RLS/Storage/Secrets prüfen)
+- [ ] 6. Performance (Bundle-Größe, Abfragen; keine Lasttests)
+- [ ] 7. UI/UX & Gerätekompatibilität (Screenshots mobil + Desktop)
+- [ ] 8. Logging & Betrieb (Fehlerbehandlung, Jobs, Deployment)
+- [ ] 9. Fehlerklassifizierung P0–P3 mit Nachweisen
+- [ ] 10. PDF-Abschlussbericht + Chat-Zusammenfassung
