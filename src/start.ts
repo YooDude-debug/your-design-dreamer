@@ -2,7 +2,7 @@ import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/r
 
 import { renderErrorPage } from "./lib/error-page";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
-import { SAFE_SERVER_ERROR, shouldMaskServerError } from "@/orb-core/internal-error";
+import { SAFE_SERVER_ERROR, shouldMaskServerError } from "@/lib/internal-error";
 
 // Laufzeit-Kennzahlen: zählt nur anonyme Summen (Anzahl, gleichzeitig laufende
 // Anfragen, Dauer, Fehler) und verändert die Antwort nie.
