@@ -75,8 +75,12 @@ async function performRecovery(): Promise<void> {
 /** Führt die Wiederherstellung höchstens einmal pro Browser-Tab aus. */
 export async function recoverFromStaleBundle(reason: unknown): Promise<void> {
   if (typeof window === "undefined") return;
+  // Stack einbeziehen: Manche Bundle-Fehler (z. B. lazyRouteComponent) sind
+  // nur am Stack erkennbar, nicht an der Fehlermeldung allein.
   const message =
-    reason instanceof Error ? `${reason.name}: ${reason.message}` : String(reason ?? "");
+    reason instanceof Error
+      ? `${reason.name}: ${reason.message}\n${reason.stack ?? ""}`
+      : String(reason ?? "");
   if (!looksLikeStaleBundleError(message)) return;
   await performRecovery();
 }
