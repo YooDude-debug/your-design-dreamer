@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Database } from "@/integrations/supabase/types";
+import { buildAdminUserSearchFilter, normalizeAdminSearch } from "@/lib/admin-user-search";
 import type { ModerationReasonCode } from "@/lib/moderation-reasons";
 
 /** Kurzbezeichnung des betroffenen Inhalts für die Nutzerbenachrichtigung. */
@@ -168,8 +169,8 @@ export async function loadUsers(
     .select("id,username,display_name,location,language,verified,level,created_at,last_seen_at")
     .order("created_at", { ascending: false })
     .limit(200);
-  if (query.trim())
-    q = q.or(`username.ilike.%${query.trim()}%,display_name.ilike.%${query.trim()}%`);
+  const searchFilter = buildAdminUserSearchFilter(query);
+  if (searchFilter) q = q.or(searchFilter);
   const { data, error } = await q;
   if (error) throw new Error(error.message);
 
@@ -177,7 +178,7 @@ export async function loadUsers(
   // nie eingeloggt) sind sonst im Dashboard unsichtbar. Sie werden hier aus
   // der Kontoverwaltung ergänzt, damit jede echte Registrierung erscheint.
   const profileIds = new Set((data ?? []).map((r) => r.id));
-  const term = query.trim().toLowerCase();
+  const term = normalizeAdminSearch(query).toLowerCase();
   const pending: AdminUserRow[] = [];
   const { data: authList } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 });
   /** E-Mail-Adressen aus dem Auth-System – nur für Admin-Anzeige. */
