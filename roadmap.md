@@ -1,20 +1,9 @@
-# Roadmap – ORB Scope-Trennung + Kontext 16
+# Roadmap: ORB Core vollständiger Cut
 
-- [x] Phase 1 DB: orb_scope, scope-Spalten (7 Tabellen), Unique-Indizes je Scope, Arbeitsindizes, Connection-Scope-Trigger
-- [x] Phase 2 Server-Eingang: Zod-Scope in allen ORB-Serverfunktionen, ORB-Dev fest orb_core
-- [x] Phase 3/4/6 Scoped Datenzugang in SDK, Feed = unassigned
-- [x] Phase 5 Kontext 16 (proaktiv bleibt 8)
-- [x] Provenance: message_id bei user_stated
-- [x] Phase 7 Routing /channels/orb → /channels/orb/normal, /channels/orb/$scope
-- [x] Phase 8 Tests + Regression
-- [x] Phase 9 Forensik: DB-Isolation live, Browser drei Kanäle
-- [ ] Deployment: wartet auf ausdrückliche Freigabe
+- [ ] Phase 1: Bestandsaufnahme aller ORB-Komponenten (read-only) — IN ARBEIT
+- [ ] Phase 2: ORB deaktivieren (Production: Code; Staging: kein Zugriff aus dieser Session — manuell melden)
+- [ ] Phase 3: Y-Dude bereinigen (ORB aus aktiver App entfernen, Kernfunktionen unverändert)
+- [ ] Phase 4: Daten/Code sichern (keine unwiderruflichen Löschungen, keine Tabellen-Drops ohne Abhängigkeitsprüfung)
+- [ ] Phase 5: Verifikation (Build, Lint, Tests, Funktionsprüfung) + Abschlussbericht
 
-# Roadmap – ORB Visual Memory
-- [x] Assets, Verknüpfung, Abruf, Graph-Detail, Löschen, Kontolöschung, Tests, Audit
-- [ ] Echter Ende-zu-Ende-Lauf im Chat (wartet auf Ihren Test bzw. Freigabe)
-- [ ] Veröffentlichung: wartet auf ausdrückliche Freigabe
-
-# Roadmap – P8 Synaptic Lab
-- [x] Simulation A/B/C, Seite, Tests
-- [ ] Veröffentlichung: wartet auf Freigabe
+Regeln: Keine neuen Features, keine Refactorings, kein Design-Change. Unklare Zuordnung → anhalten und melden. Production-Code wird erst nach Befund-Freigabe verändert.
