@@ -400,6 +400,13 @@
       "when": 1791011796316,
       "tag": "0056_orb_testkonto_reset_2026_10_03",
       "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1793465018352,
+      "tag": "0057_sec04_arena_counters_insert_guard",
+      "breakpoints": true
     }
   ]
 }
