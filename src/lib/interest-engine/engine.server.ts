@@ -9,6 +9,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { buildConfig, type EngineConfig } from "./config";
+import { writeConnectionInfluence } from "./influence-writer.server";
 import {
   aggregateConnectionInfluence,
   buildProfile,
@@ -297,7 +298,7 @@ async function bumpConnectionCounter(sb: DB, userId: string, peerId: string, act
     shared_slang_tags: prev?.shared_slang_tags ?? 0,
   };
   const cfg = await loadConfig(sb);
-  await sb.from("connection_influence").upsert(
+  await writeConnectionInfluence(userId, [
     {
       user_id: userId,
       peer_id: peerId,
@@ -312,8 +313,7 @@ async function bumpConnectionCounter(sb: DB, userId: string, peerId: string, act
       last_interaction_at: new Date().toISOString(),
       calculated_at: new Date().toISOString(),
     },
-    { onConflict: "user_id,peer_id" },
-  );
+  ]);
 }
 
 /* ------------------------------------------------------------------ */
@@ -405,7 +405,7 @@ export async function calculateConnectionInfluence(sb: DB, userId: string) {
     };
   });
 
-  await sb.from("connection_influence").upsert(upserts, { onConflict: "user_id,peer_id" });
+  await writeConnectionInfluence(userId, upserts);
   invalidateInterestCache(userId);
   return { ok: true, peers: upserts.length };
 }
@@ -822,5 +822,5 @@ async function bumpConnectionCounters(
       calculated_at: nowIso,
     };
   });
-  await sb.from("connection_influence").upsert(upserts, { onConflict: "user_id,peer_id" });
+  await writeConnectionInfluence(userId, upserts);
 }
