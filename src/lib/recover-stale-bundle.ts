@@ -24,7 +24,12 @@ function looksLikeStaleBundleError(message: string): boolean {
     // Aufruf einer Server-Funktion aus einem alten Build: Der Server kennt die
     // gesendete Funktions-ID nicht mehr (HTTP 409 "stale_client_bundle").
     m.includes("invalid server function id") ||
-    m.includes("stale_client_bundle")
+    m.includes("stale_client_bundle") ||
+    // Lazy-Route-Chunk aus einem alten Build: Der Router findet die Route im
+    // veralteten Chunk nicht mehr und liest `.component` von undefined
+    // (leere Seite nach einem Deploy, ohne dass ein preloadError feuert).
+    ((m.includes("reading 'component'") || m.includes('reading "component"')) &&
+      m.includes("lazyroutecomponent"))
   );
 }
 
