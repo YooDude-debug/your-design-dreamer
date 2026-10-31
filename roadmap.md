@@ -1,14 +1,15 @@
-# Roadmap: ORB Core vollständiger Cut
+# Roadmap: Y-Dude Vollständiger Systemaudit (Read-only)
 
-- [x] Phase 1: Bestandsaufnahme — Bericht: /mnt/documents/ORB_Cut_Phase1_Bestandsaufnahme_2026-10-31.md
-- [x] Nebenbefund: Preview-Absturz (lazyRouteComponent ".component" von undefined) durch erweiterte Stale-Bundle-Erkennung in src/lib/recover-stale-bundle.ts behoben
-- [x] Phase 2: ORB in Production deaktiviert (Code entfernt; Staging: kein Zugriff aus dieser Session — separat zu erledigen)
-- [x] Phase 3: Y-Dude bereinigt (Fehlerhelfer nach src/lib/internal-error.ts verschoben, Navigation/Build/Tests ORB-frei)
-- [x] Phase 4: Daten unverändert (20 Tabellen, Migrationen 0041–0056, Storage unberührt); Code-Backup über Lovable-Versionshistorie (Sandbox-Git enthielt ORB nicht)
-- [x] Phase 5: Verifikation — tsgo OK, 688/688 Tests, Lint 0 Fehler, Build OK, Browser-Rundgang (Feed/Channels/Admin/alte ORB-Route) sauber; Abschlussbericht: /mnt/documents/ORB_Cut_Abschlussbericht_2026-10-31.md
+Regeln: keine Fixes, keine Features, keine DB-/Datenänderungen. Nur prüfen + dokumentieren. Befunde P0–P3. Abschluss: PDF in /mnt/documents.
 
-Offen (Nutzerentscheidungen):
-- Publish nach y-dude.com (Production-Rollout) — liegt beim Nutzer
-- OPENAI_API_KEY-Secret löschen (ORB-OpenAI-Pfad war unverdrahtet) — Nutzerentscheidung
-- Staging-2.0-Cut — kein Zugriff aus dieser Session
-- Späterer DB-Abbau (Tabellen-Drops) — separater Auftrag, nur nach Abhängigkeitsprüfung
+## Aufgaben
+- [x] 1. Architektur (Subagent): Struktur sauber; Fundstellen: große Provider (data.tsx 2482 Z., social.tsx 1705 Z.), ~10 ungenutzte Module, 2 öffentliche Demo-Routen (/demo/messenger, /flyer-konzepte), Env-/Payment-Trennung inkonsistent (APP_ENV vs. Hostname), backups/ im Repo
+- [x] 2. Build & Tests: tsgo 0 Fehler; eslint 0 Fehler / 56 Warnungen; vitest 688/688 (48 Dateien); Harness-Build OK
+- [x] 3. E2E Desktop: 12 Routen alle 200, korrekte Titel, Weiterleitungen korrekt; nur Turnstile-400 (Sandbox) + abgebrochene Preloads
+- [x] 4. DB: RLS auf allen public-Tabellen aktiv; 3 interne Tabellen ohne Policies = ohne Grants (korrekt); keine Waisen in posts/comments/messages/follows; Bestandszahlen erfasst
+- [~] 5. Sicherheit: Schnellscan 11 Befunde, alle vom Nutzer ignoriert (RLS-Tautologien auf geteilten Inhalten); Dependency-Scan: 11 Advisories (zod high, seroval moderate, source-map-js high, js-yaml moderate); Tiefenscan LÄUFT (Benachrichtigung ausstehend)
+- [x] 6. Performance: kein manueller Build (Harness regelt); Bundle-Größe nicht messbar → als „nicht geprüft" dokumentiert; keine Lasttests (keine isolierte Umgebung)
+- [x] 7. UI/UX mobil (393×852): kein horizontales Overflow, keine Konsolenfehler; P3: Globe-Filter „ALLE KATEGORIEN" mobil abgeschnitten
+- [x] 8. Betrieb: 8 Worker-Endpunkte unter /api/public mit Shared-Secret (timing-safe); Moderation mit eigener Auth-Implementierung (Drift-Risiko); Storage: 1 Bucket „media", privat, ohne Größen-/MIME-Limit
+- [ ] 9. Fehlerklassifizierung P0–P3 finalisieren (nach Tiefenscan)
+- [ ] 10. PDF-Abschlussbericht + Chat-Zusammenfassung (nach Tiefenscan)
