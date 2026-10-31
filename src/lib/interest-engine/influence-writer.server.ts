@@ -17,7 +17,10 @@ export function ownInfluenceRows(userId: string, rows: InfluenceRow[]): Influenc
   if (typeof userId !== "string" || userId.length === 0) return [];
   return rows.filter(
     (r) =>
-      r.user_id === userId && typeof r.peer_id === "string" && r.peer_id.length > 0 && r.peer_id !== userId,
+      r.user_id === userId &&
+      typeof r.peer_id === "string" &&
+      r.peer_id.length > 0 &&
+      r.peer_id !== userId,
   );
 }
 

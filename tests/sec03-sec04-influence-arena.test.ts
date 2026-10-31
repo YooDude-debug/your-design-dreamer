@@ -30,7 +30,11 @@ function fakeWriter() {
 describe("SEC-03 connection_influence writes", () => {
   it("writes the signed-in user's own rows", async () => {
     const f = fakeWriter();
-    const n = await writeConnectionInfluence(A, [{ user_id: A, peer_id: B, strength: 0.4 }], f.writer);
+    const n = await writeConnectionInfluence(
+      A,
+      [{ user_id: A, peer_id: B, strength: 0.4 }],
+      f.writer,
+    );
     expect(n).toBe(1);
     expect(f.calls[0].table).toBe("connection_influence");
     expect(f.calls[0].rows[0].user_id).toBe(A);
@@ -38,13 +42,22 @@ describe("SEC-03 connection_influence writes", () => {
 
   it("user A cannot write rows for user B", async () => {
     const f = fakeWriter();
-    const n = await writeConnectionInfluence(A, [{ user_id: B, peer_id: C, strength: 1 }], f.writer);
+    const n = await writeConnectionInfluence(
+      A,
+      [{ user_id: B, peer_id: C, strength: 1 }],
+      f.writer,
+    );
     expect(n).toBe(0);
     expect(f.calls).toHaveLength(0);
   });
 
   it("drops self-connections and empty peers", () => {
-    expect(ownInfluenceRows(A, [{ user_id: A, peer_id: A }, { user_id: A, peer_id: "" }])).toEqual([]);
+    expect(
+      ownInfluenceRows(A, [
+        { user_id: A, peer_id: A },
+        { user_id: A, peer_id: "" },
+      ]),
+    ).toEqual([]);
   });
 
   it("rejects missing user id", () => {
@@ -55,7 +68,9 @@ describe("SEC-03 connection_influence writes", () => {
     const writer = {
       from: () => ({ upsert: async () => ({ error: { message: "secret db detail" } }) }),
     } as never;
-    await expect(writeConnectionInfluence(A, [{ user_id: A, peer_id: B }], writer)).resolves.toBe(0);
+    await expect(writeConnectionInfluence(A, [{ user_id: A, peer_id: B }], writer)).resolves.toBe(
+      0,
+    );
   });
 
   it("engine no longer writes connection_influence with the user's client", () => {
@@ -86,7 +101,10 @@ describe("SEC-04 arena counters", () => {
 
   it("the app's normal submit sends only allowed columns", () => {
     const src = readFileSync("src/lib/arena.ts", "utf8");
-    const block = src.slice(src.indexOf('from("arena_submissions").insert'), src.indexOf("as never", src.indexOf('from("arena_submissions").insert')));
+    const block = src.slice(
+      src.indexOf('from("arena_submissions").insert'),
+      src.indexOf("as never", src.indexOf('from("arena_submissions").insert')),
+    );
     expect(block).not.toMatch(/_count/);
   });
 });
