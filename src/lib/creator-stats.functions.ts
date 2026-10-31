@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { isPathOwnedBy } from "./media-path-ownership";
 
 /**
  * Detail-Auswertungen für den Creator-/Unternehmer-Statistikbereich.
@@ -104,8 +105,17 @@ async function requireCreator(context: { supabase: any; userId: string }) {
   return supabaseAdmin as AdminClient;
 }
 
-async function signPaths(admin: AdminClient, paths: string[]): Promise<Map<string, string>> {
-  const clean = [...new Set(paths.filter(Boolean))];
+/**
+ * Signs only paths owned by the given owner(s) (SEC-01). Foreign or malformed
+ * paths never receive a privileged signed link.
+ */
+async function signPaths(
+  admin: AdminClient,
+  items: Array<{ path: string | null | undefined; owners: Array<string | null | undefined> }>,
+): Promise<Map<string, string>> {
+  const clean = [
+    ...new Set(items.filter((i) => isPathOwnedBy(i.path, i.owners)).map((i) => i.path as string)),
+  ];
   const out = new Map<string, string>();
   if (clean.length === 0) return out;
   const { data } = await admin.storage.from("media").createSignedUrls(clean, 60 * 60);
@@ -132,7 +142,7 @@ async function buildActors(
 
   const avatarPaths = (profs ?? [])
     .filter((p) => p.profile_visibility === "public" && p.avatar_url)
-    .map((p) => p.avatar_url as string);
+    .map((p) => ({ path: p.avatar_url as string, owners: [p.id as string] }));
   const signed = await signPaths(admin, avatarPaths);
 
   for (const p of profs ?? []) {
@@ -174,7 +184,7 @@ export const getCreatorPostRows = createServerFn({ method: "GET" })
     const rows = data ?? [];
     const signed = await signPaths(
       admin,
-      rows.map((r) => (r.image_url as string | null) ?? "").filter(Boolean),
+      rows.map((r) => ({ path: r.image_url as string | null, owners: [context.userId] })),
     );
     return rows.map((r) => ({
       id: r.id as string,
@@ -302,7 +312,10 @@ export const getCreatorTagRows = createServerFn({ method: "GET" })
     const rows = data ?? [];
     const signed = await signPaths(
       admin,
-      rows.map((r) => (r.audio_url as string | null) ?? "").filter(Boolean),
+      rows.map((r) => ({
+        path: r.audio_url as string | null,
+        owners: [r.owner_id as string | null, r.creator_id as string | null],
+      })),
     );
 
     const out: CreatorTagRow[] = [];
