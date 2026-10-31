@@ -47,7 +47,6 @@ import { Route as AdminLogRouteImport } from './routes/admin.log'
 import { Route as AdminMarketRouteImport } from './routes/admin.market'
 import { Route as AdminMediaRouteImport } from './routes/admin.media'
 import { Route as AdminModerationRouteImport } from './routes/admin.moderation'
-import { Route as AdminOrbDevRouteImport } from './routes/admin.orb-dev'
 import { Route as AdminPausesRouteImport } from './routes/admin.pauses'
 import { Route as AdminPostsRouteImport } from './routes/admin.posts'
 import { Route as AdminRegistrationRouteImport } from './routes/admin.registration'
@@ -63,16 +62,12 @@ import { Route as AuthenticatedBusinessCampaignsRouteImport } from './routes/_au
 import { Route as AuthenticatedChannelsIndexRouteImport } from './routes/_authenticated/channels.index'
 import { Route as AuthenticatedChannelsChannelIdRouteImport } from './routes/_authenticated/channels.$channelId'
 import { Route as AuthenticatedChannelsMineRouteImport } from './routes/_authenticated/channels.mine'
-import { Route as AuthenticatedChannelsOrbRouteImport } from './routes/_authenticated/channels.orb'
 import { Route as AuthenticatedHashtagNameRouteImport } from './routes/_authenticated/hashtag.$name'
 import { Route as AuthenticatedMarketIndexRouteImport } from './routes/_authenticated/market.index'
 import { Route as AuthenticatedMarketItemIdRouteImport } from './routes/_authenticated/market.$itemId'
 import { Route as AuthenticatedMarketMineRouteImport } from './routes/_authenticated/market.mine'
 import { Route as AuthenticatedMarketNewRouteImport } from './routes/_authenticated/market.new'
 import { Route as AuthenticatedMarketOrdersRouteImport } from './routes/_authenticated/market.orders'
-import { Route as AuthenticatedOrbKnowledgeGraphRouteImport } from './routes/_authenticated/orb.knowledge-graph'
-import { Route as AuthenticatedOrbSynapticLabRouteImport } from './routes/_authenticated/orb.synaptic-lab'
-import { Route as AuthenticatedOrbUnassignedRouteImport } from './routes/_authenticated/orb.unassigned'
 import { Route as AuthenticatedPPostIdRouteImport } from './routes/_authenticated/p.$postId'
 import { Route as AuthenticatedProfileUsernameRouteImport } from './routes/_authenticated/profile.$username'
 import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authenticated/slangtag.$name'
@@ -83,8 +78,6 @@ import { Route as ApiPublicModerationRunRouteImport } from './routes/api/public/
 import { Route as ApiPublicOpsHealthRunRouteImport } from './routes/api/public/ops-health-run'
 import { Route as ApiPublicPushRunRouteImport } from './routes/api/public/push-run'
 import { Route as ApiPublicRetentionRunRouteImport } from './routes/api/public/retention-run'
-import { Route as AuthenticatedChannelsOrbIndexRouteImport } from './routes/_authenticated/channels.orb.index'
-import { Route as AuthenticatedChannelsOrbScopeRouteImport } from './routes/_authenticated/channels.orb.$scope'
 import { Route as AuthenticatedMarketShopUsernameRouteImport } from './routes/_authenticated/market.shop.$username'
 import { Route as AuthenticatedMarketTxTxIdRouteImport } from './routes/_authenticated/market.tx.$txId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
@@ -279,11 +272,6 @@ const AdminModerationRoute = AdminModerationRouteImport.update({
   path: '/moderation',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminOrbDevRoute = AdminOrbDevRouteImport.update({
-  id: '/orb-dev',
-  path: '/orb-dev',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminPausesRoute = AdminPausesRouteImport.update({
   id: '/pauses',
   path: '/pauses',
@@ -363,12 +351,6 @@ const AuthenticatedChannelsMineRoute =
     path: '/channels/mine',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedChannelsOrbRoute =
-  AuthenticatedChannelsOrbRouteImport.update({
-    id: '/channels/orb',
-    path: '/channels/orb',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedHashtagNameRoute =
   AuthenticatedHashtagNameRouteImport.update({
     id: '/hashtag/$name',
@@ -401,24 +383,6 @@ const AuthenticatedMarketOrdersRoute =
   AuthenticatedMarketOrdersRouteImport.update({
     id: '/market/orders',
     path: '/market/orders',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedOrbKnowledgeGraphRoute =
-  AuthenticatedOrbKnowledgeGraphRouteImport.update({
-    id: '/orb/knowledge-graph',
-    path: '/orb/knowledge-graph',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedOrbSynapticLabRoute =
-  AuthenticatedOrbSynapticLabRouteImport.update({
-    id: '/orb/synaptic-lab',
-    path: '/orb/synaptic-lab',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedOrbUnassignedRoute =
-  AuthenticatedOrbUnassignedRouteImport.update({
-    id: '/orb/unassigned',
-    path: '/orb/unassigned',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPPostIdRoute = AuthenticatedPPostIdRouteImport.update({
@@ -473,18 +437,6 @@ const ApiPublicRetentionRunRoute = ApiPublicRetentionRunRouteImport.update({
   path: '/api/public/retention-run',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedChannelsOrbIndexRoute =
-  AuthenticatedChannelsOrbIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedChannelsOrbRoute,
-  } as any)
-const AuthenticatedChannelsOrbScopeRoute =
-  AuthenticatedChannelsOrbScopeRouteImport.update({
-    id: '/$scope',
-    path: '/$scope',
-    getParentRoute: () => AuthenticatedChannelsOrbRoute,
-  } as any)
 const AuthenticatedMarketShopUsernameRoute =
   AuthenticatedMarketShopUsernameRouteImport.update({
     id: '/market/shop/$username',
@@ -547,7 +499,6 @@ export interface FileRoutesByFullPath {
   '/admin/market': typeof AdminMarketRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/moderation': typeof AdminModerationRoute
-  '/admin/orb-dev': typeof AdminOrbDevRoute
   '/admin/pauses': typeof AdminPausesRoute
   '/admin/posts': typeof AdminPostsRoute
   '/admin/registration': typeof AdminRegistrationRoute
@@ -563,15 +514,11 @@ export interface FileRoutesByFullPath {
   '/business/campaigns': typeof AuthenticatedBusinessCampaignsRoute
   '/channels/$channelId': typeof AuthenticatedChannelsChannelIdRoute
   '/channels/mine': typeof AuthenticatedChannelsMineRoute
-  '/channels/orb': typeof AuthenticatedChannelsOrbRouteWithChildren
   '/hashtag/$name': typeof AuthenticatedHashtagNameRoute
   '/market/$itemId': typeof AuthenticatedMarketItemIdRoute
   '/market/mine': typeof AuthenticatedMarketMineRoute
   '/market/new': typeof AuthenticatedMarketNewRoute
   '/market/orders': typeof AuthenticatedMarketOrdersRoute
-  '/orb/knowledge-graph': typeof AuthenticatedOrbKnowledgeGraphRoute
-  '/orb/synaptic-lab': typeof AuthenticatedOrbSynapticLabRoute
-  '/orb/unassigned': typeof AuthenticatedOrbUnassignedRoute
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -584,12 +531,10 @@ export interface FileRoutesByFullPath {
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/channels/': typeof AuthenticatedChannelsIndexRoute
   '/market/': typeof AuthenticatedMarketIndexRoute
-  '/channels/orb/$scope': typeof AuthenticatedChannelsOrbScopeRoute
   '/market/shop/$username': typeof AuthenticatedMarketShopUsernameRoute
   '/market/tx/$txId': typeof AuthenticatedMarketTxTxIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
-  '/channels/orb/': typeof AuthenticatedChannelsOrbIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -627,7 +572,6 @@ export interface FileRoutesByTo {
   '/admin/market': typeof AdminMarketRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/moderation': typeof AdminModerationRoute
-  '/admin/orb-dev': typeof AdminOrbDevRoute
   '/admin/pauses': typeof AdminPausesRoute
   '/admin/posts': typeof AdminPostsRoute
   '/admin/registration': typeof AdminRegistrationRoute
@@ -648,9 +592,6 @@ export interface FileRoutesByTo {
   '/market/mine': typeof AuthenticatedMarketMineRoute
   '/market/new': typeof AuthenticatedMarketNewRoute
   '/market/orders': typeof AuthenticatedMarketOrdersRoute
-  '/orb/knowledge-graph': typeof AuthenticatedOrbKnowledgeGraphRoute
-  '/orb/synaptic-lab': typeof AuthenticatedOrbSynapticLabRoute
-  '/orb/unassigned': typeof AuthenticatedOrbUnassignedRoute
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -663,12 +604,10 @@ export interface FileRoutesByTo {
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/channels': typeof AuthenticatedChannelsIndexRoute
   '/market': typeof AuthenticatedMarketIndexRoute
-  '/channels/orb/$scope': typeof AuthenticatedChannelsOrbScopeRoute
   '/market/shop/$username': typeof AuthenticatedMarketShopUsernameRoute
   '/market/tx/$txId': typeof AuthenticatedMarketTxTxIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
-  '/channels/orb': typeof AuthenticatedChannelsOrbIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -709,7 +648,6 @@ export interface FileRoutesById {
   '/admin/market': typeof AdminMarketRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/moderation': typeof AdminModerationRoute
-  '/admin/orb-dev': typeof AdminOrbDevRoute
   '/admin/pauses': typeof AdminPausesRoute
   '/admin/posts': typeof AdminPostsRoute
   '/admin/registration': typeof AdminRegistrationRoute
@@ -725,15 +663,11 @@ export interface FileRoutesById {
   '/_authenticated/business_/campaigns': typeof AuthenticatedBusinessCampaignsRoute
   '/_authenticated/channels/$channelId': typeof AuthenticatedChannelsChannelIdRoute
   '/_authenticated/channels/mine': typeof AuthenticatedChannelsMineRoute
-  '/_authenticated/channels/orb': typeof AuthenticatedChannelsOrbRouteWithChildren
   '/_authenticated/hashtag/$name': typeof AuthenticatedHashtagNameRoute
   '/_authenticated/market/$itemId': typeof AuthenticatedMarketItemIdRoute
   '/_authenticated/market/mine': typeof AuthenticatedMarketMineRoute
   '/_authenticated/market/new': typeof AuthenticatedMarketNewRoute
   '/_authenticated/market/orders': typeof AuthenticatedMarketOrdersRoute
-  '/_authenticated/orb/knowledge-graph': typeof AuthenticatedOrbKnowledgeGraphRoute
-  '/_authenticated/orb/synaptic-lab': typeof AuthenticatedOrbSynapticLabRoute
-  '/_authenticated/orb/unassigned': typeof AuthenticatedOrbUnassignedRoute
   '/_authenticated/p/$postId': typeof AuthenticatedPPostIdRoute
   '/_authenticated/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/_authenticated/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -746,12 +680,10 @@ export interface FileRoutesById {
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/_authenticated/channels/': typeof AuthenticatedChannelsIndexRoute
   '/_authenticated/market/': typeof AuthenticatedMarketIndexRoute
-  '/_authenticated/channels/orb/$scope': typeof AuthenticatedChannelsOrbScopeRoute
   '/_authenticated/market/shop/$username': typeof AuthenticatedMarketShopUsernameRoute
   '/_authenticated/market/tx/$txId': typeof AuthenticatedMarketTxTxIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
-  '/_authenticated/channels/orb/': typeof AuthenticatedChannelsOrbIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -792,7 +724,6 @@ export interface FileRouteTypes {
     | '/admin/market'
     | '/admin/media'
     | '/admin/moderation'
-    | '/admin/orb-dev'
     | '/admin/pauses'
     | '/admin/posts'
     | '/admin/registration'
@@ -808,15 +739,11 @@ export interface FileRouteTypes {
     | '/business/campaigns'
     | '/channels/$channelId'
     | '/channels/mine'
-    | '/channels/orb'
     | '/hashtag/$name'
     | '/market/$itemId'
     | '/market/mine'
     | '/market/new'
     | '/market/orders'
-    | '/orb/knowledge-graph'
-    | '/orb/synaptic-lab'
-    | '/orb/unassigned'
     | '/p/$postId'
     | '/profile/$username'
     | '/slangtag/$name'
@@ -829,12 +756,10 @@ export interface FileRouteTypes {
     | '/api/public/retention-run'
     | '/channels/'
     | '/market/'
-    | '/channels/orb/$scope'
     | '/market/shop/$username'
     | '/market/tx/$txId'
     | '/api/public/payments/webhook'
     | '/lovable/email/transactional/preview'
-    | '/channels/orb/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -872,7 +797,6 @@ export interface FileRouteTypes {
     | '/admin/market'
     | '/admin/media'
     | '/admin/moderation'
-    | '/admin/orb-dev'
     | '/admin/pauses'
     | '/admin/posts'
     | '/admin/registration'
@@ -893,9 +817,6 @@ export interface FileRouteTypes {
     | '/market/mine'
     | '/market/new'
     | '/market/orders'
-    | '/orb/knowledge-graph'
-    | '/orb/synaptic-lab'
-    | '/orb/unassigned'
     | '/p/$postId'
     | '/profile/$username'
     | '/slangtag/$name'
@@ -908,12 +829,10 @@ export interface FileRouteTypes {
     | '/api/public/retention-run'
     | '/channels'
     | '/market'
-    | '/channels/orb/$scope'
     | '/market/shop/$username'
     | '/market/tx/$txId'
     | '/api/public/payments/webhook'
     | '/lovable/email/transactional/preview'
-    | '/channels/orb'
   id:
     | '__root__'
     | '/'
@@ -953,7 +872,6 @@ export interface FileRouteTypes {
     | '/admin/market'
     | '/admin/media'
     | '/admin/moderation'
-    | '/admin/orb-dev'
     | '/admin/pauses'
     | '/admin/posts'
     | '/admin/registration'
@@ -969,15 +887,11 @@ export interface FileRouteTypes {
     | '/_authenticated/business_/campaigns'
     | '/_authenticated/channels/$channelId'
     | '/_authenticated/channels/mine'
-    | '/_authenticated/channels/orb'
     | '/_authenticated/hashtag/$name'
     | '/_authenticated/market/$itemId'
     | '/_authenticated/market/mine'
     | '/_authenticated/market/new'
     | '/_authenticated/market/orders'
-    | '/_authenticated/orb/knowledge-graph'
-    | '/_authenticated/orb/synaptic-lab'
-    | '/_authenticated/orb/unassigned'
     | '/_authenticated/p/$postId'
     | '/_authenticated/profile/$username'
     | '/_authenticated/slangtag/$name'
@@ -990,12 +904,10 @@ export interface FileRouteTypes {
     | '/api/public/retention-run'
     | '/_authenticated/channels/'
     | '/_authenticated/market/'
-    | '/_authenticated/channels/orb/$scope'
     | '/_authenticated/market/shop/$username'
     | '/_authenticated/market/tx/$txId'
     | '/api/public/payments/webhook'
     | '/lovable/email/transactional/preview'
-    | '/_authenticated/channels/orb/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1296,13 +1208,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminModerationRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/orb-dev': {
-      id: '/admin/orb-dev'
-      path: '/orb-dev'
-      fullPath: '/admin/orb-dev'
-      preLoaderRoute: typeof AdminOrbDevRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/pauses': {
       id: '/admin/pauses'
       path: '/pauses'
@@ -1408,13 +1313,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChannelsMineRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/channels/orb': {
-      id: '/_authenticated/channels/orb'
-      path: '/channels/orb'
-      fullPath: '/channels/orb'
-      preLoaderRoute: typeof AuthenticatedChannelsOrbRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/hashtag/$name': {
       id: '/_authenticated/hashtag/$name'
       path: '/hashtag/$name'
@@ -1455,27 +1353,6 @@ declare module '@tanstack/react-router' {
       path: '/market/orders'
       fullPath: '/market/orders'
       preLoaderRoute: typeof AuthenticatedMarketOrdersRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/orb/knowledge-graph': {
-      id: '/_authenticated/orb/knowledge-graph'
-      path: '/orb/knowledge-graph'
-      fullPath: '/orb/knowledge-graph'
-      preLoaderRoute: typeof AuthenticatedOrbKnowledgeGraphRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/orb/synaptic-lab': {
-      id: '/_authenticated/orb/synaptic-lab'
-      path: '/orb/synaptic-lab'
-      fullPath: '/orb/synaptic-lab'
-      preLoaderRoute: typeof AuthenticatedOrbSynapticLabRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/orb/unassigned': {
-      id: '/_authenticated/orb/unassigned'
-      path: '/orb/unassigned'
-      fullPath: '/orb/unassigned'
-      preLoaderRoute: typeof AuthenticatedOrbUnassignedRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/p/$postId': {
@@ -1548,20 +1425,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicRetentionRunRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/channels/orb/': {
-      id: '/_authenticated/channels/orb/'
-      path: '/'
-      fullPath: '/channels/orb/'
-      preLoaderRoute: typeof AuthenticatedChannelsOrbIndexRouteImport
-      parentRoute: typeof AuthenticatedChannelsOrbRoute
-    }
-    '/_authenticated/channels/orb/$scope': {
-      id: '/_authenticated/channels/orb/$scope'
-      path: '/$scope'
-      fullPath: '/channels/orb/$scope'
-      preLoaderRoute: typeof AuthenticatedChannelsOrbScopeRouteImport
-      parentRoute: typeof AuthenticatedChannelsOrbRoute
-    }
     '/_authenticated/market/shop/$username': {
       id: '/_authenticated/market/shop/$username'
       path: '/market/shop/$username'
@@ -1593,22 +1456,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AuthenticatedChannelsOrbRouteChildren {
-  AuthenticatedChannelsOrbScopeRoute: typeof AuthenticatedChannelsOrbScopeRoute
-  AuthenticatedChannelsOrbIndexRoute: typeof AuthenticatedChannelsOrbIndexRoute
-}
-
-const AuthenticatedChannelsOrbRouteChildren: AuthenticatedChannelsOrbRouteChildren =
-  {
-    AuthenticatedChannelsOrbScopeRoute: AuthenticatedChannelsOrbScopeRoute,
-    AuthenticatedChannelsOrbIndexRoute: AuthenticatedChannelsOrbIndexRoute,
-  }
-
-const AuthenticatedChannelsOrbRouteWithChildren =
-  AuthenticatedChannelsOrbRoute._addFileChildren(
-    AuthenticatedChannelsOrbRouteChildren,
-  )
-
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedArenaRoute: typeof AuthenticatedArenaRoute
   AuthenticatedBusinessRoute: typeof AuthenticatedBusinessRoute
@@ -1622,15 +1469,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBusinessCampaignsRoute: typeof AuthenticatedBusinessCampaignsRoute
   AuthenticatedChannelsChannelIdRoute: typeof AuthenticatedChannelsChannelIdRoute
   AuthenticatedChannelsMineRoute: typeof AuthenticatedChannelsMineRoute
-  AuthenticatedChannelsOrbRoute: typeof AuthenticatedChannelsOrbRouteWithChildren
   AuthenticatedHashtagNameRoute: typeof AuthenticatedHashtagNameRoute
   AuthenticatedMarketItemIdRoute: typeof AuthenticatedMarketItemIdRoute
   AuthenticatedMarketMineRoute: typeof AuthenticatedMarketMineRoute
   AuthenticatedMarketNewRoute: typeof AuthenticatedMarketNewRoute
   AuthenticatedMarketOrdersRoute: typeof AuthenticatedMarketOrdersRoute
-  AuthenticatedOrbKnowledgeGraphRoute: typeof AuthenticatedOrbKnowledgeGraphRoute
-  AuthenticatedOrbSynapticLabRoute: typeof AuthenticatedOrbSynapticLabRoute
-  AuthenticatedOrbUnassignedRoute: typeof AuthenticatedOrbUnassignedRoute
   AuthenticatedPPostIdRoute: typeof AuthenticatedPPostIdRoute
   AuthenticatedProfileUsernameRoute: typeof AuthenticatedProfileUsernameRoute
   AuthenticatedSlangtagNameRoute: typeof AuthenticatedSlangtagNameRoute
@@ -1653,15 +1496,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBusinessCampaignsRoute: AuthenticatedBusinessCampaignsRoute,
   AuthenticatedChannelsChannelIdRoute: AuthenticatedChannelsChannelIdRoute,
   AuthenticatedChannelsMineRoute: AuthenticatedChannelsMineRoute,
-  AuthenticatedChannelsOrbRoute: AuthenticatedChannelsOrbRouteWithChildren,
   AuthenticatedHashtagNameRoute: AuthenticatedHashtagNameRoute,
   AuthenticatedMarketItemIdRoute: AuthenticatedMarketItemIdRoute,
   AuthenticatedMarketMineRoute: AuthenticatedMarketMineRoute,
   AuthenticatedMarketNewRoute: AuthenticatedMarketNewRoute,
   AuthenticatedMarketOrdersRoute: AuthenticatedMarketOrdersRoute,
-  AuthenticatedOrbKnowledgeGraphRoute: AuthenticatedOrbKnowledgeGraphRoute,
-  AuthenticatedOrbSynapticLabRoute: AuthenticatedOrbSynapticLabRoute,
-  AuthenticatedOrbUnassignedRoute: AuthenticatedOrbUnassignedRoute,
   AuthenticatedPPostIdRoute: AuthenticatedPPostIdRoute,
   AuthenticatedProfileUsernameRoute: AuthenticatedProfileUsernameRoute,
   AuthenticatedSlangtagNameRoute: AuthenticatedSlangtagNameRoute,
@@ -1687,7 +1526,6 @@ interface AdminRouteChildren {
   AdminMarketRoute: typeof AdminMarketRoute
   AdminMediaRoute: typeof AdminMediaRoute
   AdminModerationRoute: typeof AdminModerationRoute
-  AdminOrbDevRoute: typeof AdminOrbDevRoute
   AdminPausesRoute: typeof AdminPausesRoute
   AdminPostsRoute: typeof AdminPostsRoute
   AdminRegistrationRoute: typeof AdminRegistrationRoute
@@ -1713,7 +1551,6 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminMarketRoute: AdminMarketRoute,
   AdminMediaRoute: AdminMediaRoute,
   AdminModerationRoute: AdminModerationRoute,
-  AdminOrbDevRoute: AdminOrbDevRoute,
   AdminPausesRoute: AdminPausesRoute,
   AdminPostsRoute: AdminPostsRoute,
   AdminRegistrationRoute: AdminRegistrationRoute,
