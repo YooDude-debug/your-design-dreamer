@@ -89,6 +89,8 @@ describe("SEC-02 admin user search filter", () => {
     const handler = block.slice(0, block.indexOf("export const", 10));
     expect(handler).toMatch(/requireSupabaseAuth/);
     expect(handler.indexOf("await assertAdmin(context)")).toBeGreaterThan(-1);
-    expect(handler.indexOf("await assertAdmin(context)")).toBeLessThan(handler.indexOf("loadUsers("));
+    expect(handler.indexOf("await assertAdmin(context)")).toBeLessThan(
+      handler.indexOf("loadUsers("),
+    );
   });
 });
