@@ -114,9 +114,7 @@ async function signPaths(
   items: Array<{ path: string | null | undefined; owners: Array<string | null | undefined> }>,
 ): Promise<Map<string, string>> {
   const clean = [
-    ...new Set(
-      items.filter((i) => isPathOwnedBy(i.path, i.owners)).map((i) => i.path as string),
-    ),
+    ...new Set(items.filter((i) => isPathOwnedBy(i.path, i.owners)).map((i) => i.path as string)),
   ];
   const out = new Map<string, string>();
   if (clean.length === 0) return out;

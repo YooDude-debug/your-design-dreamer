@@ -4,7 +4,10 @@
  * Privileged signed links may only be created for paths owned by an allowed
  * owner; anything else (foreign, malformed, traversal) is refused.
  */
-export function isPathOwnedBy(path: unknown, ownerIds: ReadonlyArray<string | null | undefined>): boolean {
+export function isPathOwnedBy(
+  path: unknown,
+  ownerIds: ReadonlyArray<string | null | undefined>,
+): boolean {
   if (typeof path !== "string" || path.length === 0 || path.length > 1024) return false;
   if (path.startsWith("/") || path.includes("\\") || path.includes("//")) return false;
   const segments = path.split("/");
