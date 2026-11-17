@@ -1,11 +1,13 @@
 # Roadmap: Y-Dude Vollständiger Systemaudit (Read-only)
 
 ## Reaktivierung und Credit-Kostenforensik – 2026-11-17
-- [ ] Bestehende Cloud reaktivieren und Erreichbarkeit ohne Testdaten prüfen; ORB nicht reaktivieren.
-- [ ] Historische Credit-Aufzeichnungen und Ressourcenzeiten mit Abdeckung erfassen.
-- [ ] Code, Hintergrundjobs, Datenbank, Funktionen, KI, Storage und Browseraktivität read-only untersuchen.
-- [ ] Aktive Nutzung gegen belegbare Leerlaufzeiten vergleichen; Messlücken ausdrücklich benennen.
-- [ ] Forensischen Bericht mit Maßnahmenvorschlägen liefern; keine Optimierungen oder Veröffentlichungen.
+- [x] Bestehende Cloud reaktivieren; Datenbank/Auth erreichbar, Website/Desktop/Mobil öffentlich geprüft; ORB nicht reaktiviert.
+- [x] Historische Credit-Aufzeichnungen 21.07.–17.11. sowie konkrete Tagesvergleiche erfasst; Buchungszeit von Ressourcenzeit getrennt.
+- [x] Code, sieben aktive Jobs, Datenbank/Pool, Warteschlangen, KI und Storage read-only untersucht; keine Optimierungen/Veröffentlichung.
+- [x] Aktive Nutzung gegen Tage ohne erfasste Besuche verglichen; 6.–9.11.: 10,019222096 Credits, davon 9,9072 DB.
+- [x] Forensischen Bericht und zwei CSV-Belegtabellen in Files erstellt.
+- [ ] Angemeldete Lesefunktionsprüfung und Hintergrundtab-Messung: blockiert bis Auftraggeber in Vorschau angemeldet ist (automatische Konto-Zuordnung fehlt).
+- [ ] Historische Zuordnung jeder Job-/Serveranfrage und Kapazitätsspitzen: sichere Ausführungshistorie/Lastzeitreihen nicht verfügbar; im Bericht abgegrenzt.
 
 Regeln: keine Fixes, keine Features, keine DB-/Datenänderungen. Nur prüfen + dokumentieren. Befunde P0–P3. Abschluss: PDF in /mnt/documents.
 
