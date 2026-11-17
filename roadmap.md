@@ -1,5 +1,12 @@
 # Roadmap: Y-Dude Vollständiger Systemaudit (Read-only)
 
+## Gezielte Leerlauf-Optimierungsanalyse – 2026-11-17
+- [ ] Automatische Pause/Wake-up, kleinere Instanz und Datenintegrität read-only prüfen.
+- [ ] Alle sieben aktiven Zeitpläne mit realen Funktionen und sicheren Laufnachweisen abgleichen.
+- [ ] Sichtbarer/verdeckter/geschlossener Browser: Quellen und verfügbare Messungen trennen.
+- [ ] Szenarien A/B/C mit belegter Basis, bedingten Schätzungen und priorisierter Empfehlung dokumentieren.
+- [ ] Keine Umsetzung; Freigabe für jede spätere Änderung abwarten.
+
 ## Reaktivierung und Credit-Kostenforensik – 2026-11-17
 - [x] Bestehende Cloud reaktivieren; Datenbank/Auth erreichbar, Website/Desktop/Mobil öffentlich geprüft; ORB nicht reaktiviert.
 - [x] Historische Credit-Aufzeichnungen 21.07.–17.11. sowie konkrete Tagesvergleiche erfasst; Buchungszeit von Ressourcenzeit getrennt.
