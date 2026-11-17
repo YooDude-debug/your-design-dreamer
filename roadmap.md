@@ -1,5 +1,14 @@
 # Roadmap: Y-Dude Vollständiger Systemaudit (Read-only)
 
+## Freigegebene Leerlaufoptimierung / Tiny – 2026-11-17
+- [ ] Sichere Scheduler-Ablösung: QStash-Zugang nicht vorhanden; Konto und sichere Bereitstellung durch Auftraggeber erforderlich.
+- [ ] Tiny: Mini bestätigt; ruhige 35%-RAM-Momentaufnahme reicht nicht; tatsächlicher Tiny-Dialogtarif und repräsentative Last fehlen.
+- [ ] Drei Arbeitsqueues: blockiert durch Migrationsverbot; transaktionaler Moderations-Enqueue und dauerhafter Wake/Recovery fehlen im Bestand.
+- [ ] Browser-/Vorschlagsoptimierungen: bis sichere Gesamtverarbeitung und Praxistests möglich sind zurückgestellt, bestehende Push-/Realtimewege erhalten.
+- [x] Pflichtintervalle/Live-Code unangetastet; 66 lokale Vertrag-/Mocktests bestanden; vollständige Praxis-/Lasttests weiterhin blockiert.
+- [x] Separate Testversion erstellt und eigene Test-DB bestätigt; read-only Vorbereitungsprüfung dort, keine Übernahme/Veröffentlichung.
+- [x] Statusbericht in Files erstellt; keine Einsparung oder erfolgreiche Tiny-Umstellung behauptet; Produktionsänderungen zurückgestellt.
+
 ## Gezielte Leerlauf-Optimierungsanalyse – 2026-11-17
 - [x] Automatische Pause/Wake-up, kleinere Instanz und Datenintegrität read-only geprüft; Besucher-Wake nicht unterstützt, Tiny-Kapazität unbewiesen.
 - [x] Alle sieben aktiven Zeitpläne mit realen Funktionen und sicheren Laufnachweisen abgeglichen; 6.–9.11. 19.108 Scheduler-Starts, nicht Handler-Erfolgsnachweis.
