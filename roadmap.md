@@ -1,11 +1,11 @@
 # Roadmap: Y-Dude Vollständiger Systemaudit (Read-only)
 
 ## Gezielte Leerlauf-Optimierungsanalyse – 2026-11-17
-- [ ] Automatische Pause/Wake-up, kleinere Instanz und Datenintegrität read-only prüfen.
-- [ ] Alle sieben aktiven Zeitpläne mit realen Funktionen und sicheren Laufnachweisen abgleichen.
-- [ ] Sichtbarer/verdeckter/geschlossener Browser: Quellen und verfügbare Messungen trennen.
-- [ ] Szenarien A/B/C mit belegter Basis, bedingten Schätzungen und priorisierter Empfehlung dokumentieren.
-- [ ] Keine Umsetzung; Freigabe für jede spätere Änderung abwarten.
+- [x] Automatische Pause/Wake-up, kleinere Instanz und Datenintegrität read-only geprüft; Besucher-Wake nicht unterstützt, Tiny-Kapazität unbewiesen.
+- [x] Alle sieben aktiven Zeitpläne mit realen Funktionen und sicheren Laufnachweisen abgeglichen; 6.–9.11. 19.108 Scheduler-Starts, nicht Handler-Erfolgsnachweis.
+- [x] Browserquellen und öffentliche Messung dokumentiert; angemeldeter Zugang fehlt, headless Tabwechsel blieb sichtbar (kein Background-Nachweis).
+- [x] Szenarien A/B/C mit belegter Basis, bedingten Schätzungen und priorisierter Empfehlung in Files erstellt.
+- [x] Keine Umsetzung; alle Jobs/Instanz/Daten/Secrets unverändert; spätere Maßnahmen erfordern ausdrückliche Freigabe.
 
 ## Reaktivierung und Credit-Kostenforensik – 2026-11-17
 - [x] Bestehende Cloud reaktivieren; Datenbank/Auth erreichbar, Website/Desktop/Mobil öffentlich geprüft; ORB nicht reaktiviert.
@@ -14,7 +14,7 @@
 - [x] Aktive Nutzung gegen Tage ohne erfasste Besuche verglichen; 6.–9.11.: 10,019222096 Credits, davon 9,9072 DB.
 - [x] Forensischen Bericht und zwei CSV-Belegtabellen in Files erstellt.
 - [ ] Angemeldete Lesefunktionsprüfung und Hintergrundtab-Messung: blockiert bis Auftraggeber in Vorschau angemeldet ist (automatische Konto-Zuordnung fehlt).
-- [ ] Historische Zuordnung jeder Job-/Serveranfrage und Kapazitätsspitzen: sichere Ausführungshistorie/Lastzeitreihen nicht verfügbar; im Bericht abgegrenzt.
+- [ ] Historische Zuordnung jeder Serveranfrage und Kapazitätsspitzen: Handler-Historie/Lastzeitreihen fehlen; Scheduler-Startzuordnung am 17.11. nachträglich read-only belegt.
 
 Regeln: keine Fixes, keine Features, keine DB-/Datenänderungen. Nur prüfen + dokumentieren. Befunde P0–P3. Abschluss: PDF in /mnt/documents.
 
