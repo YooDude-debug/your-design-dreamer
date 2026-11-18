@@ -101,7 +101,7 @@ export const adminModerationDecision = createServerFn({ method: "POST" })
 /* ------------------------------------------------- Worker-Start (Beitraege) */
 
 /**
- * Startet den Moderations-Worker fuer angemeldete Nutzer.
+ * Startet den Moderations-Worker nur fuer Admins und Moderatoren.
  *
  * Die Autorisierung erfolgt serverseitig ueber die bestehende Anmeldung –
  * es gelangt kein Geheimnis in die Oberflaeche. Der Worker verarbeitet nur
@@ -109,7 +109,9 @@ export const adminModerationDecision = createServerFn({ method: "POST" })
  */
 export const runModerationQueue = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async (): Promise<{ processed: number }> => {
+  .handler(async ({ context }): Promise<{ processed: number }> => {
+    const { assertModerator } = await import("@/lib/admin.server");
+    await assertModerator(context);
     const { processModerationQueue } = await import("@/lib/moderation-queue.server");
     const results = await processModerationQueue(5);
     return { processed: results.length };

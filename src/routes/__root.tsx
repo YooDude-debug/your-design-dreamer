@@ -215,7 +215,17 @@ function RootComponent() {
     const onMessage = (event: MessageEvent) => {
       const data = event.data as { type?: string; link?: string } | null;
       if (data?.type !== "push-navigate") return;
-      const link = typeof data.link === "string" && data.link.startsWith("/") ? data.link : "/feed";
+      let link = "/feed";
+      try {
+        if (typeof data.link === "string" && data.link.startsWith("/")) {
+          const target = new URL(data.link, window.location.origin);
+          if (target.origin === window.location.origin) {
+            link = target.pathname + target.search + target.hash;
+          }
+        }
+      } catch {
+        /* Untrusted push links must stay on this origin. */
+      }
       void (async () => {
         try {
           await router.navigate({ to: link as never });

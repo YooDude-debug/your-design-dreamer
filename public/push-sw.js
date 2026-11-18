@@ -66,7 +66,16 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const raw = (event.notification.data && event.notification.data.link) || "/dev";
-  const link = String(raw).startsWith("/") ? String(raw) : "/dev";
+  let link = "/dev";
+  try {
+    // Resolve first: //host, backslashes and whitespace can change the origin.
+    const resolved = new URL(String(raw), self.location.origin);
+    if (String(raw).startsWith("/") && resolved.origin === self.location.origin) {
+      link = resolved.pathname + resolved.search + resolved.hash;
+    }
+  } catch {
+    /* Malformed destinations fall back to the app. */
+  }
   const target = new URL(link, self.location.origin).href;
 
   event.waitUntil(
